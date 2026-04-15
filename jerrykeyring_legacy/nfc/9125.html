@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>제리키링 | 내 음원 듣기</title>
+  <link rel="icon" type="image/png" href="sumbnail.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .youtube-link {
+      border: none !important;
+      background: none !important;
+      transition: none !important;
+    }
+
+    .youtube-link:hover {
+      background: none !important;
+      color: inherit !important;
+    }
+    .share-link {
+      border: none !important;
+      background: none !important;
+      transition: none !important;
+    }
+
+    .share-link:hover {
+      background: none !important;
+      color: inherit !important;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <header>
+    <img src="sumbnail.png" alt="로고" class="logo">
+  </header>
+  <main>
+    <audio id="audioPlayer" controls class="mt-4" style="width: 100%; max-width: 300px; padding-bottom: 15px; display: none;"></audio>
+    <div class="intro-text">
+      <p>AI 음원 불러오는중..</p>
+    </div>
+    <video id="introVideo" autoplay muted playsinline style="width: 100%; max-width: 400px; display: block;">
+      <source src="/video/video.mp4" type="video/mp4">
+    </video>
+    
+    <!-- 여기에 변경 -->
+
+    <button class="btn-orange btn-outline-primary track-button" style="display: none;" onclick="playTrack('/music/9125.mp3', '/lyrics/9125.txt')">
+      <img src="sumbnail.png" class="size">
+      <p>음원</p>
+    </button>
+    
+
+    <div id="lyrics"></div>
+    <div class="action-buttons" style="display: none;">
+      <!-- <a id="downloadBtn" href="#" download>다운로드</a> -->
+      <a class="youtube-link" href="https://www.youtube.com/@%EC%A0%9C%EB%A6%AC%ED%82%A4%EB%A7%81AI" target="_blank">
+        <i class="fa-brands fa-youtube"></i>
+      </a>
+      <button id="shareBtn" class="share-link">
+        <i class="fa-solid fa-share"></i>
+      </button>
+    </div>
+    <p class="mb-0" style="font-size: 7pt; text-align: center; margin-top: 5px; color: #ff914d; font-weight: 500; display: none; opacity: 0;">*DBD LAB. | 나만의 앨범키링</p>
+  </main>
+
+  <script>
+    // 인트로 텍스트 페이드인
+    const introText = document.querySelector('.intro-text');
+    setTimeout(() => introText.classList.add('show'), 500);
+    function playTrack(audioSrc, lyricsSrc) {
+      const player = document.getElementById('audioPlayer');
+      player.src = audioSrc;
+      player.style.display = "block";
+      setTimeout(() => player.style.opacity = "1", 10);
+      player.play();
+
+      // action-buttons 표시
+      const actionButtons = document.querySelector('.action-buttons');
+      actionButtons.style.display = "flex";
+      setTimeout(() => actionButtons.style.opacity = "1", 10);
+
+      // 다운로드 버튼 갱신
+      const downloadBtn = document.getElementById('downloadBtn');
+      if (downloadBtn) downloadBtn.href = audioSrc;
+
+      fetch(lyricsSrc)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('가사 파일을 불러오지 못했습니다.');
+          }
+          return response.text();
+        })
+        .then(text => {
+          const lyrics = document.getElementById('lyrics');
+          lyrics.innerText = text;
+          lyrics.style.display = 'block';
+          setTimeout(() => lyrics.style.opacity = "1", 10);
+        })
+        .catch(error => {
+          const lyrics = document.getElementById('lyrics');
+          lyrics.innerText = '가사가 준비되지 않았습니다.';
+          lyrics.style.display = 'block';
+          setTimeout(() => lyrics.style.opacity = "1", 10);
+        });
+    }
+
+    // 공유 버튼 기능 (기기 기본 공유창 호출)
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+      const shareData = {
+        title: '제리키링 | 내 음원 듣기',
+        text: '제리키링에서 만든 나만의 음원을 들어보세요 🎧',
+        url: window.location.href
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (err) {
+          alert('공유가 취소되었습니다.');
+        }
+      } else {
+        alert('이 브라우저에서는 공유 기능을 지원하지 않습니다.');
+      }
+    });
+
+    function toggleLyrics() {
+      const lyrics = document.getElementById('lyrics');
+      lyrics.style.display = 'block';
+    }
+
+    // 다크모드 토글: 로고 클릭시
+    const logo = document.querySelector('.logo');
+    logo.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    const introVideo = document.getElementById('introVideo');
+    introVideo.addEventListener('ended', () => {
+      introText.style.opacity = '0';
+      setTimeout(() => introText.style.display = 'none', 1300);
+      document.querySelectorAll('.track-button').forEach(btn => {
+        btn.style.display = 'block';
+        btn.style.opacity = '0';
+        setTimeout(() => btn.style.opacity = '1', 10);
+      });
+      introVideo.style.display = 'none';
+      // 인트로 영상 끝난 후 infoText 천천히 나타나기
+      const infoText = document.querySelector('.mb-0');
+      infoText.style.display = 'block';
+      infoText.style.opacity = '0';
+      setTimeout(() => infoText.style.opacity = '1', 10);
+    });
+  </script>
+
+</body>
+</html>

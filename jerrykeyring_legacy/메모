@@ -1,0 +1,234 @@
+export const questions = [
+  {
+    number: '01',
+    question: '클라이밍 해보고 싶은데 나라면?',
+    choices: [
+      { text: '혼자 조용히 기빨리는데...<br>(혼자나 소수만 슬그머니 갔다오자 히히)', value: 'i' },
+      { text: '재밌겠다!<br>단톡방에 같이 가자고 해야지~', value: 'e' }
+    ]
+  },
+  {
+    number: '02',
+    question: '폼롤러로 몸 풀고 있을 때<br>내가 주로 하는 생각은?',
+    choices: [
+      { text: '(오로지 몸만 푼다)', value: 's' },
+      { text: '(푸는 사람보면서)<br>굳은살 생길 것 같은데.. 클라이밍 장갑 같은 건 안나오나?', value: 'n' }
+    ]
+  },
+  {
+    number: '03',
+    question: '앞 사람이 문제를 아쉽게 못 풀었다<br>반응은?',
+    choices: [
+      { text: '민망하시겠지?<br>다른 문제보는 척 해야겠다.', value: 'f' },
+      { text: '아 저 문제는 점프(다이노)해야되는구나<br>다음엔 난 점프해야겠다.', value: 't' }
+    ]
+  },
+  {
+    number: '04',
+    question: '매번 못 풀던 문제 앞에 섰다!<br> 떨리는 마음에 처음 시작한 건?',
+    choices: [
+      { text: '체력 분배가 중요해!<br>먼저 탑(꼭대기)가는 길(루트파인딩)을 보자!', value: 'j' },
+      { text: '몸이 기억하고 있을거야<br>일단 올라가보자!', value: 'p' }
+    ]
+  },
+  {
+    number: '05',
+    question: '문제를 풀었더니 다들 뒤에서 응원해준다!<br>나의 반응은?',
+    choices: [
+      { text: '으아아 감사합니다!!<br>(좋은데 낯가림)', value: '' },
+      { text: '감사합니다!! <br>(내가 좀 잘 타지) ', value: '' }
+    ]
+  },
+  {
+    number: '06',
+    question: '오늘 컨디션이 바닥이다<br>유난히 몸이 무거운 날엔?',
+    choices: [
+      { text: '시간 내서 왔는데 못 깨고 갈 순 없지.<br>어쩌겠어? 그냥 타자!', value: '' },
+      { text: '안 좋은건 어쩔 수 없지!<br>풀었던 것중에 재밌는 거 타자!', value: '' }
+    ]
+  },
+  {
+    number: '07',
+    question: '문제를 계속 못 풀고있다.<br>왠지 깰 것 같은데 못깨는 내 스스로에게 분하다. 나는?',
+    choices: [
+      { text: '아놔 못풀 순 없지<br>깰 때까지 집 안간두아!!', value: '' },
+      { text: '아악 오늘 깨고싶지만<br>다음에 풀자..', value: '' }
+    ]
+  },
+  {
+    number: '08',
+    question: '정말 문제 깨고 싶은데ㅠㅠ<br>어떻게 풀 방법없나?',
+    choices: [
+      { text: '시간을 더 끌 순 없다.<br>스탭님한테 당장 물어봐야지!', value: '' },
+      { text: '흠.. 내가 푸는 문제<br>풀 사람이 나타나면 좋겠다. ', value: '' }
+    ]
+  },
+  {
+    number: '09',
+    question: '드디어 내 차례가 왔다!<br>하지만 옆사람도 올라가고 싶은 눈치다. 나의 선택은?',
+    choices: [
+      { text: '오래 기달렸다고!<br>사람 좋은 얼굴로 그냥 올라가는고야!', value: '' },
+      { text: '저 분도 오래 기달렸는뎅<br>그래도 예의상 한 번 여쭤볼까?', value: '' }
+    ]
+  },
+  {
+    number: '10',
+    question: '드디어 못 풀던 문제를 풀었다!<br>나의 마음은?',
+    choices: [
+      { text: '드디어 이 문제 푸는 날이 오는구나!<br>더 열심히 해야지!', value: '' },
+      { text: '이 문제 풀었으니까 나도 조만간 날라다니겠지?<br>(멋진 등반하는 상상의 나래~)', value: '' }
+    ]
+  }
+]
+export const results = [
+{
+    //카멜레온
+    title: '가는 길은<br>내가 정해!<br><씽크빅 카멜레온>',
+    character: '/images/chameleon.png',
+    results: [
+        '가까운 MBTI 유형: ENTJ, ENTP, ESTP',
+        '혼자서 멘탈 케어가 가능해요!<br>혼클이어도, 자세가 불안정해도 결국 올라가고야 말아요!',
+        '무브가 다이나믹 하다는 소리를 자주 들어요.<br>창의적인 등반을 해요.',
+        '문제에 대한 욕심이 많아요.<br>어렵다는 걸 알지만 문제 풀 생각에 행복해요!',
+        '자유로운 영혼이예요! 혼클도 종종 즐겨해요(아주 종종..)<br> 누구보다 절제력 있는 등반가예요:)',
+        '칭찬 좋아요. <br>등반에 성공할 때 들리는 박수와 나이스 소리를 좋아해요. <br>빨리 나이스와 박수를 쳐줘요! 얼른!! <br>분위기를 누구보다 잘 즐겨요.',
+        '이 친구들과 함께 있으면 하루가 너무 재밌어요. <br>도라이같은 매력에 빠지면 답도 없어요. <br>하지만 이 구역 도라이는 나로 충분하다. <br>나랑 같은 유형있으면 팍 식어요.',
+        '보기보다 마음이 많이 여려요. 강해보일 때 그때 위로와 칭찬이 필요한 때예요. 존심을 지켜주면 더할나위없이 더 잘해줘요!'
+    ],
+    jobs: ['핀치 홀드', '밸런스'],
+    lectureImg: '/images/result_lecture1.png',
+    lectureUrl: 'https://qr.kakaopay.com/FTIxvoncB'
+},
+{
+    //하늘다람쥐
+    title: '매달려서 인사하는!<br>친화력 갑<br><인기쟁이 하늘다람쥐>',
+    character: '/images/rsquirrel.png',
+    results: [
+        '가까운 MBTI 유형: ESFP, ESFJ, ENFJ',
+        '나는야 클라이밍 사람들 멘탈 지킴이!<br>언제나 토닥토닥 으샤으샤 나이스!를 외치고 할 수 있다고 응원하며 다니는 파워 인싸!',
+        '소외되는 사람 없도록 사람을 정말 잘 챙겨요. <br>하지만 나도 칭찬해줘요! <br>칭찬과 격려는 날 춤추게 해요. <br>나의 장점을 더 말해줘요! <br>그러면 더 밝고 낙천적인 에너지를 뿜는답니다!',
+        '여러 사람과 같이 있는 것을 좋아해요! <br>혼클은 절대 싫어요!',
+        '진행력 갑! 추진력 갑!<br>모든 문제를 빠르게 찍먹해요! <br>멀티가 가능해서 코디맵을 잘 풀어요.',
+        '처음 오시는 초보자, 커플, 혼클하는 분들 옆에서도 다치지 않게, 외롭지 않게 등반을 응원해줘요.',
+        '순수한 면도 있어 사람들이 입덕 후 빠져나오지 못하는 치명적인 매력이 있어요.<br>출구가 없어요.',
+        '특유의 밝은 이미지로 멀리서도 빛이나요. <br>사람들이 친해지고 싶어해요.'
+    ],
+    jobs: ['포켓 홀드', '코디'],
+    lectureImg: '/images/result_lecture2.png',
+    lectureUrl: 'https://qr.kakaopay.com/FTIxvoncB'
+},
+{
+    //여우원숭이
+    title: '내가 가는 길이<br>곧 길이다!<br><마이웨이 여우원숭이>',
+    character: '/images/lemur.png',
+    results: [
+        '가까운 MBTI 유형: INFP, ISFP, ISFJ, INFJ',
+        '이것저것 편식 없이 클라이밍하는 편이에요.<br>모든 문제가 궁금해요!',
+        '섬세함이 장점으로<br>남들이 보기에 여유있는 등반을 한다는 칭찬을 자주 들어요.',
+        '이 분들은 사람많으면 배려하느라 등반을 못탈 때가 많아요! <br>빨리 올라가라고 재촉해주세요! <br>이미 충분히 배려했다구요!!',
+        '혼자 하는 거 좋아해요. 그리고 도란도란 이야기하는 것도 좋아해요. <br>그래서 클라이밍이 너무 좋아요. 두 가지 다 갖췄어요. <br>혼자 등반하고 힘들면 앉아서 이야기도 나누고!',
+        '가끔은 원숭이처럼 나무에서 떨어지는 일도 있지만..!<br>또 타면 되죠~ (프로긍정러)',
+        '다들 안타고 앉아있냐고 할때도 있지만,<br>머리속으로 3번 더 깨고있어요! 도대체 이 분들 머리는 언제 쉬죠?',
+        '생각이 깊이 있는 유형이에요. 이해의 폭이 넓어요. <br>사람들이 옆에 있으면 정신적으로 의지를 많이해요. <br>그래서 그런지 루트파인딩을 잘 해줘요.'
+    ],
+    jobs: ['핀치 홀드', '밸런스'],
+    lectureImg: '/images/result_lecture3.png',
+    lectureUrl: 'https://qr.kakaopay.com/FTIxvoncB'
+},
+{
+    //구름표범
+    title: '이 유형은<br>홀드를 뜯어!<br><인생한방 구름표범>',
+    character: '/images/leopard.png',
+    results: [
+        '가까운 MBTI 유형: ESTJ, ISTP',
+        '전략적으로 계획을 세우는 걸 좋아해요! <br>등반 전 루트파인딩을 철저히 해요.',
+        '평소 경제와 사회 이슈에 관심이 매우 많아 클라이밍 동호회를 자주 나가요.',
+        '꿈이 커요!<br>내게 장애물은 없어요! <br>모든 문제 한 번에 등반해내요~',
+        '일할 땐 일하고! 놀 땐 놀고!<br>뭐든 확실한 게 좋아요. <br>오버행 확실해서 너무 좋아요! <br>깼을 때 쾌감을 잊지 못해요.',
+        '으리! 한 번 맺은 인연은 놓지않아요. <br>그렇기에 시작을 잘 안하지만 한 번 마음먹으면 꾸준해요.',
+        '문제를 통제하려고해요! 배운 클라이밍 기술을 잘 써먹어요. 루트파인딩을 잘하기로 소문났어요.',
+        '항상 예의바르게 행동해요. 배려없이 혼자 계속타는 클라이머는 질색이에요.'
+    ],
+    jobs: ['언더그립 홀드', '오버행'],
+    lectureImg: '/images/result_lecture4.png',
+    lectureUrl: 'https://qr.kakaopay.com/FTIxvoncB'
+},
+{
+    //레서판다
+    title: '한 번 집중하면<br>멈출 수 없지!<br><올라운더 레서판다>',
+    character: '/images/lesser-panda.png',
+    results: [
+        '가까운 MBTI 유형: INTP, ISTJ',
+        '등반 전 이미 생각을 마쳤어요. 깔끔하고 군더더기 없이 등반해요. <br>동작이 프로페셔널하고 멋있어요.',
+        '혼자서 더 잘해요.<br>혼클 최고!',
+        '저는 위선과 가식이 없어요.<br>진실만 말하죠. (진지)<br> 그래서 매달려보고 안된다싶으면 빠르게 포기해요.<br>내 몸뚱이가 진실을 말하기 때문이죠.',
+        '관심 분야가 생기면 끝도 없이 깊어져요.<br>다만 이외에 모든 것엔 관심이 없어요. <br>어, 제가 당신과 만났던가요..? <br>아! 맞다.<br>(아맞다를 제일 자주하는 유형)',
+        '(이상) <<<<<< (현실)<br>가끔 이성에게 상처를 줄 때가 있어요, 그게 아닌데...',
+        '사람들이 귀여운 면이 있다고 생각한대요. <br>본인은 귀엽다고 생각하지 않지만 친해지면 지인들이 귀엽다고 자주 놀림받는 유형이에요.',
+        '절~대 사람 많은 시간엔 안가요. <br>근데 사람 없는 시간에도 잘 안간다는 게 포인트죠.'
+    ],
+    jobs: ['핀치 홀드', '올라운더'],
+    lectureImg: '/images/result_lecture5.png',
+    lectureUrl: 'https://qr.kakaopay.com/FTIxvoncB'
+},
+{
+    //코알라
+    title: '인생 욜로지~<br>일단 타자 ><<br><항상웃상 코알라>',
+    character: '/images/koala.png',
+    results: [
+        '가까운 MBTI 유형: ENFP',
+        '느려보인다구요? 이미 다 타고 내려와있는데요?',
+        '모든 문제를 긍정적으로 바라봐요! <br>자신과 문제의 긍정적인 부분을 잘 파악해 순조롭게 문제를 풀어요.',
+        '사람들이 어떻게 푸는지 너무 궁금해요! <br>등반을 쉴 때 항상 누군가 타는 걸 관찰하고 있어요! <br>리액션 해줄게요 각오해요!',
+        '취미가 100개!<br>이것저것 다재다능해요~',
+        '결혼사진에 친구들이 다 들어갈 수 있을까요?',
+        '문제를 못 풀때마다 웃음소리가 들리면 ENFP가 있다는 뜻이에요. <br>못 푼 순간도 웃겨서 웃고 있어요. <br>엥뿌삐 멘탈 최고..',
+        '나를 위해서 커피를 사오고, 나를 위해 문제를 추천해주면 그렇게 행복해요. <br>나를 생각해주는 거 너무 좋아요. <br>아 이런 사람 없나..'
+    ],
+    jobs: ['볼륨', '올라운더'],
+    lectureImg: '/images/result_lecture6.png',
+    lectureUrl: 'https://qr.kakaopay.com/FTIxvoncB'
+}
+]
+export const mbtis = {
+  entj: 0,
+  entp: 0,
+  estp: 0,
+  esfp: 1,
+  esfj: 1,
+  enfj: 1,
+  infp: 2,
+  isfp: 2,
+  isfj: 2,
+  infj: 2,
+  estj: 3,
+  istp: 3,
+  intj: 4,
+  intp: 4,
+  istj: 4,
+  enfp: 5
+}
+
+
+
+
+
+
+==
+
+
+    <!-- Open Graph (Facebook) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="팀프매치" />
+    <meta property="og:title" content="NO.1 자차배송앱 팀프매치" />
+    <meta property="og:description" content="자차만 있다면 누구나! 일 최대 12.5만원! 매치크루가 되어보세요." />
+    <meta property="og:image" content="/images/(thumbnail).jpg" />
+    <meta property="og:url" content="https://timf-match.web.app/path/applyList" />
+
+    <!-- Twitter Cards -->
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="팀프매치" />
+    <meta property="twitter:title" content="NO.1 자차배송앱 팀프매치" />
+    <meta property="twitter:description" content="자차만 있다면 누구나! 일 최대 12.5만원! 매치크루가 되어보세요." />
+    <meta property="twitter:image" content="/images/(thumbnail).jpg" />
+    <meta property="twitter:url" content="https://timf-match.web.app/path/applyList" />

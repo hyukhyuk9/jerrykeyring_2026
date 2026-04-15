@@ -1,0 +1,53 @@
+article {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#capture{
+  width: 100%;
+}
+
+.question {
+  display: none;
+}
+
+.result {
+  display: none;
+}
+
+#img {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kakao_ad {
+  width: 100%;
+  margin: 0 auto;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%); /* 화면 아래 시작 */
+    transform: translateX(-50%);
+    opacity: 0; /* 투명하게 시작 */
+  }
+  to {
+    transform: translateY(0); /* 화면 안으로 이동 */
+    transform: translateX(-50%);
+    opacity: 1; /* 완전히 보이게 */
+  }
+}
+
+.slide-up {
+  position: fixed;
+  width: 325px;
+  left: 50%;
+  bottom: 15px; /* 화면 아래에 위치 */
+  opacity: 0; /* 초기 투명 */
+  animation: slideUp 1s ease-out 2s forwards; /* 1초 동안 애니메이션 실행, 5초 뒤 시작 */
+}

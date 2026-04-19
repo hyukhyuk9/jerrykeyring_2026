@@ -511,6 +511,17 @@
       white-space: nowrap;
     }
 
+    /* 시리얼 표시 전용 스타일 */
+    #serialDisplay {
+      text-align: center;
+      font-size: 8px;
+      color: #fff9c4;
+      margin-top: 30px;
+      opacity: 0.6;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+
     .lyrics-inner {
       position: absolute;
       top: 30px;
@@ -733,6 +744,7 @@
 
         <div id="mainUI">
           <div id="buttonList"></div>
+          <div id="serialDisplay"></div>
         </div>
 
         <button class="settings-trigger" onclick="toggleModal(true)">
@@ -1110,25 +1122,51 @@
       window.api.getUserInfo(targetId).then(res => {
         if (res && res.success && res.data) {
           const data = res.data;
-          let genreList = (data.genre || data['장르'] || `트랙 ${targetId}`).split(',').map(g => g.trim()).filter(g => g);
+          
+          // 열 이름 유연하게 찾기 (공백 제거, 대소문자 무시 등)
+          const findVal = (keys) => {
+            for(let key in data) {
+              const cleanKey = key.replace(/\s/g, '').toLowerCase();
+              if(keys.some(k => cleanKey.includes(k.toLowerCase()))) return data[key];
+            }
+            return null;
+          };
 
-          // [가사 우선순위 로직] 수정가사(K) -> 수정된가사(K) -> editedLyrics(E) 순서로 확인 후 '수정없음'인 경우 원본으로 회귀
-          let rawEdited = data['수정가사'] || data['수정된가사'] || data.editedLyrics;
-          let rawOriginal = data['가사'] || data.lyrics;
+          const genreList = (data['장르'] || data.genre || findVal(['장르', '곡제목']) || `트랙 ${targetId}`).split(',').map(g => g.trim()).filter(g => g);
+          
+          let rawEdited = data['수정'] || data['수정가사'] || data['수정된가사'] || findVal(['수정', 'editedLyrics']);
+          let rawOriginal = data['가사'] || data.lyrics || findVal(['가사', 'lyrics']);
+          
           let finalLyrics = (rawEdited && rawEdited !== "수정없음") ? rawEdited : (rawOriginal || "가사가 등록되지 않았습니다.");
 
+          // [추가] 시리얼 번호 표시
+          const serialNum = data['시리얼'] || findVal(['시리얼', 'serial']);
+          if(serialNum) {
+            document.getElementById('serialDisplay').innerText = `SN: ${serialNum}`;
+          }
+          
           if (genreList.length > 1) {
-            playlist = genreList.map((g, i) => ({ src: `./music/${targetId}-${i + 1}.mp3`, name: g, lyricsText: finalLyrics, isLoading: false }));
+            playlist = genreList.map((g, i) => ({ 
+              src: `./music/${targetId}-${i+1}.mp3`, 
+              name: g, 
+              lyricsText: finalLyrics, 
+              isLoading: false 
+            }));
           } else {
-            playlist[0].name = genreList[0]; playlist[0].lyricsText = finalLyrics;
+            playlist[0].name = genreList[0]; 
+            playlist[0].lyricsText = finalLyrics;
+          }
+          
+          // [실시간 강제 갱신] 플레이어가 이미 켜져 있다면 즉시UI 업데이트
+          const controlsDisplay = document.getElementById('playerControls').style.display;
+          if (controlsDisplay !== 'none') {
+             const currentTrack = playlist[currentIdx];
+             trackDisplay.innerText = `[ > ${currentTrack.name} ]`;
+             obsTrackTitle.innerText = currentTrack.name;
+             parseLyrics(currentTrack.lyricsText);
           }
 
-          // [실시간 업데이트] 유저가 이미 재생을 시작했다면 현재 가사창 즉시 갱신
-          if (document.getElementById('playerControls').style.display !== 'none') {
-            trackDisplay.innerText = `[ > ${playlist[currentIdx].name} ]`;
-            obsTrackTitle.innerText = playlist[currentIdx].name;
-            parseLyrics(playlist[currentIdx].lyricsText);
-          }
+          // 친구 데이터 로드... (이후 로직 동일)
 
           let activeNfcs = JSON.parse(localStorage.getItem('active_friends') || '[]');
           if (activeNfcs.length > 0) {

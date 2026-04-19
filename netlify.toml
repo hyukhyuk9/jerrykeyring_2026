@@ -1,15 +1,14 @@
 [build]
-  # 메인 배포 폴더 지정
+  # 빌드 명령어를 아예 없애서 넷리파이가 헛수고하지 않게 합니다.
+  command = "echo 'No build needed'"
+  # 우리가 서비스할 진짜 폴더 주소
   publish = "jerrykeyring_legacy"
-  command = ""
 
-[build.processing]
-  # 리다이렉트 간섭 방지를 위해 최적화 프로세싱 건너뜀
-  skip_processing = true
+# 넷리파이의 Next.js 자동 감지 기능을 강제로 끕니다.
+[build.environment]
+  NETLIFY_NEXTJS_SKIP_PREPARE = "true"
 
 [[redirects]]
-  # /nfc/4 주소를 /nfc/4.html로 연결하는 규칙만 남깁니다.
-  # (이 설정이 데이터 로딩 간섭을 최소화하는 가장 안전한 방식입니다.)
   from = "/nfc/*"
   to = "/nfc/:splat.html"
   status = 200

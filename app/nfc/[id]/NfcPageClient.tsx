@@ -52,7 +52,7 @@ export default function NfcPageClient({ nfcId, hasMusic, tracks, lyrics, genre }
                 />
 
                 <p className="info-text visible" style={{ marginTop: '1.5rem' }}>
-                  *DBD LAB. | 나만의 앨범키링
+                  *제리키링AI | 나만의 NFC 음악앨범키링
                 </p>
               </>
             )}
@@ -70,7 +70,7 @@ export default function NfcPageClient({ nfcId, hasMusic, tracks, lyrics, genre }
             className="mbti-trigger"
             onClick={() => setShowMbti(true)}
           >
-            🧀 음악 취향 테스트
+            음악 취향 테스트
           </button>
         )}
       </main>

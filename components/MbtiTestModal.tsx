@@ -3,9 +3,9 @@
 import { useState } from 'react';
 
 const questions: Record<number, { title: string; type: string; A: string; B: string }> = {
-  1: { title: '콘서트에 간다면 당신은?', type: 'EI', A: '귀가 녹는다... 박효신이 내 심장을 간질간질', B: '지디 나왔다!!! 다비켜ㅕㅕ🔥 아갓더 파워ㅓㅓㅓ' },
-  2: { title: '콘서트 당일의 당신 행동은?', type: 'EI', A: '굿즈부터 싹쓸이! 이건 투자야... (합리화 완료)', B: '떼창하다가 성대 나감. 근데 행복이가 되.' },
-  3: { title: '길 가다 최애 노래가 흘러나온다면?', type: 'EI', A: '쉿... 집중. 내 최애곡 내적 감상', B: '이건 못 참지! 리듬타다 옆사람 놀라 타닥' },
+  1: { title: '콘서트에 간다면 당신은?', type: 'EI', A: '귀가 녹는다... 박효신 콘서트', B: '난 무조건 방방 뛰는 콘서트' },
+  2: { title: '만약 당신이 콘서트를 간다면?', type: 'EI', A: '굿즈부터 싹쓸이! 이건 투자야... (합리화 완료)', B: '유튜브로 영상 무한 반복하기' },
+  3: { title: '길 가다 최애 노래가 흘러나온다면?', type: 'EI', A: '쉿.. 집중. 내 최애곡 내적 감상', B: '이건 못 참지! 리듬타다 옆사람 놀람' },
   4: { title: '하루 종일 한 곡만 들을 수 있다면?', type: 'SN', A: 'R&B로 감성 샤워함... 오늘 하루 무드 세팅 완료', B: '힙합이 내 심장 박동수랑 동기화 중' },
   5: { title: '도전 앞둔 당신, 무슨 음악 들을래?', type: 'SN', A: 'EDM 폭발! 맘속에서 불꽃놀이 터지는 중', B: '아무노래나 일단 틀어! 가사 안봐 난' },
   6: { title: '드라이브하면서 듣고 싶은 건?', type: 'SN', A: '발라드로 창밖 보며 로또 1등된 주인공 놀이', B: '댄스곡 틀자! 와이퍼랑 박자 맞춰야지' },
@@ -18,22 +18,22 @@ const questions: Record<number, { title: string; type: string; A: string; B: str
 };
 
 const results: Record<string, { genre: string; img: string; cheese: string }> = {
-  INTJ: { genre: '🧀 EDM', img: '/images/8블루.png', cheese: '블루' },
-  INTP: { genre: '🧀 Jazz', img: '/images/4카망베르.png', cheese: '카망베르' },
-  ENTJ: { genre: '🧀 EDM', img: '/images/8블루.png', cheese: '블루' },
-  ENTP: { genre: '🧀 Hip-hop', img: '/images/6파마산.png', cheese: '파마산' },
-  INFJ: { genre: '🧀 Folk', img: '/images/7아메리칸.png', cheese: '아메리칸' },
-  INFP: { genre: '🧀 Indie Pop', img: '/images/1모짜렐라.png', cheese: '모짜렐라' },
-  ENFJ: { genre: '🧀 Ballad', img: '/images/3리코타.png', cheese: '리코타' },
-  ENFP: { genre: '🧀 City Pop', img: '/images/2체다.png', cheese: '체다' },
-  ISTJ: { genre: '🧀 Folk', img: '/images/7아메리칸.png', cheese: '아메리칸' },
-  ISFJ: { genre: '🧀 Ballad', img: '/images/3리코타.png', cheese: '리코타' },
-  ESTJ: { genre: '🧀 City Pop', img: '/images/2체다.png', cheese: '체다' },
-  ESFJ: { genre: '🧀 R&B', img: '/images/5고다.png', cheese: '고다' },
-  ISTP: { genre: '🧀 Jazz', img: '/images/4카망베르.png', cheese: '카망베르' },
-  ISFP: { genre: '🧀 R&B', img: '/images/5고다.png', cheese: '고다' },
-  ESTP: { genre: '🧀 Hip-hop', img: '/images/6파마산.png', cheese: '파마산' },
-  ESFP: { genre: '🧀 Hip-hop', img: '/images/6파마산.png', cheese: '파마산' },
+  INTJ: { genre: 'EDM', img: '/images/8블루.png', cheese: '블루' },
+  INTP: { genre: 'Jazz', img: '/images/4카망베르.png', cheese: '카망베르' },
+  ENTJ: { genre: 'EDM', img: '/images/8블루.png', cheese: '블루' },
+  ENTP: { genre: 'Hip-hop', img: '/images/6파마산.png', cheese: '파마산' },
+  INFJ: { genre: 'Folk', img: '/images/7아메리칸.png', cheese: '아메리칸' },
+  INFP: { genre: 'Indie Pop', img: '/images/1모짜렐라.png', cheese: '모짜렐라' },
+  ENFJ: { genre: 'Ballad', img: '/images/3리코타.png', cheese: '리코타' },
+  ENFP: { genre: 'City Pop', img: '/images/2체다.png', cheese: '체다' },
+  ISTJ: { genre: 'Folk', img: '/images/7아메리칸.png', cheese: '아메리칸' },
+  ISFJ: { genre: 'Ballad', img: '/images/3리코타.png', cheese: '리코타' },
+  ESTJ: { genre: 'City Pop', img: '/images/2체다.png', cheese: '체다' },
+  ESFJ: { genre: 'R&B', img: '/images/5고다.png', cheese: '고다' },
+  ISTP: { genre: 'Jazz', img: '/images/4카망베르.png', cheese: '카망베르' },
+  ISFP: { genre: 'R&B', img: '/images/5고다.png', cheese: '고다' },
+  ESTP: { genre: 'Hip-hop', img: '/images/6파마산.png', cheese: '파마산' },
+  ESFP: { genre: 'Hip-hop', img: '/images/6파마산.png', cheese: '파마산' },
 };
 
 interface MbtiTestModalProps {
@@ -90,7 +90,7 @@ export default function MbtiTestModal({ isOpen, onClose }: MbtiTestModalProps) {
         {!mbtiResult ? (
           <>
             <h2 className="mbti-title">AI 음악 취향 테스트</h2>
-            <p className="mbti-subtitle">나에게 어울리는 음악 장르는? 🧀</p>
+            <p className="mbti-subtitle">나에게 어울리는 음악 장르는?</p>
 
             <div className="mbti-progress">
               <div
@@ -112,7 +112,7 @@ export default function MbtiTestModal({ isOpen, onClose }: MbtiTestModalProps) {
           </>
         ) : (
           <div className="mbti-result">
-            <h2 className="mbti-title">당신의 음악 치즈 유형</h2>
+            <h2 className="mbti-title">당신의 음악 유형</h2>
             {result && (
               <>
                 <img src={result.img} alt={result.cheese} className="mbti-result-img" />

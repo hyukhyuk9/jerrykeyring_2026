@@ -13,7 +13,7 @@ export default function HomePage() {
           color: 'var(--primary)',
           marginTop: '2rem'
         }}>
-          JERRY KEYRING 🧀
+          JERRY KEYRING AI.
         </h1>
         <p style={{
           fontSize: '0.85rem',
@@ -49,7 +49,7 @@ export default function HomePage() {
             textAlign: 'center',
             transition: 'all 0.2s ease'
           }}>
-            🔧 관리자
+            관리자
           </Link>
         </div>
         <p className="info-text visible" style={{ marginTop: '2rem' }}>

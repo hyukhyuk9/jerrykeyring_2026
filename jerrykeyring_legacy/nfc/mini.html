@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
+  <title>제리키링 | MINI 2</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <style>
+    /* 기본 설정 */
+    * { font-family: "Pretendard Variable", sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    /* [테마] 아이패드 미니 사파리 바 컬러(#F9F9F9) 반영 */
+    body.dark-mode { background-color: #000; color: #fff; }
+    body.light-mode { background-color: #F9F9F9; color: #3C3C43; } /* 사파리 바와 일체화 */
+    
+    body { transition: background-color 0.4s, color 0.4s; margin: 0; overflow: hidden; height: 100vh; width: 100vw; }
+
+    /* 캔버스: 블러 제거로 성능 확보 */
+    #flameCanvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -1; opacity: 1.0; 
+      image-rendering: pixelated; 
+    }
+
+    /* 헤더: 사파리 구분선 컬러(#D1D1D6) 반영 */
+    header {
+      position: fixed; top: 0; left: 0; width: 100%;
+      display: block; text-align: center; padding: 25px 0;
+      border-bottom: 1px solid rgba(255, 145, 77, 0.2); 
+      z-index: 100; background: transparent; transition: opacity 0.8s;
+    }
+    body.light-mode header { border-bottom: 1px solid #D1D1D6; }
+
+    /* 로고: 45px 정비율 고정 */
+    .logo { 
+      width: 45px !important; height: 45px !important; 
+      display: inline-block; object-fit: contain;
+    }
+    
+    main.container {
+      height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; transition: opacity 0.8s;
+    }
+
+    .player-container { width: 85%; max-width: 850px; text-align: center; }
+    
+    /* 제목 표시: 시인성 강화 */
+    .track-info { 
+      color: #ff914d; font-family: 'Courier New', monospace; font-size: 0.95rem; font-weight: bold;
+      padding: 6px 15px; margin-bottom: 25px; border-radius: 4px;
+      display: inline-block; white-space: nowrap; transition: opacity 0.8s;
+      border: 1px solid rgba(255, 145, 77, 0.3);
+    }
+    body.light-mode .track-info { background: rgba(0, 0, 0, 0.03); border: 1px solid #D1D1D6; }
+
+    /* 타임스탬프 (80pt) */
+    #obsTimestamp {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      text-align: center; z-index: 5; pointer-events: none; color: #ff914d;
+      opacity: 0; visibility: hidden; transition: opacity 1.2s ease;
+    }
+    body.obs-mode #obsTimestamp { display: block; opacity: 1; visibility: visible; }
+    .ts-time { font-size: 80pt; font-weight: 800; display: block; line-height: 1; }
+    .ts-date { font-size: 10pt; opacity: 0.8; letter-spacing: 1px; margin-top: 15px; display: block; }
+
+    /* 감상 모드 은닉 */
+    body.obs-mode header, body.obs-mode #mainContainer, body.obs-mode .exit-container {
+      opacity: 0 !important; pointer-events: none !important;
+    }
+
+    /* 프로그레스 바 */
+    .progress-container { width: 100%; max-width: 450px; margin: 30px auto; display: none; }
+    #progressBar { width: 100%; height: 6px; cursor: pointer; accent-color: #ff914d; }
+    .time-info { display: flex; justify-content: space-between; font-size: 0.8rem; color: #ff914d; margin-top: 12px; font-family: monospace; }
+    
+    /* 플레이어 버튼 간격 (75px 확대) */
+    .custom-controls { display: flex; justify-content: center; align-items: center; gap: 75px; margin-top: 35px; }
+    .control-btn { cursor: pointer; color: #ff914d; font-size: 2.2rem; padding: 15px; }
+    .main-play-btn { font-size: 3.8rem; }
+
+    .exit-container { position: fixed; bottom: 45px; left: 50%; transform: translateX(-50%); display: none; text-align: center; z-index: 15; transition: opacity 0.8s; }
+    .exit-btn { font-size: 2.2rem; color: #ff914d; cursor: pointer; }
+    
+    /* 목록 버튼 */
+    .track-button { 
+      margin: 8px; padding: 14px 22px; 
+      background: transparent; border: 1px solid #ff914d; color: #ff914d;
+      border-radius: 12px; cursor: pointer; font-size: 9pt; transition: all 0.2s;
+    }
+    body.light-mode .track-button:hover { background: #ff914d; color: #fff; }
+    #buttonList { display: flex; flex-wrap: wrap; justify-content: center; }
+
+    /* 설정 팝업 */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); z-index: 2000; display: none;
+      align-items: center; justify-content: center;
+    }
+    .settings-modal {
+      background: #1a1a1a; border: 1px solid #ff914d; border-radius: 15px;
+      width: 300px; padding: 25px; color: #ff914d;
+    }
+    body.light-mode .settings-modal { background: #F9F9F9; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #D1D1D6; }
+    .settings-section { margin-bottom: 20px; text-align: left; }
+    .settings-section h6 { font-size: 0.9rem; font-weight: 800; border-left: 3px solid #ff914d; padding-left: 10px; margin-bottom: 12px; }
+    .option-item { font-size: 0.85rem; display: block; margin-bottom: 10px; cursor: pointer; }
+
+    /* 반응형 스타일 */
+    @media (max-width: 768px) {
+      header { padding: 15px 0; }
+      .logo { width: 35px !important; height: 35px !important; }
+      .track-info { font-size: 0.85rem; padding: 5px 12px; margin-bottom: 20px; }
+      .ts-time { font-size: 50pt; }
+      .ts-date { font-size: 8pt; margin-top: 10px; }
+      .progress-container { margin: 20px auto; }
+      .custom-controls { gap: 40px; margin-top: 25px; }
+      .control-btn { font-size: 1.8rem; padding: 10px; }
+      .main-play-btn { font-size: 3rem; }
+      .exit-btn { font-size: 1.8rem; }
+      .exit-container { bottom: 30px; }
+      .track-button { padding: 10px 16px; font-size: 8pt; margin: 5px; }
+    }
+
+    @media (max-width: 400px) {
+      .ts-time { font-size: 40pt; }
+      .custom-controls { gap: 25px; }
+      .main-play-btn { font-size: 2.5rem; }
+      .track-button { padding: 8px 12px; font-size: 7.5pt; margin: 4px; }
+    }
+  </style>
+</head>
+<body class="dark-mode"> 
+  <canvas id="flameCanvas"></canvas>
+  <header id="main-header"><img src="sumbnail.png" class="logo"></header>
+
+  <div id="obsTimestamp">
+    <span class="ts-time" id="tsTime">00:00:00</span>
+    <span class="ts-date" id="tsDate">26.04.17 FRI</span>
+  </div>
+  
+  <main id="mainContainer" class="container">
+    <div class="player-container">
+      <audio id="audioPlayer" playsinline crossorigin="anonymous"></audio>
+      <div id="trackDisplay" class="track-info" style="display: none;">곡을 선택해주세요.</div>
+      
+      <div id="ui-controls">
+        <div id="navBar" class="progress-container">
+          <input type="range" id="progressBar" value="0" step="1" min="0">
+          <div class="time-info">
+            <span id="currentTime">00:00</span>
+            <span id="durationTime">--:--</span>
+          </div>
+        </div>
+        
+        <div id="playerControls" class="custom-controls" style="display: none;">
+          <i class="fa-solid fa-backward control-btn" ontouchstart="changeTrack(-1)"></i>
+          <i id="playPauseIcon" class="fa-solid fa-pause control-btn main-play-btn" ontouchstart="togglePlay()"></i>
+          <i class="fa-solid fa-forward control-btn" ontouchstart="changeTrack(1)"></i>
+        </div>
+        
+        <div id="mainUI">
+          <div id="buttonList"></div>
+          <button class="track-button" style="margin-top: 30px; border-radius: 30px; font-size: 0.8rem; padding: 8px 20px;" ontouchstart="toggleModal(true)">
+            <i class="fa-solid fa-gear"></i> 설정
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay" ontouchstart="toggleModal(false)">
+    <div class="settings-modal" ontouchstart="event.stopPropagation()">
+      <div class="settings-section">
+        <h6>| 화면 모드</h6>
+        <label class="option-item"><input type="radio" name="theme" onchange="setTheme('dark')" checked> 다크 모드</label>
+        <label class="option-item"><input type="radio" name="theme" onchange="setTheme('light')"> 화이트 모드 (iPad Safari)</label>
+      </div>
+      <div class="settings-section">
+        <h6>| 음악플레이어</h6>
+        <label class="option-item"><input type="radio" name="rp" onchange="repeatMode='single'" checked> 한곡 반복</label>
+        <label class="option-item"><input type="radio" name="rp" onchange="repeatMode='all'"> 전체 반복</label>
+      </div>
+      <div class="settings-section">
+        <h6>| 이동</h6>
+        <a href="admin.html" style="color: #ff914d; text-decoration: none; font-size: 0.85rem; display: inline-block;">어드민 버전으로 이동</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="exitContainer" class="exit-container"><i class="fa-solid fa-xmark exit-btn" ontouchstart="goBack()"></i></div>
+
+  <script src="js/api.js"></script>
+  <script>
+    var player = document.getElementById('audioPlayer');
+    var canvas = document.getElementById('flameCanvas');
+    var ctx = canvas.getContext('2d');
+    var audioCtx, analyser, dataArray, animationId, idleTimer;
+    var smoothedHeights = [], targetHeights = [], repeatMode = 'single';
+    var lastDraw = 0, fps = 20, isVisualizerSetup = false;
+
+    let playlist = [];
+
+    var currentIdx = 0;
+
+    function toggleModal(s) { document.getElementById('modalOverlay').style.display = s ? 'flex' : 'none'; }
+    
+    function setTheme(mode) {
+      if (mode === 'light') {
+        document.body.classList.remove('dark-mode');
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+        document.body.classList.add('dark-mode');
+      }
+    }
+
+    function updateClock() {
+      var n = new Date();
+      var h = n.getHours(), m = n.getMinutes(), s = n.getSeconds();
+      document.getElementById('tsTime').innerText = (h<10?'0'+h:h)+':'+(m<10?'0'+m:m)+':'+(s<10?'0'+s:s);
+      var days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+      document.getElementById('tsDate').innerText = n.getFullYear().toString().slice(-2) + '.' + (n.getMonth()+1) + '.' + n.getDate() + ' ' + days[n.getDay()];
+    }
+    setInterval(updateClock, 1000);
+
+    function formatTime(time) {
+      if (isNaN(time) || time === Infinity) return "00:00";
+      var m = Math.floor(time / 60), s = Math.floor(time % 60);
+      return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+    }
+
+    player.addEventListener('timeupdate', function() {
+      document.getElementById('progressBar').value = Math.floor(player.currentTime);
+      document.getElementById('currentTime').innerText = formatTime(player.currentTime);
+      if (player.duration && player.duration !== Infinity) {
+        document.getElementById('durationTime').innerText = formatTime(player.duration);
+        document.getElementById('progressBar').max = Math.floor(player.duration);
+      }
+    });
+
+    player.onended = function() { if (repeatMode === 'all') changeTrack(1); else { player.currentTime = 0; player.play(); } };
+
+    function resetTimer() {
+      showInterface();
+      clearTimeout(idleTimer);
+      if (!player.paused) idleTimer = setTimeout(hideInterface, 5000); 
+    }
+
+    function hideInterface() {
+      document.body.classList.add('obs-mode');
+      document.getElementById('main-header').style.opacity = "0";
+      document.getElementById('mainContainer').style.opacity = "0";
+      document.getElementById('exitContainer').style.opacity = "0";
+    }
+
+    function showInterface() {
+      document.body.classList.remove('obs-mode');
+      document.getElementById('main-header').style.opacity = "1";
+      document.getElementById('mainContainer').style.opacity = "1";
+      document.getElementById('exitContainer').style.opacity = "1";
+    }
+
+    document.addEventListener('touchstart', resetTimer);
+
+    function resize() {
+      canvas.width = window.innerWidth / 10;
+      canvas.height = window.innerHeight / 10;
+    }
+    window.addEventListener('resize', resize); resize();
+
+    function draw(t) {
+      animationId = requestAnimationFrame(draw);
+      if (t - lastDraw < (1000/fps)) return;
+      lastDraw = t;
+      if (!analyser) return;
+
+      analyser.getByteFrequencyData(dataArray);
+      for (var i=0; i<dataArray.length; i++) targetHeights[i] = dataArray[i]/255;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(0, 0, 0, 0.4)' : 'rgba(249, 249, 249, 0.4)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      var step = canvas.width / targetHeights.length;
+      for (var i=0; i<targetHeights.length; i++) {
+        smoothedHeights[i] += (targetHeights[i] - smoothedHeights[i]) * 0.05;
+        var h = canvas.height * smoothedHeights[i] * 0.8;
+        // ★ 픽셀 바 투명도 0.5 적용 ★
+        ctx.fillStyle = 'rgba(255, 145, 77, 0.5)';
+        ctx.fillRect(i * step + 0.5, canvas.height - h, step - 1, h);
+      }
+    }
+
+    window.onload = async function() {
+      // API 연동으로 외부에서 플레이리스트 데이터 가져오기
+      playlist = await window.nfcApi.fetchAdminPlaylist();
+      
+      playlist.forEach(function(track, i) {
+        var btn = document.createElement('button'); btn.className = 'track-button';
+        btn.innerHTML = track.name;
+        btn.ontouchstart = function(e) { e.preventDefault(); init(i); };
+        document.getElementById('buttonList').appendChild(btn);
+      });
+      updateClock();
+    };
+
+    function init(idx) {
+      document.getElementById('mainUI').style.display = 'none';
+      document.getElementById('playerControls').style.display = 'flex';
+      document.getElementById('navBar').style.display = 'block';
+      
+      var display = document.getElementById('trackDisplay');
+      display.style.display = 'inline-block';
+      display.innerText = playlist[idx].name; // 제목 표시 수리
+
+      document.getElementById('exitContainer').style.display = 'block';
+
+      if (!isVisualizerSetup) {
+        try {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AC();
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64; 
+          var src = audioCtx.createMediaElementSource(player);
+          src.connect(analyser);
+          analyser.connect(audioCtx.destination);
+          dataArray = new Uint8Array(analyser.frequencyBinCount);
+          smoothedHeights = new Array(dataArray.length).fill(0);
+          targetHeights = new Array(dataArray.length).fill(0.1);
+          isVisualizerSetup = true;
+        } catch (e) {}
+      }
+      
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      
+      currentIdx = idx;
+      player.src = playlist[idx].src; 
+      player.load();
+      player.play();
+      
+      if (!animationId) draw(0);
+      resetTimer();
+    }
+
+    function goBack() { location.reload(); } 
+    function togglePlay() { if (player.paused) { player.play(); resetTimer(); } else player.pause(); }
+    
+    function changeTrack(d) {
+      currentIdx = (currentIdx + d + playlist.length) % playlist.length;
+      player.src = playlist[currentIdx].src;
+      player.load();
+      document.getElementById('trackDisplay').innerText = playlist[currentIdx].name; // 제목 업데이트 수리
+      player.play();
+      resetTimer();
+    }
+
+    document.getElementById('progressBar').addEventListener('input', function(e) {
+      player.currentTime = e.target.value;
+      resetTimer();
+    });
+  </script>
+</body>
+</html>

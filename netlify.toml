@@ -1,0 +1,15 @@
+[build]
+  # 메인 배포 폴더 지정
+  publish = "jerrykeyring_legacy"
+  command = ""
+
+[build.processing]
+  # 리다이렉트 간섭 방지를 위해 최적화 프로세싱 건너뜀
+  skip_processing = true
+
+[[redirects]]
+  # /nfc/4 주소를 /nfc/4.html로 연결하는 규칙만 남깁니다.
+  # (이 설정이 데이터 로딩 간섭을 최소화하는 가장 안전한 방식입니다.)
+  from = "/nfc/*"
+  to = "/nfc/:splat.html"
+  status = 200

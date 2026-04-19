@@ -1,110 +1,23 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>제리키링 청음존</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    header {
-      padding: 1rem;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .logo {
-      height: 40px;
-      object-fit: contain;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1rem;
-    }
-
-    .track-button {
-      width: 100%;
-      max-width: 300px;
-      margin-bottom: 1rem;
-    }
-
-    .size { 
-      width: 30px; height: 30px;
-    }
-    .track-button {
-      width: 400px;       /* 너비 줄임 */
-      padding: 0.1rem;     /* 안쪽 여백 줄임 */
-      margin: 0.1rem auto; /* 버튼 간 여백 */
-      font-size: 0.7rem;   /* 글자 크기 축소 */
-      color: #ff914d;
-      border: 1px solid #ff914d;
-      background-color: transparent;
-    }
-
-    .btn-orange {
-      color: #ff914d;
-      border: 1px solid #ff914d;
-      background-color: transparent;
-      transition: background-color 0.2s, color 0.2s;
-    }
-
-    .btn-orange:hover,
-    .btn-orange:active,
-    .btn-orange:focus {
-      background-color: #ff914d;
-      color: white;
-      outline: none;
-      box-shadow: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>제리키링 | 보안 라우터</title>
+    <style>body { background: #000; color: #fff; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:sans-serif; }</style>
+    <script>
+        // 현재 이 카드의 고유 번호
+        const targetId = "182";
+        
+        // 1. 유저가 메인 3D 인터랙티브 화면을 본 적이 없다면?
+        if (!localStorage.getItem('seen_interactive_v2')) {
+            // 목적지를 주소에 달아서 강제 입구(메인화면)로 던져버립니다!
+            window.location.replace('../index.html?target=' + targetId);
+        } else {
+            // 2. 이미 다 한 번 거친 유저라면, 바로 통합 플레이어로 접속!
+            window.location.replace('../player.html?id=' + targetId);
+        }
+    </script>
 </head>
-<body>
-
-  <!-- 상단 로고 -->
-  <header>
-    <img src="sumbnail.png" alt="로고" class="logo">
-  </header>
-
-  <!-- 곡 재생 버튼들 -->
-  <main>
-    <!-- 곡은 자유롭게 변경 가능 -->
-    <audio id="audioPlayer" controls class="mt-4" style="width: 100%; max-width: 300px; padding-bottom: 15px;"></audio>
-    <p class="mb-0" style="font-size: 9pt; text-align: center; width: 200px; color: #ff914d;">*설문폼 작성 후 페이지가 리뉴얼돼요 🎉</p>
-    <p class="mb-3" style="font-size: 7pt; text-align: center; color: #ff914d;">(*사연을 접수 후 1~3영업일 내로 변경됩니다.)</p>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('1 Indie Pop.mp3')"><img src="1모짜렐라.png" class="size"><p>모짜렐라 | 인디팝</p></button>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('2 City Pop.mp3')"><img src="2체다.png" class="size"><p>체다 | 시티팝</p></button>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('3 Ballad.mp3')"><img src="3리코타.png" class="size"><p>리코타 | 발라드</p></button>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('4 Jazz.mp3')"><img src="4카망베르.png" class="size"><p>카망베르 | 재즈</p></button>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('5 R&B.mp3')"><img src="5고다.png" class="size"><p>고다 | 알앤비</p></button>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('6 HipHop.mp3')"><img src="6파마산.png" class="size"><p>파마산 | 힙합</p></button>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('7 Folk.mp3')"><img src="7아메리칸.png" class="size"><p>아메리칸 | 포크</p></button>
-    <button class="btn-orange btn-outline-primary track-button" onclick="playTrack('8 EDM.mp3')"><img src="8블루.png" class="size"><p>블루 | EDM</p></button>
-
-    <p class="mb-0" style="font-size: 7pt; text-align: center; margin-top: 5px; color: #ff914d; font-weight: 500;">*DBD LAB. AI음원.</p>
-    <p class="mb-0" style="font-size: 7pt; text-align: center; margin-top: 5px; color: #ff914d; font-weight: 500;">copyright © DIARY BIGDATA LAB</p>
-  </main>
-
-  <script>
-    function playTrack(src) {
-      const player = document.getElementById('audioPlayer');
-      player.src = src;
-      player.play();
-    }
-  </script>
-</body>
+<body><h2>보안 인증 중...</h2></body>
 </html>

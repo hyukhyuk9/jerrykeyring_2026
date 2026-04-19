@@ -7,6 +7,6 @@
 #
 # [VERCEL_DOMAIN]을 실제 Vercel 도메인으로 변경하세요
 
-/nfc/:id.html    https://[VERCEL_DOMAIN]/nfc/:id    301!
-/nfc/:id         https://[VERCEL_DOMAIN]/nfc/:id    301!
-/*               https://[VERCEL_DOMAIN]/:splat      301!
+/nfc/:id.html    https://jerrykeyring.vercel.app/nfc/:id    301!
+/nfc/:id         https://jerrykeyring.vercel.app/nfc/:id    301!
+/*               https://jerrykeyring.vercel.app/:splat      301!

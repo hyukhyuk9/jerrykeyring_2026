@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>관리자 | 제리키링</title>
+  <link rel="icon" type="image/png" href="../sumbnail.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  
+  <style>
+    * { font-family: "Pretendard Variable", Pretendard, sans-serif; box-sizing: border-box; }
+    body { background-color: #000; color: #fff; margin: 0; min-height: 100vh; }
+    
+    /* 제리키링 시그니처 테마색 (오렌지) 적용 */
+    :root {
+      --primary: #ff914d;
+      --primary-hover: #e57e3f;
+      --bg-dark: #111;
+      --border-color: #333;
+    }
+
+    .app-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #050505;
+    }
+    
+    .logo {
+      width: 45px;
+    }
+
+    .admin-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .admin-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--primary);
+    }
+
+    .admin-login {
+      max-width: 320px;
+      margin: 0 auto;
+      background: var(--bg-dark);
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .admin-input {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .admin-input:focus {
+      border-color: var(--primary);
+    }
+
+    .admin-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #000;
+      font-weight: 700;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .admin-btn-outline {
+      width: 100%;
+      background: transparent;
+      color: var(--primary);
+      font-weight: 600;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--primary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-btn-outline:hover {
+      background: rgba(255, 145, 77, 0.1);
+    }
+
+    /* 테이블 스타일 */
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .admin-table th, .admin-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .admin-table th {
+      color: #888;
+      font-weight: 600;
+    }
+    .admin-table tbody tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .admin-status {
+      padding: 0.3rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .admin-status.done {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    .admin-status.pending {
+      background: rgba(255, 145, 77, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(255, 145, 77, 0.2);
+    }
+
+    .admin-upload-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 2.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 1rem;
+      background: #151515;
+    }
+    .admin-upload-zone:hover, .admin-upload-zone.dragover {
+      border-color: var(--primary);
+      background: rgba(255, 145, 77, 0.05);
+    }
+    
+    /* 탭 컨트롤러 제어용 */
+    #dashboardSection { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- 헤더 -->
+  <header class="app-header">
+    <div class="flex items-center gap-3">
+      <img src="../sumbnail.png" alt="제리키링" class="logo" />
+      <span id="userBadge" class="text-xs text-gray-500 hidden"></span>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    
+    <!-- 로그인 섹션 -->
+    <div id="loginSection">
+      <h1 class="admin-title">관리자 접속</h1>
+      <div class="admin-login">
+        <input type="text" id="loginId" class="admin-input" placeholder="아이디 (어드민 전용)" autocomplete="off" />
+        <input type="password" id="loginPw" class="admin-input" placeholder="비밀번호" autocomplete="off" />
+        <p id="loginError" class="text-red-500 text-xs mb-3 hidden"></p>
+        <button class="admin-btn" onclick="handleLogin()">로그인</button>
+      </div>
+    </div>
+
+    <!-- 대시보드 섹션 -->
+    <div id="dashboardSection">
+      <!-- 탭 -->
+      <div class="flex justify-center gap-2 mb-8">
+        <button id="tabTracks" class="admin-btn !w-auto px-8" onclick="switchTab('tracks')">트랙 관리</button>
+        <button id="tabUsers" class="admin-btn-outline !w-auto px-8 hidden" onclick="switchTab('users')">계정 관리</button>
+      </div>
+
+      <!-- 트랙 뷰 -->
+      <div id="viewTracks">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-md font-bold">🎵 트랙 목록</h2>
+          <button class="admin-btn !w-auto px-4 !py-2 text-xs" onclick="toggleUpload()">+ 음원 추가</button>
+        </div>
+
+        <div id="uploadBox" class="bg-[#111] p-6 rounded-xl border border-[#222] mb-6 hidden">
+          <h3 class="text-[var(--primary)] text-sm font-bold mb-4">구글 시트 연동 음원 업로드 (준비중)</h3>
+          <input type="text" class="admin-input" placeholder="NFC 태그 고유번호 (예: 5)" />
+          <div class="admin-upload-zone" onclick="document.getElementById('fileInput').click()">
+            <p class="text-sm font-semibold text-gray-300">🎵 MP3 파일을 드래그하거나 여기를 클릭하세요</p>
+            <p class="text-xs text-gray-500 mt-2">여러 개의 파일도 선택 가능합니다</p>
+            <input type="file" id="fileInput" class="hidden" multiple accept="audio/mpeg" />
+          </div>
+          <button class="admin-btn !bg-gray-800 !text-gray-400 !cursor-not-allowed">수파베이스(Supabase) API 연동 대기중...</button>
+        </div>
+
+        <div class="overflow-x-auto border border-[#222] rounded-xl bg-[#0a0a0a]">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>NFC</th>
+                <th>신청자</th>
+                <th>장르</th>
+                <th>상태</th>
+                <th>비고</th>
+              </tr>
+            </thead>
+            <tbody id="trackListBody">
+              <!-- 추후 API 데이터 주입 공간 -->
+              <tr>
+                <td colspan="5" class="text-center p-8 text-gray-500 text-sm">프론트엔드 UI 수정용 로컬 모드입니다. 데이터를 불러오려면 API 연결이 필요합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 사용자 뷰 (마스터) -->
+      <div id="viewUsers" class="hidden">
+        <h2 class="text-md font-bold mb-6">👤 마스터 구역 (직원 관리)</h2>
+        <div class="overflow-x-auto border border-[#222] rounded-xl bg-[#0a0a0a]">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>아이디</th>
+                <th>권한</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="3" class="text-center p-8 text-gray-500 text-sm">기능 구현 대기중</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // --- 프론트엔드 디자인 수정용 임시 로직 ---
+    function handleLogin() {
+      // 프론트엔드 퍼블리싱 테스트용 우회 로그인
+      const id = document.getElementById('loginId').value;
+      if(id.trim() === '') {
+        const err = document.getElementById('loginError');
+        err.innerText = "프론트 테스트: 아무 글자나 입력해서 테스트하세요";
+        err.classList.remove('hidden');
+        return;
+      }
+      
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboardSection').style.display = 'block';
+      let userBadge = document.getElementById('userBadge');
+      userBadge.innerText = id + " (관리자)";
+      userBadge.classList.remove('hidden');
+
+      if(id === 'master') {
+         document.getElementById('tabUsers').classList.remove('hidden');
+      }
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabTracks').className = tab === 'tracks' ? 'admin-btn !w-auto px-8' : 'admin-btn-outline !w-auto px-8';
+      document.getElementById('tabUsers').className = tab === 'users' ? 'admin-btn !w-auto px-8' : 'admin-btn-outline !w-auto px-8';
+      
+      document.getElementById('viewTracks').style.display = tab === 'tracks' ? 'block' : 'none';
+      document.getElementById('viewUsers').style.display = tab === 'users' ? 'block' : 'none';
+    }
+
+    function toggleUpload() {
+      const box = document.getElementById('uploadBox');
+      box.classList.toggle('hidden');
+    }
+  </script>
+</body>
+</html>

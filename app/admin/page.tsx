@@ -254,14 +254,14 @@ export default function AdminPage() {
             className={activeTab === 'tracks' ? 'admin-btn' : 'admin-btn-outline'}
             onClick={() => setActiveTab('tracks')}
           >
-            🎵 트랙 관리
+            트랙 관리
           </button>
           {isMaster && (
             <button
               className={activeTab === 'users' ? 'admin-btn' : 'admin-btn-outline'}
               onClick={() => { setActiveTab('users'); loadUsers(); }}
             >
-              👤 계정 관리
+              계정 관리
             </button>
           )}
         </div>

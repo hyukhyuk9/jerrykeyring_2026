@@ -61,7 +61,6 @@
         /* Content Area */
         .content { margin-left: 260px; flex: 1; padding: 2rem 3rem; height: 100vh; overflow-y: auto; position: relative; }
         
-        /* View States */
         #dashboardList, #dashboardDetail, #tab-lyrics, #tab-upload, #tab-api { display: none; }
         #dashboardList.active, #dashboardDetail.active, .tab-content.active { display: block; }
 
@@ -69,7 +68,7 @@
         .page-title { font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 1rem; }
         .search-bar { background: #1a1a1a; border: 1px solid var(--border); padding: 10px 20px; border-radius: 30px; color: #fff; outline: none; width: 350px; }
 
-        /* Dashboard Table */
+        /* Card & Table */
         .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; color: var(--text-dim); font-size: 0.8rem; padding: 15px; border-bottom: 1px solid var(--border); }
@@ -80,26 +79,48 @@
         .tag-done { background: var(--primary); color: #000; }
         .tag-pending { background: #333; color: #888; }
 
-        /* Detail View Layout */
+        /* API Tab Specific */
+        .api-card { padding: 0 !important; overflow: hidden; }
+        .api-row { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); transition: background 0.3s; }
+        .api-row:last-child { border-bottom: none; }
+        .api-info { display: flex; align-items: center; justify-content: space-between; }
+        .api-text h4 { margin-bottom: 4px; font-size: 1.1rem; }
+        .api-text p { font-size: 0.85rem; color: var(--text-dim); }
+        
+        .api-config-area { 
+            height: 0; overflow: hidden; transition: all 0.3s ease-in-out; 
+            background: #151515; border-radius: 10px; margin-top: 0; padding: 0 1.5rem;
+        }
+        .api-config-area.active { height: auto; padding: 1.5rem; margin-top: 1rem; border: 1px solid #222; }
+
+        .api-input-group { margin-bottom: 1rem; }
+        .api-input-group:last-child { margin-bottom: 0; }
+        .api-input-group label { display: block; font-size: 0.75rem; color: #666; margin-bottom: 6px; }
+        .api-input-group input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 0.85rem; outline: none; }
+        .api-input-group input:focus { border-color: var(--primary); }
+
+        /* Switch UI */
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        input:disabled + .slider { opacity: 0.5; cursor: not-allowed; background-color: var(--success); }
+
+        /* Detail View, Upload Widget, Lyrics Editor (Preserved from previous versions) */
         .detail-container { display: grid; grid-template-columns: 350px 1fr; gap: 2.5rem; }
         .detail-left { background: #000; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; display: flex; flex-direction: column; align-items: center; height: fit-content; }
         .detail-player-ui { width: 100%; text-align: center; }
         .cover-art { width: 200px; height: 200px; background: #222; border-radius: 15px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #444; overflow: hidden; }
-        .detail-right { }
-
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .info-group { margin-bottom: 1.5rem; }
         .info-group label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px; }
         .info-group input { width: 100%; background: #1a1a1a; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; outline: none; }
-        .info-group input:focus { border-color: var(--primary); }
-
         .audio-list-card { background: #1a1a1a; border-radius: 15px; padding: 1.5rem; margin-top: 2rem; }
         .audio-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #222; font-size: 0.85rem; }
-        .audio-item:last-child { border: none; }
-        .add-audio-btn { width: 100%; padding: 12px; background: transparent; border: 1px dashed #444; color: #888; border-radius: 10px; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
-        .add-audio-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-        /* Floating Upload Widget (Expandable) */
+        .add-audio-btn { width: 100%; padding: 12px; background: transparent; border: 1px dashed #444; color: #888; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        
         #floatingUploadWidget {
             position: fixed; bottom: 20px; right: 20px; background: #111; 
             border: 1px solid var(--primary); border-radius: 12px; z-index: 4000;
@@ -107,20 +128,14 @@
             width: 320px; overflow: hidden;
         }
         #floatingUploadWidget.expanded { width: 600px; }
-        
         .widget-header { background: var(--primary); color: #000; padding: 12px 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .widget-body { padding: 15px; max-height: 300px; overflow-y: auto; display: block; }
-        .widget-item { margin-bottom: 15px; }
         .progress-bar-bg { width: 100%; height: 8px; background: #222; border-radius: 4px; overflow: hidden; margin-top: 6px; }
         .progress-bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
         
-        /* Lyrics Editor Grid (Already structured) */
         .lyrics-grid { display: grid; grid-template-columns: 250px 1fr 350px; gap: 1.5rem; height: calc(100vh - 150px); }
         .time-picker select { background: #222; color: var(--primary); border: 1px solid #333; padding: 5px; border-radius: 5px; }
 
-        .btn-confirm { background: var(--success) !important; color: #fff !important; }
-
-        /* Custom Player inside Detail */
         .mini-player-bar { width: 100%; margin-top: 20px; }
         .mini-progress { width: 100%; height: 4px; background: #333; border-radius: 2px; margin-bottom: 10px; position: relative; cursor: pointer; }
         .mini-progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--primary); width: 0%; }
@@ -132,11 +147,11 @@
 
     </style>
 </head>
-<body onclick="handleGlobalClick(event)">
+<body>
 
     <div id="toast">알림</div>
 
-    <!-- Login -->
+    <!-- Login Overlay -->
     <div id="loginOverlay">
         <div class="login-box">
             <h1>JERRY KEYRING<br><span style="font-size: 0.8rem; color: #888;">ADMIN CENTER</span></h1>
@@ -193,7 +208,7 @@
                 </div>
             </section>
 
-            <!-- Dashboard Detail (No Popups!) -->
+            <!-- Dashboard Detail -->
             <section id="dashboardDetail">
                 <div class="page-header">
                     <div class="page-title">
@@ -207,19 +222,13 @@
                 </div>
                 
                 <div class="detail-container">
-                    <!-- Left: Player -->
                     <div class="detail-left">
-                        <div class="cover-art" id="detailCoverArt">
-                            <i class="fa-solid fa-compact-disc"></i>
-                        </div>
+                        <div class="cover-art" id="detailCoverArt"><i class="fa-solid fa-compact-disc"></i></div>
                         <div class="detail-player-ui">
                             <h3 id="playerTrackName" style="margin-bottom: 5px;">-</h3>
                             <p id="playerArtistName" style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px;">Jerry Keyring Artist</p>
-                            
                             <div class="mini-player-bar">
-                                <div class="mini-progress" onclick="detailSeek(event)">
-                                    <div class="mini-progress-fill" id="detailProgress"></div>
-                                </div>
+                                <div class="mini-progress" onclick="detailSeek(event)"><div class="mini-progress-fill" id="detailProgress"></div></div>
                                 <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #555; margin-bottom: 15px;">
                                     <span id="detailCurrTime">00:00</span>
                                     <span id="detailTotalTime">00:00</span>
@@ -232,39 +241,20 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Right: Forms -->
                     <div class="detail-right">
                         <div class="card" style="margin-bottom: 1.5rem;">
                             <h4 style="margin-bottom: 1.5rem; color: var(--primary);">기본 정보</h4>
                             <div class="info-grid">
-                                <div class="info-group">
-                                    <label>NFC 고유 번호</label>
-                                    <input type="text" id="detailNfcId">
-                                </div>
-                                <div class="info-group">
-                                    <label>성함 (이름)</label>
-                                    <input type="text" id="detailName">
-                                </div>
-                                <div class="info-group">
-                                    <label>연락처</label>
-                                    <input type="text" id="detailPhone">
-                                </div>
-                                <div class="info-group">
-                                    <label>음악 장르</label>
-                                    <input type="text" id="detailGenre">
-                                </div>
+                                <div class="info-group"><label>NFC 고유 번호</label><input type="text" id="detailNfcId"></div>
+                                <div class="info-group"><label>성함 (이름)</label><input type="text" id="detailName"></div>
+                                <div class="info-group"><label>연락처</label><input type="text" id="detailPhone"></div>
+                                <div class="info-group"><label>음악 장르</label><input type="text" id="detailGenre"></div>
                             </div>
                         </div>
-
                         <div class="audio-list-card">
                             <h4 style="margin-bottom: 1rem; color: var(--primary);">등록된 음원 파일</h4>
-                            <div id="detailAudioList">
-                                <!-- Audio items here -->
-                            </div>
-                            <button class="add-audio-btn" onclick="document.getElementById('detailAudioInput').click()">
-                                <i class="fa-solid fa-plus"></i> 새로운 음원 추가 업로드
-                            </button>
+                            <div id="detailAudioList"></div>
+                            <button class="add-audio-btn" onclick="document.getElementById('detailAudioInput').click()"><i class="fa-solid fa-plus"></i> 새로운 음원 추가 업로드</button>
                             <input type="file" id="detailAudioInput" style="display: none;" onchange="handleDetailAudioAdd(event)">
                         </div>
                     </div>
@@ -273,7 +263,6 @@
 
             <!-- Lyrics Timeline Tab -->
             <section id="tab-lyrics" class="tab-content">
-                <!-- (Keep existing lyrics structure but ensure it fits the new style) -->
                 <div class="page-header">
                     <h2 class="page-title">가사 타임라인 정밀 설정</h2>
                     <button class="btn-sm btn-primary" onclick="saveLyricsToDB()"><i class="fa-solid fa-floppy-disk"></i> 저장하기</button>
@@ -291,9 +280,7 @@
                         <div class="preview-content" id="lyricPreviewArea"></div>
                         <div style="background: #111; padding: 15px; border-top: 1px solid #222; display: flex; align-items: center; gap: 10px;">
                             <button class="mini-play-btn" style="width: 35px; height: 35px; flex-shrink: 0;" onclick="togglePlay()"><i class="fa-solid fa-play" id="lyricPlayIcon"></i></button>
-                            <div class="progress-container" onclick="seek(event)" style="height: 4px;">
-                                <div class="progress-bar" id="progressBar"></div>
-                            </div>
+                            <div class="progress-container" onclick="seek(event)" style="height: 4px;"><div class="progress-bar" id="progressBar"></div></div>
                             <span id="lyricTimeInfo" style="font-size: 0.7rem; color: #666; white-space: nowrap;">00:00 / 00:00</span>
                         </div>
                     </div>
@@ -310,6 +297,86 @@
                     <input type="file" id="batchInput" multiple style="display: none;" onchange="handleBatchFile(event)">
                 </div>
             </section>
+
+            <!-- API Settings Tab -->
+            <section id="tab-api" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">외부 서비스 연동 설정</h2>
+                    <button class="btn-sm btn-primary" onclick="saveApiSettings()"><i class="fa-solid fa-save"></i> 설정 저장</button>
+                </div>
+                
+                <div class="card api-card">
+                    <!-- Supabase (Mandatory) -->
+                    <div class="api-row">
+                        <div class="api-info">
+                            <div class="api-text">
+                                <h4>Supabase Database <span style="font-size: 0.7rem; background: var(--success); color: #fff; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">필수</span></h4>
+                                <p>시스템의 핵심 데이터베이스 연동입니다. (현재 활성화됨)</p>
+                            </div>
+                            <label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
+                        </div>
+                    </div>
+
+                    <!-- MUREKA API -->
+                    <div class="api-row">
+                        <div class="api-info">
+                            <div class="api-text">
+                                <h4>MUREKA (뮤레카) API 연동</h4>
+                                <p>음원 등록 시 자동으로 메타데이터 및 권리 정보를 동기화합니다.</p>
+                            </div>
+                            <label class="switch"><input type="checkbox" id="murekaToggle" onchange="toggleApiConfig('mureka')"><span class="slider"></span></label>
+                        </div>
+                        <div id="murekaConfig" class="api-config-area">
+                            <div class="api-input-group">
+                                <label>MUREKA CLIENT ID</label>
+                                <input type="text" placeholder="ID를 입력하세요">
+                            </div>
+                            <div class="api-input-group">
+                                <label>MUREKA SECRET KEY</label>
+                                <input type="password" placeholder="Key를 입력하세요">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Google Sheets API -->
+                    <div class="api-row">
+                        <div class="api-info">
+                            <div class="api-text">
+                                <h4>Google Sheets 실시간 동기화</h4>
+                                <p>수파베이스 데이터 변경 시 지정된 구글 시트로 데이터를 전송합니다.</p>
+                            </div>
+                            <label class="switch"><input type="checkbox" id="sheetToggle" onchange="toggleApiConfig('sheet')"><span class="slider"></span></label>
+                        </div>
+                        <div id="sheetConfig" class="api-config-area">
+                            <div class="api-input-group">
+                                <label>SPREADSHEET ID</label>
+                                <input type="text" placeholder="시트 ID를 입력하세요">
+                            </div>
+                            <div class="api-input-group">
+                                <label>APPS SCRIPT DEPLOYMENT URL</label>
+                                <input type="text" placeholder="https://script.google.com/macros/s/...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Smart Store API -->
+                    <div class="api-row">
+                        <div class="api-info">
+                            <div class="api-text">
+                                <h4>Naver Smart Store 연동</h4>
+                                <p>스마트스토어 주문 발생 시 자동으로 사용자 데이터를 생성합니다.</p>
+                            </div>
+                            <label class="switch"><input type="checkbox" id="smartToggle" onchange="toggleApiConfig('smart')"><span class="slider"></span></label>
+                        </div>
+                        <div id="smartConfig" class="api-config-area">
+                            <div class="api-input-group">
+                                <label>WEBHOOK ENDPOINT URL</label>
+                                <input type="text" placeholder="연동할 URL을 입력하세요">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -322,9 +389,7 @@
                 <i class="fa-solid fa-xmark" style="color: #000; cursor: pointer;" onclick="cancelAllUploads(event)"></i>
             </div>
         </div>
-        <div class="widget-body" id="widgetBody">
-            <div style="color: #555; text-align: center; padding: 20px;">진행 중인 작업이 없습니다.</div>
-        </div>
+        <div class="widget-body" id="widgetBody"><div style="color: #555; text-align: center; padding: 20px;">진행 중인 작업이 없습니다.</div></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -363,16 +428,26 @@
         function showTab(tab, el) {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             if(el) el.classList.add('active');
-            
             document.getElementById('dashboardList').classList.remove('active');
             document.getElementById('dashboardDetail').classList.remove('active');
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-
             if(tab === 'dashboard') document.getElementById('dashboardList').classList.add('active');
             else document.getElementById('tab-' + tab).classList.add('active');
         }
 
-        /* Dashboard List Logic */
+        /* API Tab Logic */
+        function toggleApiConfig(type) {
+            const toggle = document.getElementById(type + 'Toggle');
+            const config = document.getElementById(type + 'Config');
+            if (toggle.checked) config.classList.add('active');
+            else config.classList.remove('active');
+        }
+
+        function saveApiSettings() {
+            toast('API 연동 설정이 저장되었습니다.');
+        }
+
+        /* Dashboard & Detail Logic (Preserved) */
         function renderTable() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const tbody = document.getElementById('trackBody');
@@ -382,148 +457,58 @@
                 tr.onclick = () => showDetail(t.id);
                 const hasAudio = t.audio_files && t.audio_files.length > 0;
                 const isTimelineDone = (t.modify && t.modify.includes('분'));
-                tr.innerHTML = `
-                    <td>${t.nfc_id}</td>
-                    <td>${t.user_name}</td>
-                    <td>${t.genre || '-'}</td>
-                    <td><span style="color: ${hasAudio ? 'var(--success)' : '#555'}">${hasAudio ? '등록완료' : '미등록'}</span></td>
-                    <td><span class="tag ${isTimelineDone ? 'tag-done' : 'tag-pending'}">${isTimelineDone ? '완료' : '미등록'}</span></td>
-                `;
+                tr.innerHTML = `<td>${t.nfc_id}</td><td>${t.user_name}</td><td>${t.genre || '-'}</td><td><span style="color: ${hasAudio ? 'var(--success)' : '#555'}">${hasAudio ? '등록완료' : '미등록'}</span></td><td><span class="tag ${isTimelineDone ? 'tag-done' : 'tag-pending'}">${isTimelineDone ? '완료' : '미등록'}</span></td>`;
                 tbody.appendChild(tr);
             });
         }
-
         function filterTable() { renderTable(); }
-
-        /* Detail View Logic */
         async function showDetail(id) {
-            currentEditingId = id;
-            const t = allTracks.find(x => x.id == id);
-            document.getElementById('dashboardList').classList.remove('active');
-            document.getElementById('dashboardDetail').classList.add('active');
-            
+            currentEditingId = id; const t = allTracks.find(x => x.id == id);
+            document.getElementById('dashboardList').classList.remove('active'); document.getElementById('dashboardDetail').classList.add('active');
             document.getElementById('detailHeaderTitle').innerText = `${t.user_name} 님의 상세 정보`;
-            document.getElementById('detailNfcId').value = t.nfc_id;
-            document.getElementById('detailName').value = t.user_name;
-            document.getElementById('detailPhone').value = t.phone_number || '';
-            document.getElementById('detailGenre').value = t.genre || '';
-            
+            document.getElementById('detailNfcId').value = t.nfc_id; document.getElementById('detailName').value = t.user_name;
+            document.getElementById('detailPhone').value = t.phone_number || ''; document.getElementById('detailGenre').value = t.genre || '';
             document.getElementById('playerTrackName').innerText = t.user_name;
-            
-            // Audio files list
             renderDetailAudioList(t.audio_files);
-            
-            // Set Player
-            if(t.audio_files && t.audio_files.length > 0) {
-                audio.src = t.audio_files[0].audio_url;
-            } else {
-                audio.src = '';
-            }
+            if(t.audio_files && t.audio_files.length > 0) audio.src = t.audio_files[0].audio_url; else audio.src = '';
         }
-
-        function backToList() {
-            audio.pause();
-            document.getElementById('dashboardDetail').classList.remove('active');
-            document.getElementById('dashboardList').classList.add('active');
-        }
-
+        function backToList() { audio.pause(); document.getElementById('dashboardDetail').classList.remove('active'); document.getElementById('dashboardList').classList.add('active'); }
         function renderDetailAudioList(files) {
-            const list = document.getElementById('detailAudioList');
-            list.innerHTML = '';
-            if(!files || files.length === 0) {
-                list.innerHTML = '<div style="color: #444; font-size: 0.8rem; padding: 10px;">등록된 음원이 없습니다.</div>';
-                return;
-            }
+            const list = document.getElementById('detailAudioList'); list.innerHTML = '';
+            if(!files || files.length === 0) { list.innerHTML = '<div style="color: #444; font-size: 0.8rem; padding: 10px;">등록된 음원이 없습니다.</div>'; return; }
             files.forEach(f => {
                 const name = f.audio_url.split('/').pop();
-                list.innerHTML += `
-                    <div class="audio-item">
-                        <span><i class="fa-solid fa-file-audio"></i> ${decodeURIComponent(name)}</span>
-                        <button class="btn-sm" style="border: none; color: var(--danger);" onclick="deleteAudio('${f.id}')"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                `;
+                list.innerHTML += `<div class="audio-item"><span><i class="fa-solid fa-file-audio"></i> ${decodeURIComponent(name)}</span><button class="btn-sm" style="border: none; color: var(--danger);" onclick="deleteAudio('${f.id}')"><i class="fa-solid fa-xmark"></i></button></div>`;
             });
         }
-
         async function saveDetailChange() {
-            const data = {
-                nfc_id: document.getElementById('detailNfcId').value,
-                user_name: document.getElementById('detailName').value,
-                phone_number: document.getElementById('detailPhone').value,
-                genre: document.getElementById('detailGenre').value
-            };
+            const data = { nfc_id: document.getElementById('detailNfcId').value, user_name: document.getElementById('detailName').value, phone_number: document.getElementById('detailPhone').value, genre: document.getElementById('detailGenre').value };
             const res = await window.api.updateTrack(currentEditingId, data);
             if(res.success) { toast('정보가 저장되었습니다.'); loadData(); }
         }
-
-        async function deleteCurrentTrack() {
-            if(confirm('정말 삭제하시겠습니까? 관련 데이터가 모두 삭제됩니다.')) {
-                await window.api.deleteTrack(currentEditingId);
-                backToList();
-                loadData();
-            }
-        }
-
-        /* New Registration Logic (Inline Toggle) */
         function toggleNewRegistration() {
-            const btn = document.getElementById('btnNewReg');
-            const btnText = document.getElementById('btnNewRegText');
-            
+            const btn = document.getElementById('btnNewReg'); const btnText = document.getElementById('btnNewRegText');
             if(!isNewRegMode) {
-                // Change to Entry Form
-                isNewRegMode = true;
-                btn.classList.add('btn-confirm');
-                btnText.innerText = '확정 (저장)';
-                
-                // Show Empty Detail View for Input
-                currentEditingId = null;
-                document.getElementById('dashboardList').classList.remove('active');
-                document.getElementById('dashboardDetail').classList.add('active');
+                isNewRegMode = true; btn.classList.add('btn-confirm'); btnText.innerText = '확정 (저장)';
+                currentEditingId = null; document.getElementById('dashboardList').classList.remove('active'); document.getElementById('dashboardDetail').classList.add('active');
                 document.getElementById('detailHeaderTitle').innerText = '신규 회원 등록';
-                document.getElementById('detailNfcId').value = '';
-                document.getElementById('detailName').value = '';
-                document.getElementById('detailPhone').value = '';
-                document.getElementById('detailGenre').value = '';
-                document.getElementById('detailAudioList').innerHTML = '';
-            } else {
-                // Apply Registration
-                saveNewTrack();
-            }
+                document.getElementById('detailNfcId').value = ''; document.getElementById('detailName').value = ''; document.getElementById('detailPhone').value = ''; document.getElementById('detailGenre').value = ''; document.getElementById('detailAudioList').innerHTML = '';
+            } else { saveNewTrack(); }
         }
-
         async function saveNewTrack() {
-            const data = {
-                nfc_id: document.getElementById('detailNfcId').value,
-                user_name: document.getElementById('detailName').value,
-                phone_number: document.getElementById('detailPhone').value,
-                genre: document.getElementById('detailGenre').value
-            };
+            const data = { nfc_id: document.getElementById('detailNfcId').value, user_name: document.getElementById('detailName').value, phone_number: document.getElementById('detailPhone').value, genre: document.getElementById('detailGenre').value };
             if(!data.nfc_id || !data.user_name) return alert('NFC ID와 이름은 필수입니다.');
-            
             const res = await window.api.insertTrack(data);
-            if(res.success) {
-                toast('신규 회원이 등록되었습니다.');
-                isNewRegMode = false;
-                const btn = document.getElementById('btnNewReg');
-                btn.classList.remove('btn-confirm');
-                document.getElementById('btnNewRegText').innerText = '신규 등록';
-                loadData();
-                backToList();
-            }
+            if(res.success) { toast('신규 회원이 등록되었습니다.'); isNewRegMode = false; document.getElementById('btnNewReg').classList.remove('btn-confirm'); document.getElementById('btnNewRegText').innerText = '신규 등록'; loadData(); backToList(); }
         }
 
-        /* Audio Player Logic (Detail) */
-        function detailTogglePlay() {
-            if(audio.paused) { audio.play(); document.getElementById('detailPlayIcon').className='fa-solid fa-pause'; }
-            else { audio.pause(); document.getElementById('detailPlayIcon').className='fa-solid fa-play'; }
-        }
+        /* Player Controls */
+        function detailTogglePlay() { if(audio.paused) { audio.play(); document.getElementById('detailPlayIcon').className='fa-solid fa-pause'; } else { audio.pause(); document.getElementById('detailPlayIcon').className='fa-solid fa-play'; } }
         audio.ontimeupdate = () => {
             const p = (audio.currentTime / audio.duration) * 100;
             document.getElementById('detailProgress').style.width = p + '%';
             document.getElementById('detailCurrTime').innerText = formatTime(audio.currentTime);
             document.getElementById('detailTotalTime').innerText = formatTime(audio.duration);
-            
-            // Also sync for lyrics tab
             document.getElementById('progressBar').style.width = p + '%';
             document.getElementById('lyricTimeInfo').innerText = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
             syncLyricHighlight();
@@ -531,139 +516,69 @@
         function formatTime(s) { if(isNaN(s)) return "00:00"; const m=Math.floor(s/60); const ss=Math.floor(s%60); return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; }
         function detailSeek(e) { const rect=e.currentTarget.getBoundingClientRect(); const p=(e.clientX-rect.left)/rect.width; audio.currentTime=p*audio.duration; }
 
-        /* Upload Widget Logic (Wide View) */
-        function expandWidget() {
-            const widget = document.getElementById('floatingUploadWidget');
-            const icon = document.getElementById('widgetToggleIcon');
-            if(widget.classList.contains('expanded')) {
-                widget.classList.remove('expanded');
-                icon.className = 'fa-solid fa-expand';
-            } else {
-                widget.classList.add('expanded');
-                icon.className = 'fa-solid fa-compress';
-            }
-        }
-
-        function cancelAllUploads(e) {
-            e.stopPropagation();
-            if(confirm('진행 중인 모든 업로드를 중단하시겠습니까?')) {
-                uploadQueue = [];
-                renderWidget();
-                document.getElementById('floatingUploadWidget').style.display = 'none';
-            }
-        }
-
+        /* Upload Widget & Batch Logic */
+        function expandWidget() { const widget = document.getElementById('floatingUploadWidget'); const icon = document.getElementById('widgetToggleIcon'); if(widget.classList.contains('expanded')) { widget.classList.remove('expanded'); icon.className = 'fa-solid fa-expand'; } else { widget.classList.add('expanded'); icon.className = 'fa-solid fa-compress'; } }
+        function cancelAllUploads(e) { e.stopPropagation(); if(confirm('진행 중인 모든 업로드를 중단하시겠습니까?')) { uploadQueue = []; renderWidget(); document.getElementById('floatingUploadWidget').style.display = 'none'; } }
         async function handleBatchFile(e) {
-            const files = e.target.files;
-            if(!files.length) return;
-            document.getElementById('floatingUploadWidget').style.display = 'block';
-            for(let file of files) {
-                const nfcMatch = file.name.replace(/\.[^/.]+$/, "");
-                uploadQueue.push({ id: Date.now()+Math.random(), file, nfcId: nfcMatch, progress: 0, status: '대기중' });
-            }
-            renderWidget();
-            processQueue();
+            const files = e.target.files; if(!files.length) return; document.getElementById('floatingUploadWidget').style.display = 'block';
+            for(let file of files) { const nfcMatch = file.name.replace(/\.[^/.]+$/, ""); uploadQueue.push({ id: Date.now()+Math.random(), file, nfcId: nfcMatch, progress: 0, status: '대기중' }); }
+            renderWidget(); processQueue();
         }
-
         function renderWidget() {
-            const body = document.getElementById('widgetBody');
-            body.innerHTML = '';
-            if(uploadQueue.length === 0) {
-                body.innerHTML = '<div style="color: #555; text-align: center; padding: 20px;">진행 중인 작업이 없습니다.</div>';
-                return;
-            }
+            const body = document.getElementById('widgetBody'); body.innerHTML = '';
+            if(uploadQueue.length === 0) { body.innerHTML = '<div style="color: #555; text-align: center; padding: 20px;">진행 중인 작업이 없습니다.</div>'; return; }
             uploadQueue.forEach(item => {
                 const color = item.status === '완료' ? 'var(--success)' : item.status === '실패' ? 'var(--danger)' : 'var(--primary)';
-                body.innerHTML += `
-                    <div class="widget-item">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px;">
-                            <span>${item.file.name} (NFC: ${item.nfcId})</span>
-                            <span style="color: ${color}">${item.status === '업로드중' ? item.progress+'%' : item.status}</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: ${item.progress}%; background: ${color}"></div>
-                        </div>
-                    </div>
-                `;
+                body.innerHTML += `<div class="widget-item"><div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px;"><span>${item.file.name} (NFC: ${item.nfcId})</span><span style="color: ${color}">${item.status === '업로드중' ? item.progress+'%' : item.status}</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${item.progress}%; background: ${color}"></div></div></div>`;
             });
         }
-
         async function processQueue() {
             const pendings = uploadQueue.filter(q => q.status === '대기중');
             for(let item of pendings) {
-                item.status = '업로드중';
-                let p = 0;
-                let intv = setInterval(() => { p += 5; if(p > 95) p = 95; item.progress = p; renderWidget(); }, 200);
-                
+                item.status = '업로드중'; let p = 0; let intv = setInterval(() => { p += 5; if(p > 95) p = 95; item.progress = p; renderWidget(); }, 200);
                 const res = await window.api.uploadAudio(item.file, item.nfcId);
-                clearInterval(intv);
-                if(res.success) { item.status = '완료'; item.progress = 100; }
-                else { item.status = '실패'; item.progress = 0; }
+                clearInterval(intv); if(res.success) { item.status = '완료'; item.progress = 100; } else { item.status = '실패'; item.progress = 0; }
                 renderWidget();
             }
             loadData();
         }
 
-        /* Helper Functions */
-        function toast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none', 2000); }
-        function handleGlobalClick(e) { /* Placeholder for auto-save logic */ }
-
-        // (Lyrics Sync logic from previous version should be re-inserted or handled here)
-        async function selectLyricTarget(id) {
-            currentTargetId = id;
-            const t = allTracks.find(x => x.id == id);
-            document.getElementById('editorCurrentTarget').innerText = `[${t.nfc_id}] ${t.user_name}`;
-            filterLyricTargets();
-            if(t.audio_files && t.audio_files.length > 0) audio.src = t.audio_files[0].audio_url;
-            timelineData = await window.api.getOrInitTimeline(id, audio.duration || 0);
-            renderEditor();
+        /* Lyrics Logic */
+        async function filterLyricTargets() {
+            const query = document.getElementById('lyricSearchInput').value.toLowerCase();
+            const list = document.getElementById('lyricTargetList'); list.innerHTML = '';
+            allTracks.filter(t => t.nfc_id.toLowerCase().includes(query) || t.user_name.toLowerCase().includes(query)).forEach(t => {
+                const div = document.createElement('div'); div.className = `target-item ${currentTargetId === t.id ? 'active' : ''}`;
+                div.innerHTML = `<strong>${t.nfc_id}</strong><span>${t.user_name}</span>`; div.onclick = () => selectLyricTarget(t.id); list.appendChild(div);
+            });
         }
-
+        async function selectLyricTarget(id) {
+            currentTargetId = id; const t = allTracks.find(x => x.id == id);
+            document.getElementById('editorCurrentTarget').innerText = `[${t.nfc_id}] ${t.user_name}`;
+            if(t.audio_files && t.audio_files.length > 0) audio.src = t.audio_files[0].audio_url;
+            timelineData = await window.api.getOrInitTimeline(id, audio.duration || 0); renderEditor();
+        }
         function renderEditor() {
-            const container = document.getElementById('editorLinesContainer');
-            container.innerHTML = '';
+            const container = document.getElementById('editorLinesContainer'); container.innerHTML = '';
             timelineData.forEach((item, idx) => {
                 const match = item.start_time.match(/(\d{2})분 (\d{2})초/);
                 const min = match ? match[1] : "00"; const sec = match ? match[2] : "00";
-                container.innerHTML += `
-                    <div class="lyric-line-edit">
-                        <div class="lyric-label">${item.section_name}</div>
-                        <div class="time-picker">
-                            <select onchange="updateTime(${idx},'min',this.value)">${renderTimeOpts(0,10,min)}</select><span>분</span>
-                            <select onchange="updateTime(${idx},'sec',this.value)">${renderTimeOpts(0,59,sec)}</select><span>초</span>
-                        </div>
-                        <div class="lyric-text-static">구간 시작 지점</div>
-                    </div>`;
+                container.innerHTML += `<div class="lyric-line-edit"><div class="lyric-label">${item.section_name}</div><div class="time-picker"><select onchange="updateTime(${idx},'min',this.value)">${renderTimeOpts(0,10,min)}</select><span>분</span><select onchange="updateTime(${idx},'sec',this.value)">${renderTimeOpts(0,59,sec)}</select><span>초</span></div><div class="lyric-text-static">구간 시작 지점</div></div>`;
             });
             renderPreview();
         }
         function renderTimeOpts(s,e,c) { let h=''; for(let i=s;i<=e;i++){ const v=String(i).padStart(2,'0'); h+=`<option value="${v}" ${v===c?'selected':''}>${v}</option>`; } return h; }
-        function updateTime(idx,p,v) { 
-            const match=timelineData[idx].start_time.match(/(\d{2})분 (\d{2})초/);
-            let m=match[1], s=match[2]; if(p==='min')m=v; if(p==='sec')s=v;
-            timelineData[idx].start_time=`${m}분 ${s}초`; renderPreview(); 
-        }
-        function renderPreview() {
-            const p = document.getElementById('lyricPreviewArea'); p.innerHTML = '';
-            timelineData.forEach(d => { p.innerHTML += `<div class="preview-line">${d.start_time} - ${d.section_name}</div>`; });
-        }
+        function updateTime(idx,p,v) { const match=timelineData[idx].start_time.match(/(\d{2})분 (\d{2})초/); let m=match[1], s=match[2]; if(p==='min')m=v; if(p==='sec')s=v; timelineData[idx].start_time=`${m}분 ${s}초`; renderPreview(); }
+        function renderPreview() { const p = document.getElementById('lyricPreviewArea'); p.innerHTML = ''; timelineData.forEach(d => { p.innerHTML += `<div class="preview-line">${d.start_time} - ${d.section_name}</div>`; }); }
         function syncLyricHighlight() {
             let activeIdx = -1; const cTime = audio.currentTime;
-            timelineData.forEach((d, idx) => {
-                const match = d.start_time.match(/(\d{2})분 (\d{2})초/);
-                const total = parseInt(match[1])*60 + parseInt(match[2]);
-                if(cTime >= total) activeIdx = idx;
-            });
-            document.querySelectorAll('.preview-line').forEach((el, idx) => {
-                if(idx === activeIdx) el.classList.add('highlight'); else el.classList.remove('highlight');
-            });
+            timelineData.forEach((d, idx) => { const match = d.start_time.match(/(\d{2})분 (\d{2})초/); const total = parseInt(match[1])*60 + parseInt(match[2]); if(cTime >= total) activeIdx = idx; });
+            document.querySelectorAll('.preview-line').forEach((el, idx) => { if(idx === activeIdx) el.classList.add('highlight'); else el.classList.remove('highlight'); });
         }
-        async function saveLyricsToDB() {
-            await window.api.updateTimeline(timelineData);
-            const summary = timelineData.map(d => `[${d.start_time}] ${d.section_name}`).join('\n');
-            await window.api.updateTrack(currentTargetId, { modify: summary });
-            toast('타임라인이 저장되었습니다.'); loadData();
-        }
+        async function saveLyricsToDB() { await window.api.updateTimeline(timelineData); const summary = timelineData.map(d => `[${d.start_time}] ${d.section_name}`).join('\n'); await window.api.updateTrack(currentTargetId, { modify: summary }); toast('타임라인이 저장되었습니다.'); loadData(); }
+
+        function toast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none', 2000); }
+        function handleGlobalClick(e) { }
     </script>
 </body>
 </html>

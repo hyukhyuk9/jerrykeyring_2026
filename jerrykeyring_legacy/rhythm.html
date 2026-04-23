@@ -12,7 +12,7 @@
             --bg: #0a0a0a;
             --surface: #1a1a1a;
             --text: #ffffff;
-            --accent: #ffeb3b;
+            --accent: #ffeb3b; /* 노란색 (성공 이펙트용) */
         }
 
         * {
@@ -57,6 +57,27 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px 0;
+            z-index: 10;
+        }
+
+        /* 가사 표시 영역 */
+        .lyrics-display {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+        .lyrics-display.active {
+            color: var(--primary);
+            transform: translateX(-50%) scale(1.05);
         }
 
         .score-container {
@@ -79,7 +100,7 @@
 
         .combo-container {
             position: absolute;
-            top: 40%;
+            top: 45%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
@@ -102,7 +123,7 @@
 
         .judgment-text {
             position: absolute;
-            top: 55%;
+            top: 58%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 1.5rem;
@@ -192,9 +213,9 @@
             box-shadow: 0 10px 20px rgba(255, 145, 77, 0.4);
         }
 
-        .play-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px rgba(255, 145, 77, 0.6);
+        .play-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .close-btn {
@@ -206,21 +227,6 @@
             cursor: pointer;
             z-index: 101;
             opacity: 0.7;
-        }
-
-        @keyframes hit-glow {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-        }
-
-        .hit-effect {
-            position: absolute;
-            pointer-events: none;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: hit-glow 0.3s ease-out forwards;
         }
     </style>
 </head>
@@ -246,6 +252,9 @@
             </div>
         </div>
 
+        <!-- 가사 영역 -->
+        <div id="lyricsDisplay" class="lyrics-display">준비중...</div>
+
         <div id="comboGroup" class="combo-container">
             <div id="comboValue" class="combo-value">0</div>
             <div class="combo-label">COMBO</div>
@@ -270,23 +279,22 @@
         const comboEl = document.getElementById('comboValue');
         const comboGroup = document.getElementById('comboGroup');
         const judgmentEl = document.getElementById('judgmentText');
+        const lyricsEl = document.getElementById('lyricsDisplay');
         const music = document.getElementById('gameMusic');
         const healthFill = document.getElementById('healthFill');
 
         // URL 파라미터에서 음원 경로 가져오기
         const urlParams = new URLSearchParams(window.location.search);
         const musicSrc = urlParams.get('src');
-        if (musicSrc) {
-            music.src = musicSrc;
-        } else {
-            music.src = '1%20Indie%20Pop.mp3'; // Fallback
-        }
+        music.src = musicSrc || '1%20Indie%20Pop.mp3';
 
         let score = 0;
         let combo = 0;
         let health = 100;
         let gameActive = false;
         let noteInterval;
+        let lyricsData = [];
+        let particles = [];
         
         const lanes = 4;
         const notes = [];
@@ -300,6 +308,34 @@
 
         window.addEventListener('resize', resize);
         resize();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = Math.random() * 5 + 2;
+                this.speedX = (Math.random() - 0.5) * 10;
+                this.speedY = (Math.random() - 0.5) * 10;
+                this.alpha = 1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= 0.02;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
 
         class Note {
             constructor(lane, time) {
@@ -327,7 +363,6 @@
                 const x = this.lane * laneWidth + laneWidth / 2;
                 
                 ctx.save();
-                // Add glow to cheese
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = 'rgba(255, 145, 77, 0.6)';
                 ctx.drawImage(cheeseImg, x - 35, this.y - 35, 70, 70);
@@ -348,7 +383,6 @@
 
         function startGame() {
             if (gameActive) return;
-            // 로딩이 덜 되었을 경우 대비
             if (music.readyState < 2) {
                 alert("음원을 불러오는 중입니다. 잠시만 기다려주세요!");
                 return;
@@ -359,13 +393,11 @@
             combo = 0;
             health = 100;
             notes.length = 0;
-            
+            particles.length = 0;
             music.currentTime = 0;
-            music.play().catch(e => console.error("Play failed:", e));
-            
+            music.play();
             requestAnimationFrame(gameLoop);
             
-            // Note generation logic
             if (noteInterval) clearInterval(noteInterval);
             noteInterval = setInterval(() => {
                 if (!gameActive) return;
@@ -392,31 +424,53 @@
 
             // Draw hit line
             const hitLineY = canvas.height * 0.75;
-            ctx.strokeStyle = 'rgba(255, 145, 77, 0.5)';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(255, 145, 77, 0.4)';
+            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(0, hitLineY);
             ctx.lineTo(canvas.width, hitLineY);
             ctx.stroke();
 
             const currentTime = music.currentTime * 1000;
-            const speed = 0.5; // pixels per ms
+            const speed = 0.5;
 
+            // Update & Draw notes
             for (let i = notes.length - 1; i >= 0; i--) {
                 notes[i].update(currentTime, speed);
                 notes[i].draw();
                 if (notes[i].y > canvas.height) notes.splice(i, 1);
             }
 
+            // Update & Draw particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].alpha <= 0) particles.splice(i, 1);
+            }
+
+            // Update Lyrics
+            updateLyrics(music.currentTime);
+
             requestAnimationFrame(gameLoop);
+        }
+
+        function updateLyrics(time) {
+            if (!lyricsData || lyricsData.length === 0) return;
+            const currentLine = lyricsData.find((l, i) => {
+                const next = lyricsData[i + 1];
+                return time >= l.time && (!next || time < next.time);
+            });
+            if (currentLine && lyricsEl.innerText !== currentLine.text) {
+                lyricsEl.innerText = currentLine.text;
+                lyricsEl.classList.add('active');
+                setTimeout(() => lyricsEl.classList.remove('active'), 500);
+            }
         }
 
         function handleInput(lane) {
             if (!gameActive) return;
-            
             const currentTime = music.currentTime * 1000;
-            const hitLineY = canvas.height * 0.75;
-            const threshold = 100; // ms
+            const threshold = 150;
 
             let found = false;
             for (let note of notes) {
@@ -424,6 +478,7 @@
                     const diff = Math.abs(note.time - currentTime);
                     if (diff < threshold) {
                         note.hit = true;
+                        createHitEffect(lane);
                         handleHit(diff);
                         found = true;
                         break;
@@ -431,10 +486,18 @@
                 }
             }
 
-            // Visual feedback for lane
             const btn = document.getElementById('lane' + lane);
             btn.classList.add('active');
             setTimeout(() => btn.classList.remove('active'), 100);
+        }
+
+        function createHitEffect(lane) {
+            const laneWidth = canvas.width / lanes;
+            const x = lane * laneWidth + laneWidth / 2;
+            const y = canvas.height * 0.75;
+            for (let i = 0; i < 15; i++) {
+                particles.push(new Particle(x, y, '#ffeb3b')); // 노란색 성공 이펙트
+            }
         }
 
         function handleHit(diff) {
@@ -443,7 +506,7 @@
             let text = "PERFECT";
             let color = "#ffeb3b";
 
-            if (diff > 50) {
+            if (diff > 70) {
                 points = 50;
                 text = "GREAT";
                 color = "#ff914d";
@@ -455,31 +518,27 @@
 
         function handleMiss() {
             combo = 0;
-            health -= 10;
+            health -= 5;
             if (health <= 0) gameOver();
             updateUI("MISS", "#ff3d00");
         }
 
         function updateUI(text, color) {
             scoreEl.innerText = Math.floor(score).toString().padStart(6, '0');
-            
             if (combo > 1) {
                 comboEl.innerText = combo;
                 comboGroup.style.opacity = 1;
             } else {
                 comboGroup.style.opacity = 0;
             }
-
             judgmentEl.innerText = text;
             judgmentEl.style.color = color;
             judgmentEl.style.opacity = 1;
             judgmentEl.style.transform = 'translate(-50%, -50%) scale(1.2)';
-            
             setTimeout(() => {
                 judgmentEl.style.opacity = 0;
                 judgmentEl.style.transform = 'translate(-50%, -50%) scale(1)';
             }, 300);
-
             healthFill.style.width = health + '%';
         }
 
@@ -490,12 +549,17 @@
             location.reload();
         }
 
-        // Keyboard controls
+        // 가사 데이터 수신
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'setLyrics') {
+                lyricsData = e.data.lyrics;
+                lyricsEl.innerText = "READY";
+            }
+        });
+
         window.addEventListener('keydown', (e) => {
             const keys = { 's': 0, 'd': 1, 'j': 2, 'k': 3 };
-            if (keys[e.key.toLowerCase()] !== undefined) {
-                handleInput(keys[e.key.toLowerCase()]);
-            }
+            if (keys[e.key.toLowerCase()] !== undefined) handleInput(keys[e.key.toLowerCase()]);
         });
     </script>
 </body>

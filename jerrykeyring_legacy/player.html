@@ -1892,6 +1892,13 @@
       // 게임 실행 시 메인 플레이어 일시정지
       if (!player.paused) player.pause();
       updatePlayButton();
+
+      // 게임 로드 후 가사 데이터 전송
+      iframe.onload = () => {
+        if (lyricsData && lyricsData.length > 0) {
+          iframe.contentWindow.postMessage({ type: 'setLyrics', lyrics: lyricsData }, '*');
+        }
+      };
     }
 
     window.addEventListener('message', (e) => {

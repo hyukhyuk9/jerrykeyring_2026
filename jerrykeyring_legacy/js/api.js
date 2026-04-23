@@ -65,16 +65,9 @@ window.api.fetchResult = async function (mbtiCode) {
  * Supabase를 통한 유저 정보 조회
  */
 window.api.getUserInfo = async function (nfcNumber) {
+  // 'sample' ID로 접근 시 실제 DB의 '000000' 데이터를 가져오도록 매핑
   if (nfcNumber === 'sample') {
-    return {
-      success: true,
-      data: {
-        'nfc_id': '16',
-        'genre': '샘플 체험용 트랙',
-        'lyrics': '환영합니다! 제리키링 샘플 플레이어입니다.\n[00:02.00] 이 곡은 기능 체험을 위해 제공되는 샘플 음원입니다.\n[00:06.00] 하단의 다양한 버튼들을 직접 눌러보세요.\n[00:10.00] 다른 사용자의 음원 연동이나, 랜덤 음원 재생도 가능합니다.\n[00:15.00] 환경 설정에서 옵션을 변경해보며 기능을 테스트해보세요!',
-        'serial': 'SAMPLE-1004'
-      }
-    };
+    nfcNumber = '000000';
   }
 
   const client = getSupabase();
@@ -142,6 +135,11 @@ window.api.verifyUser = async function (nfcNumber, name, phone) {
  * Supabase를 통한 음원 파일 목록 조회
  */
 window.api.getAudioFiles = async function (nfcNumber) {
+  // 'sample' ID로 접근 시 실제 DB의 '000000' 데이터를 가져오도록 매핑
+  if (nfcNumber === 'sample') {
+    nfcNumber = '000000';
+  }
+
   const client = getSupabase();
   if (!client) return [];
 

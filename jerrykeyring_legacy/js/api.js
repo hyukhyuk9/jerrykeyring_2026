@@ -263,37 +263,102 @@ window.api.deleteTrack = async function (id) {
 };
 
 /**
- * [관리자용] 음원 업로드 및 DB 등록
+ * [관리자용] 음원 업로드 (백그라운드 처리용)
  */
 window.api.uploadAudio = async function (file, nfcId) {
   const client = getSupabase();
-  if (!client) return { success: false, message: 'Supabase client error' };
+  if (!client) return { success: false };
 
   try {
-    // 1. Storage에 업로드 (버킷 이름: 'audio')
-    const fileName = `${Date.now()}_${file.name}`;
-    const { data: uploadData, error: uploadError } = await client
-      .storage
+    const filePath = `audio/${Date.now()}_${file.name}`;
+    const { data: uploadData, error: uploadError } = await client.storage
       .from('audio')
-      .upload(fileName, file);
+      .upload(filePath, file);
 
     if (uploadError) throw uploadError;
 
-    // 2. Public URL 가져오기
-    const { data: { publicUrl } } = client.storage.from('audio').getPublicUrl(fileName);
+    const { data: { publicUrl } } = client.storage.from('audio').getPublicUrl(filePath);
 
-    // 3. audio_files 테이블에 추가
+    // audio_files 테이블에 기록 (nfc_id 기반 매핑)
     const { error: dbError } = await client
       .from('audio_files')
-      .insert([
-        { nfc_id: nfcId, audio_url: publicUrl }
-      ]);
+      .insert({ nfc_id: nfcId, audio_url: publicUrl });
 
     if (dbError) throw dbError;
 
-    return { success: true };
+    return { success: true, url: publicUrl };
   } catch (err) {
     console.error('음원 업로드 에러:', err);
+    return { success: false, message: err.message };
+  }
+};
+
+/**
+ * [가사 타임라인] 곡 길이를 기반으로 타임라인을 가져오거나 6등분하여 초기화합니다.
+ */
+window.api.getOrInitTimeline = async function (trackId, durationSeconds = 0) {
+  const client = getSupabase();
+  if (!client) return [];
+
+  try {
+    let { data, error } = await client
+      .from('lyrics_timeline')
+      .select('*')
+      .eq('track_id', trackId)
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    // 데이터가 없을 때만 6등분 초기화 진행
+    if (!data || data.length === 0) {
+      const sections = ["1절", "후렴 1", "2절", "후렴 2", "브릿지", "후렴 3"];
+      const interval = durationSeconds > 0 ? durationSeconds / 6 : 0;
+
+      const initData = sections.map((name, idx) => {
+        const totalSeconds = Math.floor(interval * idx);
+        const min = Math.floor(totalSeconds / 60);
+        const sec = totalSeconds % 60;
+        
+        return {
+          track_id: trackId,
+          section_name: name,
+          start_time: `${String(min).padStart(2, '0')}분 ${String(sec).padStart(2, '0')}초`
+        };
+      });
+
+      const { data: newData, error: initError } = await client
+        .from('lyrics_timeline')
+        .insert(initData)
+        .select();
+
+      if (initError) throw initError;
+      return newData;
+    }
+
+    return data;
+  } catch (err) {
+    console.error('타임라인 초기화 에러:', err);
+    return [];
+  }
+};
+
+/**
+ * [가사 타임라인] 전체 타임라인 데이터를 업데이트합니다.
+ */
+window.api.updateTimeline = async function (timelineItems) {
+  const client = getSupabase();
+  if (!client) return { success: false };
+
+  try {
+    // upsert를 사용하여 기존 ID가 있으면 업데이트, 없으면 삽입
+    const { error } = await client
+      .from('lyrics_timeline')
+      .upsert(timelineItems);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('타임라인 업데이트 에러:', err);
     return { success: false, message: err.message };
   }
 };

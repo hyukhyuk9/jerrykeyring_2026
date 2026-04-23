@@ -1152,6 +1152,9 @@
         randomBtn.innerHTML = '<span><i class="fa-solid fa-shuffle"></i> 제리키링 랜덤음원듣기</span>';
         randomBtn.onclick = (e) => {
           e.stopPropagation();
+          // Safari Autoplay 정책 우회 (동기적으로 play 호출)
+          player.play().catch(() => {});
+          player.pause();
           playRandomMusic();
         };
         commZone.appendChild(randomBtn);

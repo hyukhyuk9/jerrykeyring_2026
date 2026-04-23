@@ -166,24 +166,21 @@ window.api.getRandomTrack = async function () {
   if (!client) return null;
 
   try {
-    // 1. 전체 오디오 파일 개수를 파악합니다.
-    const { count, error: countError } = await client
+    const { data: allAudios, error: fetchErr } = await client
       .from('audio_files')
-      .select('*', { count: 'exact', head: true });
+      .select('*, tracks(genre, lyrics, modify)');
 
-    if (countError || !count) throw countError || new Error('No tracks found');
+    if (fetchErr) throw fetchErr;
+    if (!allAudios || allAudios.length === 0) throw new Error('No tracks found');
 
-    // 2. 무작위 인덱스를 선택합니다.
-    const randomIndex = Math.floor(Math.random() * count);
-
-    // 3. 해당 인덱스의 오디오 파일과 트랙 정보를 가져옵니다.
-    const { data, error } = await client
-      .from('audio_files')
-      .select('*, tracks(genre, lyrics, modify)')
-      .range(randomIndex, randomIndex)
-      .single();
-
-    if (error) throw error;
+    const randomIndex = Math.floor(Math.random() * allAudios.length);
+    const data = allAudios[randomIndex];
+    
+    // Ensure tracks is an object if it comes as an array
+    if (data && Array.isArray(data.tracks) && data.tracks.length > 0) {
+        data.tracks = data.tracks[0];
+    }
+    
     return data;
   } catch (err) {
     console.error('랜덤 음원 불러오기 에러:', err);

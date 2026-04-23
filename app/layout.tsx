@@ -5,12 +5,12 @@ export const metadata: Metadata = {
   title: '제리키링 | 나만의 AI 미니앨범키링',
   description: '제리키링에서 만든 나만의 AI 음원을 들어보세요 🎧',
   icons: {
-    icon: '/images/logo.png',
+    icon: '/images/iphone.png',
   },
   openGraph: {
     title: '제리키링 | 나만의 AI 미니앨범키링',
     description: '제리키링에서 만든 나만의 AI 음원을 들어보세요 🎧',
-    images: ['/images/logo.png'],
+    images: ['/images/iphone.png'],
     type: 'website',
   },
 };

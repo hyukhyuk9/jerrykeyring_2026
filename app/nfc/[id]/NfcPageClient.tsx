@@ -28,7 +28,7 @@ export default function NfcPageClient({ nfcId, hasMusic, tracks, lyrics, genre }
     <>
       <header className="app-header">
         <img
-          src="/images/logo.png"
+          src="/images/iphone.png"
           alt="제리키링"
           className="logo"
           onClick={toggleMode}

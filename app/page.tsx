@@ -4,7 +4,7 @@ export default function HomePage() {
   return (
     <>
       <header className="app-header">
-        <img src="/images/logo.png" alt="제리키링" className="logo" />
+        <img src="/images/iphone.png" alt="제리키링" className="logo" />
       </header>
       <main className="app-main" style={{ gap: '1.5rem', textAlign: 'center' }}>
         <h1 style={{

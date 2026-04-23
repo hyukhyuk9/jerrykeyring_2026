@@ -82,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside style={{ width: '250px', background: '#111', borderRight: '1px solid #222', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
         <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-          <img src="/images/logo.png" alt="Logo" style={{ height: '40px', objectFit: 'contain', marginBottom: '0.5rem' }} />
+          <img src="/images/iphone.png" alt="Logo" style={{ height: '40px', objectFit: 'contain', marginBottom: '0.5rem' }} />
           <div style={{ fontSize: '0.8rem', color: '#888', fontWeight: 'bold' }}>ADMIN SYSTEM</div>
         </div>
         

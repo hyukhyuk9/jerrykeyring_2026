@@ -88,7 +88,7 @@ export default function MusicPlayer({ tracks, lyrics, onTrackPlay }: MusicPlayer
           style={{ animationDelay: `${i * 0.1}s` }}
         >
           <img
-            src="/images/logo.png"
+            src="/images/iphone.png"
             alt=""
             className="track-icon"
           />

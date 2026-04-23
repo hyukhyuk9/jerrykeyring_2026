@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraph: {
       title: '제리키링 | 내 음원 듣기',
       description: '제리키링에서 만든 나만의 AI 음원을 들어보세요 🎧',
-      images: ['/images/logo.png'],
+      images: ['/images/iphone.png'],
     },
   };
 }

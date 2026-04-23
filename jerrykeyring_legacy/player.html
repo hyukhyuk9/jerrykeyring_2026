@@ -165,7 +165,7 @@
       width: 100%;
       overflow: hidden;
       left: 50%;
-      height: 120px;
+      height: 90px;
       transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
       opacity: 0;
       visibility: hidden;
@@ -180,7 +180,7 @@
 
     body:not(.obs-mode) #lyricsBox.lyrics-on {
       top: auto;
-      bottom: 130px;
+      bottom: 80px;
       transform: translate(-50%, 0);
       opacity: 1;
       max-width: 450px;
@@ -405,7 +405,7 @@
 
     .exit-container {
       position: fixed;
-      bottom: 40px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       display: none;
@@ -703,18 +703,18 @@
     /* 아이폰 미니 등 작은 화면 전용 최적화 스타일 */
     @media screen and (max-height: 630px) {
 
-      /* 1. 가사 상자 위치와 크기 - 환경설정 버튼과 겹침 방지 */
+      /* 1. 가사 상자 위치와 크기 - 가사 3줄 고정 및 겹침 방지 */
       #lyricsBox {
-        bottom: 140px !important;
-        height: 40px !important;
+        bottom: 70px !important;
+        height: 90px !important;
       }
 
       body:not(.obs-mode) #lyricsBox.lyrics-on {
-        bottom: 140px !important;
+        bottom: 70px !important;
       }
 
       body.ts-style-large.obs-mode #lyricsBox.lyrics-on {
-        bottom: 90px !important;
+        bottom: 70px !important;
       }
 
       /* 2. 가사 줄 글자 크기 확대 */

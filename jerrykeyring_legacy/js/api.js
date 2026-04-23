@@ -190,3 +190,113 @@ window.api.getRandomTrack = async function () {
     return null;
   }
 };
+/**
+ * [관리자용] 모든 트랙 정보 가져오기
+ */
+window.api.getAllTracks = async function () {
+  const client = getSupabase();
+  if (!client) return [];
+  try {
+    const { data, error } = await client
+      .from('tracks')
+      .select('*, audio_files(audio_url)')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('전체 트랙 로드 에러:', err);
+    return [];
+  }
+};
+
+/**
+ * [관리자용] 트랙 정보 업데이트
+ */
+window.api.updateTrack = async function (id, updateData) {
+  const client = getSupabase();
+  if (!client) return { success: false };
+  try {
+    const { error } = await client
+      .from('tracks')
+      .update(updateData)
+      .eq('id', id);
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('트랙 업데이트 에러:', err);
+    return { success: false, message: err.message };
+  }
+};
+
+/**
+ * [관리자용] 새 트랙 추가
+ */
+window.api.insertTrack = async function (trackData) {
+  const client = getSupabase();
+  if (!client) return { success: false };
+  try {
+    const { error } = await client
+      .from('tracks')
+      .insert([trackData]);
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('트랙 추가 에러:', err);
+    return { success: false, message: err.message };
+  }
+};
+
+/**
+ * [관리자용] 트랙 삭제
+ */
+window.api.deleteTrack = async function (id) {
+  const client = getSupabase();
+  if (!client) return { success: false };
+  try {
+    const { error } = await client
+      .from('tracks')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('트랙 삭제 에러:', err);
+    return { success: false, message: err.message };
+  }
+};
+
+/**
+ * [관리자용] 음원 업로드 및 DB 등록
+ */
+window.api.uploadAudio = async function (file, nfcId) {
+  const client = getSupabase();
+  if (!client) return { success: false, message: 'Supabase client error' };
+
+  try {
+    // 1. Storage에 업로드 (버킷 이름: 'audio')
+    const fileName = `${Date.now()}_${file.name}`;
+    const { data: uploadData, error: uploadError } = await client
+      .storage
+      .from('audio')
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    // 2. Public URL 가져오기
+    const { data: { publicUrl } } = client.storage.from('audio').getPublicUrl(fileName);
+
+    // 3. audio_files 테이블에 추가
+    const { error: dbError } = await client
+      .from('audio_files')
+      .insert([
+        { nfc_id: nfcId, audio_url: publicUrl }
+      ]);
+
+    if (dbError) throw dbError;
+
+    return { success: true };
+  } catch (err) {
+    console.error('음원 업로드 에러:', err);
+    return { success: false, message: err.message };
+  }
+};

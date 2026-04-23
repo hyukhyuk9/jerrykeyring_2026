@@ -989,6 +989,26 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 구매 유도 팝업 (샘플 사용자 전용) -->
+  <div id="purchasePopup" class="popup-overlay" style="display:none; background: rgba(0,0,0,0.95); z-index: 10000;">
+    <div class="popup-content" style="background: #111; border: 2px solid #ff914d; text-align: center; padding: 40px 20px; border-radius: 20px; max-width: 300px;">
+      <h4 style="color: #ff914d; margin-bottom: 20px; font-weight: 800;">재밌게 들으셨나요?</h4>
+      <p style="color: #fff; font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px;">
+        나만의 음악과 가사를 담은<br>
+        <strong>제리키링</strong>을 구매하여<br>
+        더 많은 기능을 즐겨보세요!
+      </p>
+      <button class="track-button" style="width: 100%; border-radius: 30px; background: #ff914d; color: #000; font-weight: bold; padding: 15px;" 
+              onclick="window.open('https://smartstore.naver.com/jerrykeyring', '_blank')">
+        제리키링 구매하기
+      </button>
+      <button class="track-button" style="width: 100%; margin-top: 10px; border: none; color: #999; font-size: 0.8rem;" 
+              onclick="document.getElementById('purchasePopup').style.display='none'">
+        나중에 할게요
+      </button>
+    </div>
+  </div>
+
   <script src="js/api.js"></script>
   <script>
     const player = document.getElementById('audioPlayer');
@@ -1279,7 +1299,16 @@
     }
 
     /* 제리키링 랜덤음원듣기 */
+    let sampleRandomPlayCount = 0;
+
     async function playRandomMusic() {
+      // 샘플 계정인 경우 1곡 제한
+      const isSampleUser = (localStorage.getItem('auth_nfc_number') === '000000');
+      if (isSampleUser && sampleRandomPlayCount >= 1) {
+        document.getElementById('purchasePopup').style.display = 'flex';
+        return;
+      }
+
       showToast('🎲 랜덤 음원을 불러오는 중...');
       
       try {
@@ -1341,6 +1370,11 @@
         player.play().catch(() => { });
         resetIdleTimer();
         showToast(`🎲 랜덤 재생: ${trackName}`);
+
+        // 샘플 계정 카운트 증가
+        if (isSampleUser) {
+          sampleRandomPlayCount++;
+        }
 
       } catch (err) {
         console.error('랜덤 재생 에러:', err);
@@ -1433,6 +1467,12 @@
       }
 
       let shareConsent = localStorage.getItem('shareConsent');
+      // 샘플 사용자는 커뮤니티 기능을 기본으로 볼 수 있게 설정 (랜덤 재생 접근을 위해)
+      if (targetId === 'sample') {
+        shareConsent = 'true';
+        localStorage.setItem('shareConsent', 'true');
+      }
+
       if (shareConsent === null) document.getElementById('sharePopup').style.display = 'flex';
       else document.getElementById('shareOpt').checked = (shareConsent === 'true');
 

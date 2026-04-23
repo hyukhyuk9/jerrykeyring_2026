@@ -282,6 +282,65 @@
       display: none; padding: 18px; font-size: 1.1rem; z-index: 5000;
       border-radius: 30px; box-shadow: 0 10px 30px rgba(255,145,77,0.5);
     }
+
+    /* 샘플 애니메이션 모드 전용 스타일 */
+    .animation-container {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;
+    }
+    .logo-pulse {
+      width: 80px; height: 80px;
+      background: url('sumbnail.png') no-repeat center/cover;
+      border-radius: 50%;
+      animation: samplePulse 1.5s infinite alternate ease-in-out;
+      margin-bottom: 20px;
+    }
+    @keyframes samplePulse { 0% { transform: scale(0.9); box-shadow: 0 0 10px rgba(255,145,77,0.3); } 100% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255,145,77,0.9); } }
+
+    .mockup-screen {
+      background: rgba(0,0,0,0.5); border: 1px solid rgba(255,145,77,0.4);
+      border-radius: 15px; width: 100%; max-width: 250px; height: 160px;
+      position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+    .mockup-btn {
+      background: linear-gradient(135deg, #ffb347, #ff914d); color: #000; padding: 12px 25px; border-radius: 20px;
+      font-weight: 800; font-size: 0.95rem; position: absolute; transition: all 0.3s;
+    }
+    .mockup-story {
+      color: #ccc; font-size: 0.85rem; position: absolute; opacity: 0; transform: translateY(20px);
+    }
+    .mockup-progress {
+      display: flex; align-items: center; gap: 10px; color: #ff914d; font-size: 0.9rem; font-weight: bold;
+      position: absolute; opacity: 0;
+    }
+    .spinner-small { width: 16px; height: 16px; border: 3px solid rgba(255,145,77,0.3); border-top-color: #ff914d; border-radius: 50%; animation: spin 1s linear infinite; }
+    .mockup-done {
+      color: #fff; font-weight: 800; font-size: 1.2rem; position: absolute; opacity: 0; transform: scale(0.5); text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+
+    .step-wrapper.active #mockGenBtn { animation: step2-btn 5s forwards; }
+    .step-wrapper.active #mockStory { animation: step2-story 5s forwards; }
+    .step-wrapper.active #mockProgress { animation: step2-prog 5s forwards; }
+    .step-wrapper.active #mockDone { animation: step2-done 5s forwards; }
+
+    @keyframes step2-btn { 0%, 10% { opacity: 1; transform: scale(1); } 15% { transform: scale(0.9); } 20%, 100% { opacity: 0; transform: scale(0.5); } }
+    @keyframes step2-story { 0%, 20% { opacity: 0; transform: translateY(20px); } 25%, 45% { opacity: 1; transform: translateY(0); } 50%, 100% { opacity: 0; transform: translateY(-20px); } }
+    @keyframes step2-prog { 0%, 50% { opacity: 0; } 55%, 85% { opacity: 1; } 90%, 100% { opacity: 0; } }
+    @keyframes step2-done { 0%, 90% { opacity: 0; transform: scale(0.5); } 95%, 100% { opacity: 1; transform: scale(1.1); } }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    .nfc-animation { position: relative; width: 160px; height: 100px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .nfc-phone { font-size: 3.5rem; transform: translateX(-30px) rotate(-10deg); text-shadow: 0 10px 15px rgba(0,0,0,0.5); }
+    .nfc-keyring { width: 50px; height: 50px; background: url('sumbnail.png') no-repeat center/cover; border-radius: 50%; border: 2px solid #fff; transform: translateX(30px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .nfc-waves { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #ff914d; font-weight: bold; opacity: 0; font-size: 1.5rem; white-space: nowrap; }
+
+    .step-wrapper.active .nfc-phone { animation: step3-phone 5s forwards; }
+    .step-wrapper.active .nfc-keyring { animation: step3-keyring 5s forwards; }
+    .step-wrapper.active .nfc-waves { animation: step3-waves 5s forwards; }
+
+    @keyframes step3-phone { 0%, 20% { transform: translateX(-40px) rotate(-10deg); } 40%, 80% { transform: translateX(5px) rotate(0deg); } 100% { transform: translateX(-40px) rotate(-10deg); } }
+    @keyframes step3-keyring { 0%, 20% { transform: translateX(40px) rotate(15deg); } 40%, 80% { transform: translateX(-5px) rotate(0deg); box-shadow: 0 0 20px #ff914d; } 100% { transform: translateX(40px) rotate(15deg); } }
+    @keyframes step3-waves { 0%, 35% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 45%, 75% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } }
   </style>
 </head>
 <body>
@@ -310,24 +369,36 @@
 
       <div class="album-inside">
         <div class="step-wrapper active" id="step1">
-          <div class="form-inner">
-            <h3 style="color: #ff914d; font-size: 1.3rem;">환영합니다!</h3>
-            <p style="margin-bottom: 20px;">제리키링 샘플 투어입니다.</p>
-            <input type="text" id="nfcNum" value="제리키링 체험하기" readonly style="color: #fff; font-weight: bold; background: rgba(255,145,77,0.2); border-color: #ff914d;">
+          <div class="animation-container">
+            <div class="logo-pulse"></div>
+            <h3 style="color: #ff914d; font-size: 1.5rem; margin-top: 15px;">환영합니다!</h3>
+            <p>제리키링 샘플 투어입니다.</p>
           </div>
         </div>
         <div class="step-wrapper" id="step2">
-          <div class="form-inner">
-            <h3 style="color: #ff914d; font-size: 1.3rem;">AI 음악 생성</h3>
-            <p style="margin-bottom: 20px;">여러분의 이야기가 음악이 됩니다.</p>
-            <input type="text" id="userName" value="음악 생성하기" readonly style="color: #fff; font-weight: bold; background: rgba(255,145,77,0.2); border-color: #ff914d;">
+          <div class="animation-container">
+            <div class="mockup-screen">
+              <div class="mockup-btn" id="mockGenBtn">음원 생성하기</div>
+              <div class="mockup-story" id="mockStory">나만의 특별한 사연...</div>
+              <div class="mockup-progress" id="mockProgress">
+                <div class="spinner-small"></div>
+                <span>AI 가사 생성 중...</span>
+              </div>
+              <div class="mockup-done" id="mockDone">생성 완료! 🎉</div>
+            </div>
+            <h3 style="color: #ff914d; font-size: 1.3rem; margin-top: 20px;">AI 음악 생성</h3>
+            <p>여러분의 이야기가 음악이 됩니다.</p>
           </div>
         </div>
         <div class="step-wrapper" id="step3">
-          <div class="form-inner">
-            <h3 style="color: #ff914d; font-size: 1.3rem;">스마트폰 태깅</h3>
-            <p style="margin-bottom: 20px;">키링을 태그하면 노래가 시작됩니다.</p>
-            <input type="text" id="phoneNum" value="나만의 음원듣기" readonly style="color: #fff; font-weight: bold; background: rgba(255,145,77,0.2); border-color: #ff914d;">
+          <div class="animation-container">
+            <div class="nfc-animation">
+              <div class="nfc-phone">📱</div>
+              <div class="nfc-waves">~ ~ ~</div>
+              <div class="nfc-keyring"></div>
+            </div>
+            <h3 style="color: #ff914d; font-size: 1.3rem; margin-top: 10px;">스마트폰 태깅</h3>
+            <p>키링을 태그하면 음악이 재생됩니다.</p>
           </div>
         </div>
       </div>
@@ -518,10 +589,10 @@
           albumEl.style.transition = 'transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1)';
           albumEl.style.transform = 'translateY(0) rotate(0deg)';
 
-          // 1.5초 후 자동으로 앨범 열기 (자동 진행 모드)
+          // 유저 미동작 1초 감지 시 화이트 툴팁 점등
           clickTimer = setTimeout(() => {
-            openKeyring();
-          }, 1500);
+            document.getElementById('clickTooltip').style.opacity = '1';
+          }, 1000);
 
         }, 1000);
       }, 200);
@@ -538,14 +609,14 @@
           albumEl.classList.add('is-open');
           scatterCDs(8);
           setTimeout(() => {
-            // 자동 시퀀스: 2초마다 다음 단계로
-            setTimeout(() => { switchStep(1, 2); }, 2000);
-            setTimeout(() => { switchStep(2, 3); }, 4000);
+            // 자동 시퀀스: 5초마다 다음 단계로
+            setTimeout(() => { switchStep(1, 2); }, 5000);
+            setTimeout(() => { switchStep(2, 3); }, 10000);
             setTimeout(() => { 
                nfcFinal = 'sample';
                localStorage.setItem('auth_nfc_number', 'sample');
                triggerSuccessSequence();
-            }, 6000);
+            }, 15000);
           }, 700);
         }, 700);
       }

@@ -275,7 +275,7 @@
       z-index: 100;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 1.5s ease, bottom 1.5s ease;
+      transition: opacity 1.5s ease, transform 1.5s ease;
       box-shadow: 0 4px 15px rgba(255, 145, 77, 0.3);
       transform: translateY(20px);
     }
@@ -283,6 +283,34 @@
     .next-song-toast.show {
       opacity: 1;
       transform: translateY(0);
+    }
+
+    /* 저장 버튼 스타일 */
+    .save-btn {
+      display: none;
+      color: #7c4dff;
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .save-btn.active {
+      color: #ffeb3b;
+      text-shadow: 0 0 8px rgba(255,235,59,0.6);
+    }
+    .save-btn.visible {
+      display: inline-block;
+    }
+
+    /* 저장 확인 팝업 */
+    #saveConfirmPopup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
     }
 
     #newFeatureToast {
@@ -753,6 +781,7 @@
           <i class="fa-solid fa-backward control-btn" onclick="changeTrack(-1)"></i>
           <i id="playPauseIcon" class="fa-solid fa-pause control-btn main-play-btn" onclick="togglePlay()"></i>
           <i class="fa-solid fa-forward control-btn" onclick="changeTrack(1)"></i>
+          <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장"></i>
         </div>
 
         <div id="mainUI">
@@ -792,6 +821,10 @@
         <h6>커뮤니티 소셜</h6>
         <label class="option-item"><input type="checkbox" id="shareOpt" onchange="toggleShareSetting(this.checked)"> 다른
           사람의 음원 공유 허용</label>
+      </div>
+      <div class="settings-section">
+        <h6>초보자 가이드</h6>
+        <label class="option-item"><input type="checkbox" id="nextSongGuideOpt" onchange="toggleNextSongGuide(this.checked)" checked> 다음곡 안내 말풍선</label>
       </div>
       <div class="settings-section">
         <h6>계정 및 기기</h6>
@@ -837,6 +870,19 @@
   <div id="toastMsg" class="toast-msg">설정칸에서 언제든지 체크하고 이용하세요!</div>
   <div id="newFeatureToast">✨ NEW! 커뮤니티 스페셜 채널 오픈 ✨</div>
   <div id="nextSongToast" class="next-song-toast">다음 곡 [ 제목 ] 재생 예정</div>
+
+  <!-- 저장 확인 팝업 -->
+  <div id="saveConfirmPopup" onclick="closeSavePopup()">
+    <div class="settings-modal" style="text-align:center; width:85%; max-width:300px;" onclick="event.stopPropagation()">
+      <h6 style="color:#fff; font-size:1rem; margin-bottom:8px; border:none; padding:0;">메인화면에 등록</h6>
+      <p id="saveTrackName" style="font-size:0.85rem; color:#7c4dff; margin-bottom:20px; font-weight:bold;"></p>
+      <p style="font-size:0.75rem; color:#aaa; margin-bottom:20px;">이 음원을 메인화면 버튼에 추가하시겠습니까?</p>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="track-button" style="margin:5px; width:100%; border-color:#7c4dff; color:#7c4dff;" onclick="confirmSaveRandom()">등록하기</button>
+        <button class="track-button" style="margin:5px; width:100%; border-color:#555; color:#aaa;" onclick="closeSavePopup()">취소</button>
+      </div>
+    </div>
+  </div>
 
   <div class="obs-nav-bar">
     <i class="fa-solid fa-chevron-left obs-btn" onclick="changeTrack(-1)"></i>
@@ -896,6 +942,9 @@
     let playlist = [];
     let currentIdx = 0;
     let nextSongToastShown = false;
+    let savedRandomTracks = JSON.parse(localStorage.getItem('saved_random_tracks') || '[]');
+    let showNextSongGuide = localStorage.getItem('nextSongGuide') !== 'false';
+    let lyricsLoadTimer = null;
 
     let lyricsData = [];
     let showLyrics = true;
@@ -929,9 +978,25 @@
     function renderPlaylist() {
       buttonList.innerHTML = '';
       playlist.forEach((track, index) => {
+        if (track.isRandom) return; // 랜덤 트랙은 메인 버튼에 표시하지 않음
         const btn = document.createElement('button'); btn.className = 'track-button'; btn.innerHTML = `<span> ${track.name} </span>`;
         if (track.isLoading) { btn.style.pointerEvents = 'none'; }
         else { btn.onclick = (e) => { e.stopPropagation(); initPlayer(index); }; }
+        buttonList.appendChild(btn);
+      });
+
+      /* 저장된 랜덤 트랙 버튼 표시 */
+      savedRandomTracks.forEach(st => {
+        const idx = playlist.findIndex(t => t.src === st.src);
+        if (idx === -1) {
+          playlist.push({ src: st.src, name: st.name, lyricsText: st.lyricsText || '가사가 없습니다.', isRandom: true, isSaved: true });
+        }
+        const realIdx = playlist.findIndex(t => t.src === st.src);
+        const btn = document.createElement('button');
+        btn.className = 'track-button';
+        btn.style.borderColor = '#7c4dff'; btn.style.color = '#7c4dff';
+        btn.innerHTML = `<span><i class="fa-solid fa-bookmark" style="margin-right:5px;"></i>${st.name}</span>`;
+        btn.onclick = (e) => { e.stopPropagation(); initPlayer(realIdx); };
         buttonList.appendChild(btn);
       });
 
@@ -1124,17 +1189,30 @@
     ];
 
     async function playRandomMusic() {
-      const shuffled = randomMusicPool.sort(() => Math.random() - 0.5);
+      const shuffled = [...randomMusicPool].sort(() => Math.random() - 0.5);
       const pick = shuffled[0];
 
       /* NFC 번호 추출 (하이픈 앞 부분이 NFC ID) */
       const nfcId = pick.split('-')[0];
 
       let trackName = `랜덤 #${pick}`;
-      let lyricsText = '가사를 불러오는 중...';
+      let lyricsText = '제리키링AI';
+
+      /* 가사 로딩 10초 타임아웃 */
+      let lyricsLoaded = false;
+      const lyricsTimeout = setTimeout(() => {
+        if (!lyricsLoaded) {
+          const existingTrack = playlist.find(t => t.src === `./music/${pick}.mp3`);
+          if (existingTrack && existingTrack.lyricsText === '가사를 불러오는 중...') {
+            existingTrack.lyricsText = '제리키링AI';
+            if (playlist[currentIdx] === existingTrack) parseLyrics('제리키링AI');
+          }
+        }
+      }, 10000);
 
       try {
         const res = await window.api.getUserInfo(nfcId);
+        lyricsLoaded = true;
         if (res && res.success && res.data) {
           const data = res.data;
           const findVal = (keys) => { for (let key in data) { const ck = key.replace(/\s/g, '').toLowerCase(); if (keys.some(k => ck.includes(k.toLowerCase()))) return data[key]; } return null; };
@@ -1146,18 +1224,77 @@
 
           let rawEdited = data['수정'] || data['수정가사'] || data['수정된가사'] || findVal(['수정','editedLyrics']);
           let rawOriginal = data['가사'] || data.lyrics || findVal(['가사','lyrics']);
-          lyricsText = (rawEdited && rawEdited !== '수정없음') ? rawEdited : (rawOriginal || '가사가 없습니다.');
+          lyricsText = (rawEdited && rawEdited !== '수정없음') ? rawEdited : (rawOriginal || '제리키링AI');
         }
       } catch (err) {
+        lyricsLoaded = true;
         console.warn('랜덤 음원 정보 로딩 실패:', err);
       }
 
-      /* 랜덤 트랙을 플레이리스트 맨 뒤에 추가 후 바로 재생 */
+      clearTimeout(lyricsTimeout);
+
+      /* 랜덤 트랙을 플레이리스트에 추가 후 바로 재생 (메인 버튼에는 표시하지 않음) */
       const randomTrack = { src: `./music/${pick}.mp3`, name: `🎲 ${trackName}`, lyricsText: lyricsText, isRandom: true };
       playlist.push(randomTrack);
-      renderPlaylist();
       initPlayer(playlist.length - 1);
       showToast(`🎲 랜덤 재생: ${trackName}`);
+    }
+
+    /* 저장 버튼 토글 (랜덤 트랙 저장/해제) */
+    function toggleSaveRandom() {
+      const track = playlist[currentIdx];
+      if (!track || !track.isRandom) return;
+      const isSaved = savedRandomTracks.some(s => s.src === track.src);
+      if (isSaved) {
+        /* 저장 해제 */
+        savedRandomTracks = savedRandomTracks.filter(s => s.src !== track.src);
+        track.isSaved = false;
+        localStorage.setItem('saved_random_tracks', JSON.stringify(savedRandomTracks));
+        updateSaveBtn();
+        renderPlaylist();
+        showToast('메인화면에서 제거되었습니다.');
+      } else {
+        /* 저장 확인 팝업 */
+        document.getElementById('saveTrackName').innerText = track.name;
+        document.getElementById('saveConfirmPopup').style.display = 'flex';
+      }
+    }
+
+    function confirmSaveRandom() {
+      const track = playlist[currentIdx];
+      if (!track || !track.isRandom) return;
+      savedRandomTracks.push({ src: track.src, name: track.name, lyricsText: track.lyricsText });
+      track.isSaved = true;
+      localStorage.setItem('saved_random_tracks', JSON.stringify(savedRandomTracks));
+      closeSavePopup();
+      updateSaveBtn();
+      renderPlaylist();
+      showToast('메인화면에 등록되었습니다!');
+    }
+
+    function closeSavePopup() {
+      document.getElementById('saveConfirmPopup').style.display = 'none';
+    }
+
+    function updateSaveBtn() {
+      const btn = document.getElementById('saveRandomBtn');
+      const track = playlist[currentIdx];
+      if (track && track.isRandom) {
+        btn.classList.add('visible');
+        const isSaved = savedRandomTracks.some(s => s.src === track.src);
+        btn.className = isSaved
+          ? 'fa-solid fa-bookmark save-btn visible active'
+          : 'fa-regular fa-bookmark save-btn visible';
+      } else {
+        btn.classList.remove('visible', 'active');
+        btn.className = 'fa-regular fa-bookmark save-btn';
+      }
+    }
+
+    /* 다음곡 안내 말풍선 설정 */
+    function toggleNextSongGuide(isChecked) {
+      showNextSongGuide = isChecked;
+      localStorage.setItem('nextSongGuide', isChecked ? 'true' : 'false');
     }
 
     function updateLiveTime() {
@@ -1185,6 +1322,11 @@
       let shareConsent = localStorage.getItem('shareConsent');
       if (shareConsent === null) document.getElementById('sharePopup').style.display = 'flex';
       else document.getElementById('shareOpt').checked = (shareConsent === 'true');
+
+      /* 초보자 가이드 설정 복원 */
+      const nsgVal = localStorage.getItem('nextSongGuide');
+      showNextSongGuide = nsgVal !== 'false';
+      document.getElementById('nextSongGuideOpt').checked = showNextSongGuide;
 
       playlist = [{ src: `./music/${targetId}.mp3`, name: `로딩 중...`, lyricsText: "...", isLoading: false }];
       renderPlaylist();
@@ -1303,12 +1445,15 @@
 
     function loadTrack(index) {
       currentIdx = index;
+      nextSongToastShown = false;
+      hideNextSongToast();
       player.src = playlist[currentIdx].src;
       trackDisplay.innerText = `[ > ${playlist[currentIdx].name} ]`;
       obsTrackTitle.innerText = playlist[currentIdx].name;
       if (playlist[currentIdx].isFriend) document.getElementById('lyricsBox').classList.add('lyric-friend');
       else document.getElementById('lyricsBox').classList.remove('lyric-friend');
       parseLyrics(playlist[currentIdx].lyricsText);
+      updateSaveBtn();
     }
 
     // 가사 필터링 (구조 태그 제거)
@@ -1382,7 +1527,25 @@
       updateLyricsDisplay(player.currentTime);
       const m = Math.floor(player.currentTime / 60), s = Math.floor(player.currentTime % 60);
       document.getElementById('currentTime').innerText = `${m}:${String(s).padStart(2, '0')}`;
+
+      /* 다음곡 안내 말풍선: 종료 30초 전 */
+      if (showNextSongGuide && repeatMode === 'all' && player.duration && !nextSongToastShown) {
+        const remaining = player.duration - player.currentTime;
+        if (remaining <= 30 && remaining > 0) {
+          const nextIdx = (currentIdx + 1) % playlist.length;
+          const nextTrack = playlist[nextIdx];
+          if (nextTrack) {
+            document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ ${nextTrack.name} ]</b> 재생 예정`;
+            document.getElementById('nextSongToast').classList.add('show');
+            nextSongToastShown = true;
+          }
+        }
+      }
     });
+
+    function hideNextSongToast() {
+      document.getElementById('nextSongToast').classList.remove('show');
+    }
 
     player.addEventListener('loadedmetadata', () => {
       document.getElementById('progressBar').max = player.duration;

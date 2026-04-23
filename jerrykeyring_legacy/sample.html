@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>제리키링 - 샘플 접속 중...</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .spinner {
+      border: 4px solid rgba(255, 145, 77, 0.3);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border-left-color: #ff914d;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p>샘플 플레이어로 이동 중입니다...</p>
+  <script>
+    // 임시로 샘플 계정을 활성화하고 플레이어로 넘깁니다.
+    localStorage.setItem('auth_nfc_number', 'sample');
+    // 옵션: 샘플 사용자가 다른 데이터를 지우지 않게 할 수도 있지만, 
+    // 여기서는 단순히 auth 갱신 후 이동합니다.
+    setTimeout(() => {
+      window.location.href = 'player.html?id=sample';
+    }, 500);
+  </script>
+</body>
+</html>

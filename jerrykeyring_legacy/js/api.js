@@ -65,6 +65,18 @@ window.api.fetchResult = async function (mbtiCode) {
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6CTQ9zuuFmA60snWmEDLrNaPYXvnuNENP1R2u2gORHXd5COTObt4au5fDh2KmJdzg/exec';
 
 window.api.getUserInfo = async function (nfcNumber) {
+  if (nfcNumber === 'sample') {
+    return {
+      success: true,
+      data: {
+        'nfc_number': '16', // Use a valid demo track from the local music folder
+        '장르': '샘플 체험용 트랙',
+        '가사': '환영합니다! 제리키링 샘플 플레이어입니다.\n[00:02.00] 이 곡은 기능 체험을 위해 제공되는 샘플 음원입니다.\n[00:06.00] 하단의 다양한 버튼들을 직접 눌러보세요.\n[00:10.00] 다른 사용자의 음원 연동이나, 랜덤 음원 재생도 가능합니다.\n[00:15.00] 환경 설정에서 옵션을 변경해보며 기능을 테스트해보세요!',
+        '시리얼': 'SAMPLE-1004'
+      }
+    };
+  }
+
   if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('여기에_배포된')) {
     return { success: false };
   }

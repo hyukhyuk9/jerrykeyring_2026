@@ -275,9 +275,9 @@
       z-index: 100;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 1.5s ease, transform 1.5s ease;
+      transition: opacity 0.6s ease, transform 0.6s ease;
       box-shadow: 0 4px 15px rgba(255, 145, 77, 0.3);
-      transform: translateY(20px);
+      transform: translateY(10px);
     }
 
     .next-song-toast.show {
@@ -288,17 +288,29 @@
     /* 저장 버튼 스타일 */
     .save-btn {
       display: none;
-      color: #7c4dff;
-      font-size: 1.3rem;
+      color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 1rem;
       cursor: pointer;
       transition: all 0.3s ease;
+      margin-left: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .save-btn.active {
-      color: #ffeb3b;
-      text-shadow: 0 0 8px rgba(255,235,59,0.6);
+      color: #ff8a8a; /* 빨간 파스텔톤 */
+      background: rgba(255, 138, 138, 0.2);
+      border-color: rgba(255, 138, 138, 0.3);
+      text-shadow: 0 0 8px rgba(255, 138, 138, 0.4);
     }
     .save-btn.visible {
       display: inline-block;
+      vertical-align: middle;
     }
 
     /* 저장 확인 팝업 */
@@ -613,6 +625,20 @@
       justify-content: center;
     }
 
+    /* 미니게임 오버레이 전용 */
+    #miniGameOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      z-index: 6000;
+    }
+    #miniGameOverlay iframe {
+      width: 100%; height: 100%;
+      border: none;
+    }
+
     #fullLyricsScrollArea {
       width: 90%;
       max-width: 600px;
@@ -829,7 +855,10 @@
   <main class="container">
     <div class="player-container">
       <audio id="audioPlayer" playsinline crossorigin="anonymous"></audio>
-      <div id="trackDisplay" class="track-info" style="display: none;">[ STANDBY_MODE ]</div>
+      <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+        <div id="trackDisplay" class="track-info" style="display: none; margin-bottom: 0;">[ STANDBY_MODE ]</div>
+        <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장"></i>
+      </div>
 
       <div id="ui-controls">
         <div id="navBar" class="progress-container">
@@ -841,7 +870,6 @@
           <i class="fa-solid fa-backward control-btn" onclick="changeTrack(-1)"></i>
           <i id="playPauseIcon" class="fa-solid fa-pause control-btn main-play-btn" onclick="togglePlay()"></i>
           <i class="fa-solid fa-forward control-btn" onclick="changeTrack(1)"></i>
-          <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장"></i>
         </div>
 
         <div id="mainUI">
@@ -918,6 +946,11 @@
         <!-- 가사 들어감 -->
       </div>
     </div>
+  </div>
+
+  <!-- 미니게임 오버레이 -->
+  <div id="miniGameOverlay">
+    <iframe id="gameIframe" src=""></iframe>
   </div>
 
   <div id="sharePopup" class="modal-overlay"
@@ -1158,6 +1191,15 @@
           playRandomMusic();
         };
         commZone.appendChild(randomBtn);
+
+        const gameBtn = document.createElement('button');
+        gameBtn.className = 'track-button'; gameBtn.style.borderColor = '#ff914d'; gameBtn.style.color = '#ff914d';
+        gameBtn.innerHTML = '<span><i class="fa-solid fa-gamepad"></i> 제리 리듬게임 실행</span>';
+        gameBtn.onclick = (e) => {
+          e.stopPropagation();
+          openMiniGame();
+        };
+        commZone.appendChild(gameBtn);
 
         const frList = document.createElement('div');
         frList.id = 'friendListZone'; frList.style.marginTop = '25px'; frList.style.width = '100%';
@@ -1622,6 +1664,19 @@
       return false;
     }
 
+    function getFirstLyricLine(text) {
+      if (!text) return "";
+      const lines = text.split('\n').map(l => l.trim());
+      const timeRegex = /\[\d{2}:\d{2}\.\d{2}\]/;
+      for (let line of lines) {
+        let pureText = line.replace(timeRegex, '').trim();
+        if (pureText && !isUnwantedLine(pureText)) {
+          return pureText;
+        }
+      }
+      return "";
+    }
+
     function parseLyrics(text) {
       const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       const timeRegex = /\[(\d{2}):(\d{2}\.\d{2})\]/;
@@ -1710,18 +1765,24 @@
       document.getElementById('currentTime').innerText = `${m}:${String(s).padStart(2, '0')}`;
 
       /* 다음곡 안내 말풍선: 종료 30초 전 */
-      if (showNextSongGuide && repeatMode === 'all' && player.duration && !nextSongToastShown) {
+      if (showNextSongGuide && player.duration && !nextSongToastShown) {
         const remaining = player.duration - player.currentTime;
         if (remaining <= 30 && remaining > 0) {
+          const isAllRepeat = (repeatMode === 'all');
+          
           if (playingRandomTrack) {
-            document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ 새로운 랜덤 음악 ]</b> 재생 예정`;
-            document.getElementById('nextSongToast').classList.add('show');
-            nextSongToastShown = true;
-          } else {
+            if (isAllRepeat) {
+              document.getElementById('nextSongToast').innerHTML = `다음곡, <b style="color:#ff914d;">[ 새로운 랜덤 음악 ]</b> 재생 예정`;
+              document.getElementById('nextSongToast').classList.add('show');
+              nextSongToastShown = true;
+            }
+          } else if (playlist.length > 1 || isAllRepeat) {
             const nextIdx = (currentIdx + 1) % playlist.length;
             const nextTrack = playlist[nextIdx];
             if (nextTrack) {
-              document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ ${nextTrack.name} ]</b> 재생 예정`;
+              const firstLine = getFirstLyricLine(nextTrack.lyricsText);
+              const infoText = firstLine ? `${nextTrack.name} ${firstLine}` : nextTrack.name;
+              document.getElementById('nextSongToast').innerHTML = `다음곡, <b style="color:#ff914d;">${infoText}</b>`;
               document.getElementById('nextSongToast').classList.add('show');
               nextSongToastShown = true;
             }
@@ -1746,13 +1807,19 @@
       if (player.paused) { player.play(); icon.className = 'fa-solid fa-pause control-btn main-play-btn'; }
       else { player.pause(); icon.className = 'fa-solid fa-play control-btn main-play-btn'; }
     }
+    
+    function updatePlayButton() {
+      const icon = document.getElementById('playPauseIcon');
+      icon.className = player.paused ? 'fa-solid fa-play control-btn main-play-btn' : 'fa-solid fa-pause control-btn main-play-btn';
+    }
+
     function changeTrack(dir) {
       if (playingRandomTrack) {
         playRandomMusic();
         return;
       }
       currentIdx = (currentIdx + dir + playlist.length) % playlist.length; loadTrack(currentIdx); player.play();
-      document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
+      updatePlayButton();
     }
     player.onended = () => { 
       if (playingRandomTrack) {
@@ -1813,7 +1880,28 @@
         ctx.fillStyle = 'rgba(255, 145, 77, 0.3)'; ctx.beginPath(); ctx.ellipse(i * barWidth + barWidth / 2, canvas.height, barWidth, barHeight, 0, 0, Math.PI * 2); ctx.fill();
       }
     }
+
+    // 미니게임 제어
+    function openMiniGame() {
+      const overlay = document.getElementById('miniGameOverlay');
+      const iframe = document.getElementById('gameIframe');
+      const currentSrc = player.src;
+      // 현재 재생 중인 음원 경로를 쿼리 파라미터로 전달
+      iframe.src = `rhythm.html?src=${encodeURIComponent(currentSrc)}`;
+      overlay.style.display = 'block';
+      // 게임 실행 시 메인 플레이어 일시정지
+      if (!player.paused) player.pause();
+      updatePlayButton();
+    }
+
+    window.addEventListener('message', (e) => {
+      if (e.data === 'closeGame') {
+        const overlay = document.getElementById('miniGameOverlay');
+        const iframe = document.getElementById('gameIframe');
+        overlay.style.display = 'none';
+        iframe.src = '';
+      }
+    });
   </script>
 </body>
-
 </html>

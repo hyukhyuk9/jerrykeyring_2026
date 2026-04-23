@@ -625,7 +625,7 @@
       justify-content: center;
     }
 
-    /* 미니게임 오버레이 전용 */
+    /* 미니게임 오버레이 전용 (주석 처리)
     #miniGameOverlay {
       display: none;
       position: fixed;
@@ -638,6 +638,7 @@
       width: 100%; height: 100%;
       border: none;
     }
+    */
 
     #fullLyricsScrollArea {
       width: 90%;
@@ -948,10 +949,11 @@
     </div>
   </div>
 
-  <!-- 미니게임 오버레이 -->
+  <!-- 미니게임 오버레이 (주석 처리)
   <div id="miniGameOverlay">
     <iframe id="gameIframe" src=""></iframe>
   </div>
+  -->
 
   <div id="sharePopup" class="modal-overlay"
     style="display: none; align-items: center; justify-content: center; z-index: 3000;">
@@ -1192,6 +1194,7 @@
         };
         commZone.appendChild(randomBtn);
 
+        /* 미니게임 버튼 주석 처리
         const gameBtn = document.createElement('button');
         gameBtn.className = 'track-button'; gameBtn.style.borderColor = '#ff914d'; gameBtn.style.color = '#ff914d';
         gameBtn.innerHTML = '<span><i class="fa-solid fa-gamepad"></i> 제리 리듬게임 실행</span>';
@@ -1200,6 +1203,7 @@
           openMiniGame();
         };
         commZone.appendChild(gameBtn);
+        */
 
         const frList = document.createElement('div');
         frList.id = 'friendListZone'; frList.style.marginTop = '25px'; frList.style.width = '100%';
@@ -1881,7 +1885,7 @@
       }
     }
 
-    // 미니게임 제어
+    /* 미니게임 제어 로직 주석 처리
     function openMiniGame() {
       const overlay = document.getElementById('miniGameOverlay');
       const iframe = document.getElementById('gameIframe');
@@ -1909,6 +1913,7 @@
         iframe.src = '';
       }
     });
+    */
   </script>
 </body>
 </html>

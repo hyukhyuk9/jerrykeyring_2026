@@ -7,7 +7,7 @@ window.api = window.api || {};
 
 // 수파베이스 설정
 const SUPABASE_URL = 'https://ndvwvprwjergkyfvbytd.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kdnd2cHJ3amVyZ2t5ZnZieXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTkyMzUsImV4cCI6MjA5MTgzNTIzNX0.Nm0pwyGX9pBU13BSFED7rrutfAqpBOtCijG3zpsy3dos';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kdnd2cHJ3amVyZ2t5ZnZieXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTkyMzUsImV4cCI6MjA5MTgzNTIzNX0.Nm0pwyGX9pBU13BSFED7rrutfAqpBOtCijG3zpsy3do';
 
 // 수파베이스 클라이언트 초기화 (CDN으로 로드된 supabase 객체 사용)
 let supabaseClient = null;
@@ -102,21 +102,38 @@ window.api.verifyUser = async function (nfcNumber, name, phone) {
   const client = getSupabase();
   if (!client) return { success: false };
 
-  const cleanPhone = phone.replace(/[^0-9]/g, '').replace(/^0/, '');
+  const cleanInputPhone = phone.replace(/[^0-9]/g, ''); // 입력값에서 모든 숫자만 추출
+  const trimmedName = name.trim(); // 이름 앞뒤 공백 제거
+
+  console.log('[Auth Debug] 요청 정보:', { nfcNumber, trimmedName, cleanInputPhone });
 
   try {
+    // 1. NFC 번호와 이름으로 먼저 해당 유저를 찾습니다.
     const { data, error } = await client
       .from('tracks')
-      .select('nfc_id')
+      .select('nfc_id, user_name, phone_number')
       .eq('nfc_id', nfcNumber)
-      .eq('user_name', name)
-      .ilike('phone_number', `%${cleanPhone}`)
+      .eq('user_name', trimmedName)
       .single();
 
-    if (error || !data) return { success: false, message: '기입된 정보가 일치하지 않습니다.' };
-    return { success: true, message: '인증 완료' };
+    if (error || !data) {
+      console.log('[Auth Debug] 일치하는 유저 없음:', error);
+      return { success: false, message: '기입된 정보가 일치하지 않습니다.' };
+    }
+
+    // 2. DB의 전화번호에서도 하이픈 등을 제거하고 비교합니다.
+    const dbPhone = data.phone_number.replace(/[^0-9]/g, '');
+    console.log('[Auth Debug] 번호 비교:', { dbPhone, cleanInputPhone });
+
+    if (dbPhone.endsWith(cleanInputPhone) || cleanInputPhone.endsWith(dbPhone.slice(-8))) {
+      console.log('[Auth Debug] 인증 성공:', data);
+      return { success: true, message: '인증 완료' };
+    } else {
+      console.log('[Auth Debug] 전화번호 불일치');
+      return { success: false, message: '전화번호가 일치하지 않습니다.' };
+    }
   } catch (err) {
-    console.error('인증 에러:', err);
+    console.error('[Auth Debug] 예외 발생:', err);
     return { success: false, message: '서버 통신 중 오류가 발생했습니다.' };
   }
 };

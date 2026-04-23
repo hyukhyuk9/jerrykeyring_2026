@@ -1360,7 +1360,7 @@
       showNextSongGuide = nsgVal !== 'false';
       document.getElementById('nextSongGuideOpt').checked = showNextSongGuide;
 
-      playlist = [{ src: `./music/${targetId}.mp3`, name: `로딩 중...`, lyricsText: "...", isLoading: false }];
+      playlist = [{ src: '', name: '데이터를 불러오는 중...', isLoading: true }];
       renderPlaylist();
 
       window.api.getUserInfo(targetId).then(res => {
@@ -1383,34 +1383,43 @@
 
           let finalLyrics = (rawEdited && rawEdited !== "수정없음") ? rawEdited : (rawOriginal || "가사가 등록되지 않았습니다.");
 
-          // [추가] 시리얼 번호 표시
+          // 시리얼 번호 표시
           const serialNum = data['시리얼'] || findVal(['시리얼', 'serial']);
           if (serialNum) {
             document.getElementById('serialDisplay').innerText = `SN: ${serialNum}`;
           }
 
+          // 구글 시트에 명시된 NFC 번호를 최우선으로 사용하여 음원 매칭
+          const finalNfc = data.nfcNumber || data['NFC번호'] || data['nfc_number'] || targetId;
+
           if (genreList.length > 1) {
             playlist = genreList.map((g, i) => ({
-              src: `./music/${targetId}-${i + 1}.mp3`,
+              src: `./music/${finalNfc}-${i + 1}.mp3`,
               name: g,
               lyricsText: finalLyrics,
               isLoading: false
             }));
           } else {
-            playlist[0].name = genreList[0];
-            playlist[0].lyricsText = finalLyrics;
+            playlist = [{
+              src: `./music/${finalNfc}.mp3`,
+              name: genreList[0] || `트랙 ${finalNfc}`,
+              lyricsText: finalLyrics,
+              isLoading: false
+            }];
           }
 
-          // [핵심] 데이터를 다 가져왔으니 화면을 다시 그려줍니다!
+          // 데이터를 다 가져왔으니 화면을 다시 그려줍니다!
           renderPlaylist();
 
-          // [실시간 강제 갱신] 플레이어가 이미 켜져 있다면 즉시 UI 업데이트
+          // 실시간 갱신: 플레이어가 이미 켜져 있다면 UI 업데이트
           const controlsDisplay = document.getElementById('playerControls').style.display;
-          if (controlsDisplay !== 'none' || playlist[0].name !== "로딩 중...") {
+          if (controlsDisplay !== 'none') {
             const currentTrack = playlist[currentIdx];
-            trackDisplay.innerText = `[ > ${currentTrack.name} ]`;
-            obsTrackTitle.innerText = currentTrack.name;
-            parseLyrics(currentTrack.lyricsText);
+            if (currentTrack) {
+              trackDisplay.innerText = `[ > ${currentTrack.name} ]`;
+              obsTrackTitle.innerText = currentTrack.name;
+              parseLyrics(currentTrack.lyricsText);
+            }
           }
 
           // 친구 데이터 로드... (이후 로직 동일)

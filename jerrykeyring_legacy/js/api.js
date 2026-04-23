@@ -69,11 +69,9 @@ window.api.getUserInfo = async function (nfcNumber) {
     return { success: false };
   }
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `action=getUserInfo&nfcNumber=${encodeURIComponent(nfcNumber)}`
-    });
+    // [보안/CORS 방지] POST 대신 GET 방식으로 전환하여 더 안정적으로 데이터를 가져옵니다.
+    const url = `${GOOGLE_SCRIPT_URL}?action=getUserInfo&nfcNumber=${encodeURIComponent(nfcNumber)}`;
+    const response = await fetch(url);
     return await response.json();
   } catch (err) {
     console.error('유저 정보 불러오기 에러:', err);
@@ -90,15 +88,12 @@ window.api.verifyUser = async function (nfcNumber, name, phone) {
     }, 500));
   }
 
-  // --- [ 구글 시트 자동 숫자 변환(010 -> 10) 파싱 대응 ] ---
   const cleanPhone = phone.replace(/[^0-9]/g, '').replace(/^0/, '');
 
   try {
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `action=verifyNfc&nfcNumber=${encodeURIComponent(nfcNumber)}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(cleanPhone)}`
-    });
+    // 인증 요청도 더 안정적인 GET 방식으로 시도
+    const url = `${GOOGLE_SCRIPT_URL}?action=verifyNfc&nfcNumber=${encodeURIComponent(nfcNumber)}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(cleanPhone)}`;
+    const response = await fetch(url);
     return await response.json();
   } catch (err) {
     console.error('구글 시트 연동 에러:', err);

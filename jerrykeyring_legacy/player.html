@@ -1279,97 +1279,73 @@
     }
 
     /* 제리키링 랜덤음원듣기 */
-    const randomMusicPool = [
-      '0604','1-1','1-2','1-3','12-1','12-2','13','15','1594','16','1660','18',
-      '20','21','22','23','27','28','2821','30-1','30-2','3068','31','33-1','33-2',
-      '34-1','34-2','3403','3455','35','36','3656','3796','4','41','43','4479','47',
-      '5','51-1','51-2','51-3','51-4','51-5','53','5453','5549','5668','5733',
-      '6207','63-1','63-2','6672','69','6959','6965','7','7284','7419','7511',
-      '8-1','8-2','8401','8720','8731','8825','9-1','9-2','9125','9220-1','9220-2',
-      '9412','9685','9694','9785','999'
-    ];
-
     async function playRandomMusic() {
-      const pick = randomMusicPool[Math.floor(Math.random() * randomMusicPool.length)];
-
-      /* NFC 번호 추출 (하이픈 앞 부분이 NFC ID) */
-      const nfcId = pick.split('-')[0];
-
-      let trackName = `랜덤 #${pick}`;
+      showToast('🎲 랜덤 음원을 불러오는 중...');
       
-      playingRandomTrack = { src: `./music/${pick}.mp3`, name: `🎲 ${trackName}`, lyricsText: '가사를 불러오는 중...', isRandom: true };
-
-      /* 화면 및 플레이어 UI 전환 (독립 플레이어) */
-      document.getElementById('mainUI').style.display = 'none';
-      document.getElementById('playerControls').style.display = 'flex';
-      document.getElementById('navBar').style.display = 'block';
-      trackDisplay.style.display = 'block';
-      document.getElementById('exitContainer').style.display = 'block';
-      if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
-
-      if (!isVisualizerSetup) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContext(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
-        const source = audioCtx.createMediaElementSource(player);
-        source.connect(analyser); analyser.connect(audioCtx.destination);
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
-        targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
-        isVisualizerSetup = true;
-      }
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      canvas.style.opacity = '0.4';
-      if (!animationId) drawVisualizer(0);
-
-      nextSongToastShown = false;
-      hideNextSongToast();
-      player.src = playingRandomTrack.src;
-      trackDisplay.innerText = `[ > ${playingRandomTrack.name} ]`;
-      obsTrackTitle.innerText = playingRandomTrack.name;
-      document.getElementById('lyricsBox').classList.remove('lyric-friend');
-      parseLyrics(playingRandomTrack.lyricsText);
-      updateSaveBtn();
-      player.play().catch(() => { });
-      resetIdleTimer();
-      showToast(`🎲 랜덤 재생: ${trackName}`);
-
-      /* 가사 로딩 10초 타임아웃 */
-      let lyricsLoaded = false;
-      const lyricsTimeout = setTimeout(() => {
-        if (!lyricsLoaded && playingRandomTrack && playingRandomTrack.src === `./music/${pick}.mp3`) {
-          playingRandomTrack.lyricsText = '제리키링AI';
-          parseLyrics('제리키링AI');
-        }
-      }, 10000);
-
       try {
-        const res = await window.api.getUserInfo(nfcId);
-        lyricsLoaded = true;
-        if (res && res.success && res.data && playingRandomTrack && playingRandomTrack.src === `./music/${pick}.mp3`) {
-          const data = res.data;
-          const findVal = (keys) => { for (let key in data) { const ck = key.replace(/\s/g, '').toLowerCase(); if (keys.some(k => ck.includes(k.toLowerCase()))) return data[key]; } return null; };
-          const genre = data['장르'] || data.genre || findVal(['장르','곡제목']) || '랜덤';
-          const genres = genre.split(',').map(g => g.trim());
-          const parts = pick.split('-');
-          const trackIdx = parts.length > 1 ? parseInt(parts[1]) - 1 : 0;
-          trackName = genres[trackIdx] || genres[0] || `랜덤 #${pick}`;
-
-          let rawEdited = data['수정'] || data['수정가사'] || data['수정된가사'] || findVal(['수정','editedLyrics']);
-          let rawOriginal = data['가사'] || data.lyrics || findVal(['가사','lyrics']);
-          let finalLyrics = (rawEdited && rawEdited !== '수정없음') ? rawEdited : (rawOriginal || '제리키링AI');
-
-          playingRandomTrack.name = `🎲 ${trackName}`;
-          playingRandomTrack.lyricsText = finalLyrics;
-          
-          trackDisplay.innerText = `[ > ${playingRandomTrack.name} ]`;
-          obsTrackTitle.innerText = playingRandomTrack.name;
-          parseLyrics(playingRandomTrack.lyricsText);
+        const randomData = await window.api.getRandomTrack();
+        if (!randomData) {
+          showToast('❌ 재생 가능한 랜덤 음원이 없습니다.');
+          return;
         }
+
+        const audioUrl = randomData.audio_url;
+        const trackInfo = randomData.tracks || {};
+        
+        // 개인정보 보호를 위해 NFC 번호 대신 장르나 '랜덤 음원'으로 표시
+        const trackName = trackInfo.genre || '랜덤 음원';
+        
+        let finalLyrics = trackInfo.lyrics || '제리키링AI';
+        // 수정가사가 있다면 우선 적용
+        if (trackInfo.modify && trackInfo.modify !== '수정없음' && trackInfo.modify !== '') {
+          finalLyrics = trackInfo.modify;
+        }
+
+        playingRandomTrack = { 
+          src: audioUrl, 
+          name: `🎲 ${trackName}`, 
+          lyricsText: finalLyrics, 
+          isRandom: true 
+        };
+
+        /* 화면 및 플레이어 UI 전환 (독립 플레이어) */
+        document.getElementById('mainUI').style.display = 'none';
+        document.getElementById('playerControls').style.display = 'flex';
+        document.getElementById('navBar').style.display = 'block';
+        trackDisplay.style.display = 'block';
+        document.getElementById('exitContainer').style.display = 'block';
+        if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
+
+        if (!isVisualizerSetup) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContext(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
+          const source = audioCtx.createMediaElementSource(player);
+          source.connect(analyser); analyser.connect(audioCtx.destination);
+          dataArray = new Uint8Array(analyser.frequencyBinCount);
+          smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
+          targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
+          isVisualizerSetup = true;
+        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        canvas.style.opacity = '0.4';
+        if (!animationId) drawVisualizer(0);
+
+        nextSongToastShown = false;
+        hideNextSongToast();
+        player.src = playingRandomTrack.src;
+        trackDisplay.innerText = `[ > ${playingRandomTrack.name} ]`;
+        obsTrackTitle.innerText = playingRandomTrack.name;
+        document.getElementById('lyricsBox').classList.remove('lyric-friend');
+        parseLyrics(playingRandomTrack.lyricsText);
+        updateSaveBtn();
+        player.play().catch(() => { });
+        resetIdleTimer();
+        showToast(`🎲 랜덤 재생: ${trackName}`);
+
       } catch (err) {
-        lyricsLoaded = true;
-        console.warn('랜덤 음원 정보 로딩 실패:', err);
+        console.error('랜덤 재생 에러:', err);
+        showToast('❌ 랜덤 음원을 불러오지 못했습니다.');
       }
-      clearTimeout(lyricsTimeout);
     }
 
     /* 저장 버튼 토글 (랜덤 트랙 저장/해제) */
@@ -1440,7 +1416,9 @@
 
     window.onload = async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      let targetId = urlParams.get('id') || '1';
+      let rawId = urlParams.get('id') || '1';
+      // .html 확장자가 붙어있는 경우 제거 (리다이렉트 대응)
+      let targetId = rawId.replace('.html', '');
 
       const authedNfc = localStorage.getItem('auth_nfc_number');
       let linkedFriends = JSON.parse(localStorage.getItem('linked_friends') || '[]');

@@ -354,6 +354,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/api.js"></script>
   <script>
     function formatPhone(input) {
@@ -535,7 +536,7 @@
          // 2-1. 자동으로 시트 검색 후 이름만 미리 채워두기 (전화번호는 보안을 위해 직접 입력)
          window.api.getUserInfo(targetNfc).then(res => {
             if (res.success && res.data) {
-                document.getElementById('userName').value = res.data.name;
+                document.getElementById('userName').value = res.data.user_name;
                 // 인증(보안)을 위해 전화번호는 빈칸으로 둡니다.
             }
          });

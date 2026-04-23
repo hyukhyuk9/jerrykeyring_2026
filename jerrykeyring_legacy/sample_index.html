@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>제리키링 | 청음 인증</title>
   <link rel="icon" type="image/png" href="sumbnail.png">
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-  
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+
   <style>
     :root {
       --app-bg: #000000;
@@ -18,335 +21,926 @@
       --error-color: #ff3b30;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Pretendard Variable", sans-serif; -webkit-tap-highlight-color: transparent; }
-    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Pretendard Variable", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      background-color: var(--app-bg); color: var(--text-main);
-      height: 100vh; width: 100vw; overflow: hidden; position: relative;
+      background-color: var(--app-bg);
+      color: var(--text-main);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      position: relative;
     }
 
     .background-blur {
-      position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
       background: radial-gradient(circle at 50% 50%, rgba(255, 145, 77, 0.08), transparent 60%);
-      z-index: -1; pointer-events: none;
+      z-index: -1;
+      pointer-events: none;
     }
 
     #cd-physics-layer {
-      position: absolute; top:0; left:0; width: 100%; height: 100vh; 
-      pointer-events: none; z-index: 5; overflow: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
       transform-style: preserve-3d;
     }
-    
+
     .lite-cd {
-      position: absolute; top: 0; left: 0; aspect-ratio: 1/1; 
-      border-radius: 50%; transform-origin: center center;
-      background: linear-gradient(135deg, #f0f0f0, #d4d4d4); 
+      position: absolute;
+      top: 0;
+      left: 0;
+      aspect-ratio: 1/1;
+      border-radius: 50%;
+      transform-origin: center center;
+      background: linear-gradient(135deg, #f0f0f0, #d4d4d4);
       border: 2px solid #ffffff;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.5); 
-      cursor: pointer; pointer-events: auto;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      pointer-events: auto;
       will-change: transform;
     }
+
     .lite-cd::after {
-      content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 25%; height: 25%; border-radius: 50%; 
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 25%;
+      height: 25%;
+      border-radius: 50%;
       background: #000;
       border: 2px solid #888;
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.9);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.9);
     }
-    
+
     @keyframes FieryRays {
-      0% { 
-         background: #ff3b30;
-         box-shadow: 0 0 50px #ff3b30, inset 0 0 30px #ffffff;
-         border-color: #ffb3b3;
+      0% {
+        background: #ff3b30;
+        box-shadow: 0 0 50px #ff3b30, inset 0 0 30px #ffffff;
+        border-color: #ffb3b3;
       }
-      33% { 
-         background: #ff5722; 
-         box-shadow: 0 0 70px #ff914d, inset 0 0 50px #ffffff;
-         border-color: #ffebcc;
+
+      33% {
+        background: #ff5722;
+        box-shadow: 0 0 70px #ff914d, inset 0 0 50px #ffffff;
+        border-color: #ffebcc;
       }
-      66% { 
-         background: #ff1493; 
-         box-shadow: 0 0 60px #ff1493, inset 0 0 40px #ffffff;
-         border-color: #ffb3cc;
+
+      66% {
+        background: #ff1493;
+        box-shadow: 0 0 60px #ff1493, inset 0 0 40px #ffffff;
+        border-color: #ffb3cc;
       }
-      100% { 
-         background: #ff3b30;
-         box-shadow: 0 0 50px #ff3b30, inset 0 0 30px #ffffff;
-         border-color: #ffffff;
+
+      100% {
+        background: #ff3b30;
+        box-shadow: 0 0 50px #ff3b30, inset 0 0 30px #ffffff;
+        border-color: #ffffff;
       }
     }
-    .winner-glow, .inserted-pulse {
-       animation: FieryRays 1.2s ease-in-out infinite alternate !important;
+
+    .winner-glow,
+    .inserted-pulse {
+      animation: FieryRays 1.2s ease-in-out infinite alternate !important;
     }
 
     .keyring-scene {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
       perspective: 1500px;
-      display: flex; justify-content: center; align-items: center;
-      transform-origin: top center; 
-      z-index: 50; transform-style: preserve-3d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-origin: top center;
+      z-index: 50;
+      transform-style: preserve-3d;
     }
 
     @keyframes pullBounce {
-      0%   { transform: translateY(0); }
-      40%  { transform: translateY(100px); } 
-      75%  { transform: translateY(-5px); }
-      100% { transform: translateY(0); }
+      0% {
+        transform: translateY(0);
+      }
+
+      40% {
+        transform: translateY(100px);
+      }
+
+      75% {
+        transform: translateY(-5px);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
     }
-    .pull-bounce { animation: pullBounce 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    .pull-bounce {
+      animation: pullBounce 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
     .top-attachment {
-      position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-      width: 40px; height: 35px; border-radius: 20px 20px 5px 5px;
-      border: 4px solid #aaa; border-bottom: none;
-      background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(150,150,150,0) 70%);
-      box-shadow: inset 0 3px 5px rgba(0,0,0,0.5), 0 -2px 10px rgba(255,145,77,0.2);
-      z-index: -1; 
-    }
-    .hole-inner {
-      position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
-      width: 20px; height: 28px; border-radius: 10px 10px 0 0;
-      background: var(--app-bg); 
-      box-shadow: inset 0 5px 8px rgba(0,0,0,0.9);
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 35px;
+      border-radius: 20px 20px 5px 5px;
+      border: 4px solid #aaa;
+      border-bottom: none;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(150, 150, 150, 0) 70%);
+      box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5), 0 -2px 10px rgba(255, 145, 77, 0.2);
+      z-index: -1;
     }
 
-    #chain-beads-wrap { position: absolute; top: 15px; left: 50%; width: 0; height: 0; z-index: -2; }
+    .hole-inner {
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 28px;
+      border-radius: 10px 10px 0 0;
+      background: var(--app-bg);
+      box-shadow: inset 0 5px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    #chain-beads-wrap {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      width: 0;
+      height: 0;
+      z-index: -2;
+    }
+
     .chain-bead {
-      position: absolute; width: 8px; height: 8px; border-radius: 50%;
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
       background: radial-gradient(circle at 35% 35%, #fff, silver, #555);
-      top: calc(-4px + var(--py)); left: calc(-4px + var(--px));
-      box-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      top: calc(-4px + var(--py));
+      left: calc(-4px + var(--px));
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
     }
-    
+
     @keyframes beadWobble {
-      0%   { transform: translateY(0); }
-      40%  { transform: translateY(-10px); } 
-      75%  { transform: translateY(4px); }
-      100% { transform: translateY(0); }
+      0% {
+        transform: translateY(0);
+      }
+
+      40% {
+        transform: translateY(-10px);
+      }
+
+      75% {
+        transform: translateY(4px);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
     }
-    .pull-bounce .chain-bead { animation: beadWobble 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+    .pull-bounce .chain-bead {
+      animation: beadWobble 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
 
     .keyring-album {
-      width: 85vw; max-width: 300px; aspect-ratio: 1/1; height: auto;
-      position: relative; transform-style: preserve-3d;
+      width: 85vw;
+      max-width: 300px;
+      aspect-ratio: 1/1;
+      height: auto;
+      position: relative;
+      transform-style: preserve-3d;
       transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), filter 0.8s;
-      transform: translateY(-100vh); opacity: 1; 
-      filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+      transform: translateY(-100vh);
+      opacity: 1;
+      filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5));
     }
 
     @keyframes hatchTremble {
-      0%   { transform: rotate(0deg) scale(1); }
-      15%  { transform: rotate(1.5deg) scale(1.01); }
-      35%  { transform: rotate(-1.5deg) scale(0.99); }
-      55%  { transform: rotate(1deg) scale(1.005); }
-      75%  { transform: rotate(-1deg) scale(0.995); }
-      100% { transform: rotate(0deg) scale(1); }
+      0% {
+        transform: rotate(0deg) scale(1);
+      }
+
+      15% {
+        transform: rotate(1.5deg) scale(1.01);
+      }
+
+      35% {
+        transform: rotate(-1.5deg) scale(0.99);
+      }
+
+      55% {
+        transform: rotate(1deg) scale(1.005);
+      }
+
+      75% {
+        transform: rotate(-1deg) scale(0.995);
+      }
+
+      100% {
+        transform: rotate(0deg) scale(1);
+      }
     }
-    .hatching { animation: hatchTremble 0.7s ease-in-out; }
+
+    .hatching {
+      animation: hatchTremble 0.7s ease-in-out;
+    }
 
     .album-inside {
-      position: absolute; top:0; left:0; width: 100%; height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: var(--card-bg);
-      overflow: hidden; z-index: 1; border: 2px solid rgba(255,255,255,0.05);
-      box-shadow: inset 0 0 50px rgba(0,0,0,0.95), 
-                  1px 2px 0 #cccccc, 
-                  2px 4px 0 #b3b3b3, 
-                  3px 6px 0 #999999, 
-                  4px 8px 0 #808080, 
-                  5px 10px 0 #666666, 
-                  6px 13px 15px rgba(0,0,0,0.9);
+      overflow: hidden;
+      z-index: 1;
+      border: 2px solid rgba(255, 255, 255, 0.05);
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.95),
+        1px 2px 0 #cccccc,
+        2px 4px 0 #b3b3b3,
+        3px 6px 0 #999999,
+        4px 8px 0 #808080,
+        5px 10px 0 #666666,
+        6px 13px 15px rgba(0, 0, 0, 0.9);
     }
 
     .album-cover {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       transform-origin: left center;
       transform-style: preserve-3d;
       transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), filter 1.2s;
-      z-index: 10; cursor: pointer;
+      z-index: 10;
+      cursor: pointer;
     }
-    
-    .cover-front { 
-      position: absolute; top:0; left:0; width: 100%; height: 100%;
-      background: #000; border: 3px solid #ff914d;
-      transform: translateZ(5px); backface-visibility: hidden;
-      box-shadow: 0 0 25px rgba(255,145,77,0.5), inset 0 0 15px rgba(255,145,77,0.5);
+
+    .cover-front {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border: 3px solid #ff914d;
+      transform: translateZ(5px);
+      backface-visibility: hidden;
+      box-shadow: 0 0 25px rgba(255, 145, 77, 0.5), inset 0 0 15px rgba(255, 145, 77, 0.5);
     }
-    .cover-front img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-    
+
+    .cover-front img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
     .cover-back {
-      position: absolute; top:0; left:0; width: 100%; height: 100%;
-      background: rgba(230,230,230,0.95); border: 2px solid #bbb;
-      transform: rotateY(180deg) translateZ(5px); backface-visibility: hidden;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(230, 230, 230, 0.95);
+      border: 2px solid #bbb;
+      transform: rotateY(180deg) translateZ(5px);
+      backface-visibility: hidden;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
     }
 
     .cover-edge-right {
-      position: absolute; top: 0; right: 0; width: 10px; height: 100%;
-      background: linear-gradient(to bottom, #d4d4d4, #888); 
-      transform-origin: 100% 50%; transform: rotateY(90deg) translateX(5px);
-    }
-    .cover-edge-top {
-      position: absolute; top: 0; left: 0; width: 100%; height: 10px;
-      background: #eeeeee;
-      transform-origin: 50% 0%; transform: rotateX(90deg) translateY(-5px);
-    }
-    .cover-edge-bottom {
-      position: absolute; bottom: 0; left: 0; width: 100%; height: 10px;
-      background: #666666;
-      transform-origin: 50% 100%; transform: rotateX(-90deg) translateY(5px);
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 10px;
+      height: 100%;
+      background: linear-gradient(to bottom, #d4d4d4, #888);
+      transform-origin: 100% 50%;
+      transform: rotateY(90deg) translateX(5px);
     }
 
-    .keyring-album.is-open { transform: translateX(12vw) scale(0.9); }
-    .keyring-album.is-open .album-cover { transform: rotateY(-155deg); filter: brightness(0.65); pointer-events: none; }
+    .cover-edge-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: #eeeeee;
+      transform-origin: 50% 0%;
+      transform: rotateX(90deg) translateY(-5px);
+    }
+
+    .cover-edge-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: #666666;
+      transform-origin: 50% 100%;
+      transform: rotateX(-90deg) translateY(5px);
+    }
+
+    .keyring-album.is-open {
+      transform: translateX(12vw) scale(0.9);
+    }
+
+    .keyring-album.is-open .album-cover {
+      transform: rotateY(-155deg);
+      filter: brightness(0.65);
+      pointer-events: none;
+    }
 
     .step-wrapper {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 0 25px; opacity: 0; pointer-events: none; transform: translateX(10%);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 25px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10%);
       transition: all 0.5s ease;
     }
-    .step-wrapper.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
-    .step-wrapper.completed { opacity: 0; pointer-events: none; transform: translateX(-10%); }
 
-    h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 8px; text-align: center; width: 100%; }
-    p { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 25px; text-align: center; width: 100%; line-height: 1.3;}
-    .form-inner { width: 100%; margin-top: auto; margin-bottom: auto; display: flex; flex-direction: column; align-items: center; }
+    .step-wrapper.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .step-wrapper.completed {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-10%);
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-align: center;
+      width: 100%;
+    }
+
+    p {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-bottom: 25px;
+      text-align: center;
+      width: 100%;
+      line-height: 1.3;
+    }
+
+    .form-inner {
+      width: 100%;
+      margin-top: auto;
+      margin-bottom: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
     input {
-      width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--border-soft); color: #fff;
-      border-radius: 8px; padding: 14px; font-size: 0.95rem; text-align: center; transition: border-color 0.3s;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-soft);
+      color: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.95rem;
+      text-align: center;
+      transition: border-color 0.3s;
     }
-    input:focus { outline: none; border-color: var(--primary); }
-    
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
     @keyframes shakeError {
-      0% { transform: translateX(0); }
-      20% { transform: translateX(-6px); border-color: #ff3b30; }
-      40% { transform: translateX(6px); border-color: #ff3b30; }
-      60% { transform: translateX(-4px); border-color: #ff3b30; }
-      80% { transform: translateX(4px); border-color: #ff3b30; }
-      100% { transform: translateX(0); }
+      0% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-6px);
+        border-color: #ff3b30;
+      }
+
+      40% {
+        transform: translateX(6px);
+        border-color: #ff3b30;
+      }
+
+      60% {
+        transform: translateX(-4px);
+        border-color: #ff3b30;
+      }
+
+      80% {
+        transform: translateX(4px);
+        border-color: #ff3b30;
+      }
+
+      100% {
+        transform: translateX(0);
+      }
     }
-    .shake-error { animation: shakeError 0.4s ease-in-out; }
-    .error-text { color: var(--error-color); font-size: 0.75rem; height: 18px; line-height: 18px; opacity: 0; margin-top: 5px; text-align: center; width: 100%; }
-    .btn-row { display: flex; width: 100%; gap: 10px; margin-top: 15px;}
-    button { flex: 1; border: none; padding: 12px; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
-    button:active { transform: scale(0.95); }
-    .btn-primary { background: linear-gradient(135deg, #ffb347, #ff914d); color: #000; }
-    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; }
+
+    .shake-error {
+      animation: shakeError 0.4s ease-in-out;
+    }
+
+    .error-text {
+      color: var(--error-color);
+      font-size: 0.75rem;
+      height: 18px;
+      line-height: 18px;
+      opacity: 0;
+      margin-top: 5px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .btn-row {
+      display: flex;
+      width: 100%;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    button {
+      flex: 1;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ffb347, #ff914d);
+      color: #000;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
 
     .click-tooltip {
-      position: fixed; top: 68vh; left: 50%; transform: translateX(-50%);
-      background: #ffffff; color: #000; font-size: 0.9rem; font-weight: 800;
-      padding: 10px 20px; border-radius: 20px; opacity: 0; pointer-events: none;
-      transition: opacity 0.5s ease; z-index: 5000; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      position: fixed;
+      top: 68vh;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      color: #000;
+      font-size: 0.9rem;
+      font-weight: 800;
+      padding: 10px 20px;
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 5000;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     }
+
     .click-tooltip::after {
-      content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-      border-width: 8px; border-style: solid; border-color: transparent transparent #ffffff transparent;
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 8px;
+      border-style: solid;
+      border-color: transparent transparent #ffffff transparent;
     }
 
     .speech-container {
-      position: fixed; bottom: 18vh; left: 50%; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-      pointer-events: none; opacity: 0; transition: opacity 1s; z-index: 5000;
+      position: fixed;
+      bottom: 18vh;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1s;
+      z-index: 5000;
       width: max-content;
     }
 
     /* Persona text body로 분리 (모바일 절대위치 최적화를 위해) */
     .persona-text {
-      position: fixed; bottom: 25vh; left: 50%; transform: translateX(-50%);
-      background: #111111; color: #ffebcc; font-size: 0.85rem; font-weight: 600;
-      padding: 8px 20px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,145,77,0.3);
-      transition: opacity 0.4s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.8); 
-      z-index: 6000; opacity: 0; pointer-events: none; width: max-content;
+      position: fixed;
+      bottom: 25vh;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111111;
+      color: #ffebcc;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 20px;
+      text-align: center;
+      border: 1px solid rgba(255, 145, 77, 0.3);
+      transition: opacity 0.4s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
+      z-index: 6000;
+      opacity: 0;
+      pointer-events: none;
+      width: max-content;
     }
+
     @media (max-width: 650px) {
       .persona-text {
-        top: 10vh; bottom: auto; /* 상단에서 조금 더 띄워 노치 간섭 방지 */
+        top: 10vh;
+        bottom: auto;
+        /* 상단에서 조금 더 띄워 노치 간섭 방지 */
       }
     }
 
     .speech-bubble {
-      background: rgba(255,255,255,0.95); color: #000; font-size: 0.95rem; font-weight: 800;
-      padding: 12px 25px; border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(255,145,77,0.3); position: relative;
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+      font-size: 0.95rem;
+      font-weight: 800;
+      padding: 12px 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(255, 145, 77, 0.3);
+      position: relative;
     }
+
     .speech-bubble::after {
-      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-      border-width: 10px; border-style: solid; border-color: rgba(255,255,255,0.95) transparent transparent transparent;
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 10px;
+      border-style: solid;
+      border-color: rgba(255, 255, 255, 0.95) transparent transparent transparent;
     }
 
     #finalEnterBtn {
-      position: fixed; bottom: 8vh; left: 50%; transform: translateX(-50%); width: 80%; max-width: 300px;
-      display: none; padding: 18px; font-size: 1.1rem; z-index: 5000;
-      border-radius: 30px; box-shadow: 0 10px 30px rgba(255,145,77,0.5);
+      position: fixed;
+      bottom: 8vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      max-width: 300px;
+      display: none;
+      padding: 18px;
+      font-size: 1.1rem;
+      z-index: 5000;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(255, 145, 77, 0.5);
     }
 
     /* 샘플 애니메이션 모드 전용 스타일 */
     .animation-container {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
     }
+
     .logo-pulse {
-      width: 80px; height: 80px;
+      width: 80px;
+      height: 80px;
       background: url('sumbnail.png') no-repeat center/cover;
       border-radius: 50%;
       animation: samplePulse 1.5s infinite alternate ease-in-out;
       margin-bottom: 20px;
     }
-    @keyframes samplePulse { 0% { transform: scale(0.9); box-shadow: 0 0 10px rgba(255,145,77,0.3); } 100% { transform: scale(1.1); box-shadow: 0 0 40px rgba(255,145,77,0.9); } }
+
+    @keyframes samplePulse {
+      0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 10px rgba(255, 145, 77, 0.3);
+      }
+
+      100% {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px rgba(255, 145, 77, 0.9);
+      }
+    }
 
     .mockup-screen {
-      background: rgba(0,0,0,0.5); border: 1px solid rgba(255,145,77,0.4);
-      border-radius: 15px; width: 100%; max-width: 250px; height: 160px;
-      position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 145, 77, 0.4);
+      border-radius: 15px;
+      width: 100%;
+      max-width: 250px;
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
     }
+
     .mockup-btn {
-      background: linear-gradient(135deg, #ffb347, #ff914d); color: #000; padding: 12px 25px; border-radius: 20px;
-      font-weight: 800; font-size: 0.95rem; position: absolute; transition: all 0.3s;
+      background: linear-gradient(135deg, #ffb347, #ff914d);
+      color: #000;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      position: absolute;
+      transition: all 0.3s;
     }
+
     .mockup-story {
-      color: #ccc; font-size: 0.85rem; position: absolute; opacity: 0; transform: translateY(20px);
+      color: #ccc;
+      font-size: 0.85rem;
+      position: absolute;
+      opacity: 0;
+      transform: translateY(20px);
     }
+
     .mockup-progress {
-      display: flex; align-items: center; gap: 10px; color: #ff914d; font-size: 0.9rem; font-weight: bold;
-      position: absolute; opacity: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ff914d;
+      font-size: 0.9rem;
+      font-weight: bold;
+      position: absolute;
+      opacity: 0;
     }
-    .spinner-small { width: 16px; height: 16px; border: 3px solid rgba(255,145,77,0.3); border-top-color: #ff914d; border-radius: 50%; animation: spin 1s linear infinite; }
+
+    .spinner-small {
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255, 145, 77, 0.3);
+      border-top-color: #ff914d;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
     .mockup-done {
-      color: #fff; font-weight: 800; font-size: 1.2rem; position: absolute; opacity: 0; transform: scale(0.5); text-shadow: 0 0 10px rgba(255,255,255,0.5);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.2rem;
+      position: absolute;
+      opacity: 0;
+      transform: scale(0.5);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
-    .step-wrapper.active #mockGenBtn { animation: step2-btn 5s forwards; }
-    .step-wrapper.active #mockStory { animation: step2-story 5s forwards; }
-    .step-wrapper.active #mockProgress { animation: step2-prog 5s forwards; }
-    .step-wrapper.active #mockDone { animation: step2-done 5s forwards; }
+    .step-wrapper.active #mockGenBtn {
+      animation: step2-btn 5s forwards;
+    }
 
-    @keyframes step2-btn { 0%, 10% { opacity: 1; transform: scale(1); } 15% { transform: scale(0.9); } 20%, 100% { opacity: 0; transform: scale(0.5); } }
-    @keyframes step2-story { 0%, 20% { opacity: 0; transform: translateY(20px); } 25%, 45% { opacity: 1; transform: translateY(0); } 50%, 100% { opacity: 0; transform: translateY(-20px); } }
-    @keyframes step2-prog { 0%, 50% { opacity: 0; } 55%, 85% { opacity: 1; } 90%, 100% { opacity: 0; } }
-    @keyframes step2-done { 0%, 90% { opacity: 0; transform: scale(0.5); } 95%, 100% { opacity: 1; transform: scale(1.1); } }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .step-wrapper.active #mockStory {
+      animation: step2-story 5s forwards;
+    }
 
-    .nfc-animation { position: relative; width: 160px; height: 100px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .nfc-phone { font-size: 3.5rem; transform: translateX(-30px) rotate(-10deg); text-shadow: 0 10px 15px rgba(0,0,0,0.5); }
-    .nfc-keyring { width: 50px; height: 50px; background: url('sumbnail.png') no-repeat center/cover; border-radius: 50%; border: 2px solid #fff; transform: translateX(30px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-    .nfc-waves { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #ff914d; font-weight: bold; opacity: 0; font-size: 1.5rem; white-space: nowrap; }
+    .step-wrapper.active #mockProgress {
+      animation: step2-prog 5s forwards;
+    }
 
-    .step-wrapper.active .nfc-phone { animation: step3-phone 5s forwards; }
-    .step-wrapper.active .nfc-keyring { animation: step3-keyring 5s forwards; }
-    .step-wrapper.active .nfc-waves { animation: step3-waves 5s forwards; }
+    .step-wrapper.active #mockDone {
+      animation: step2-done 5s forwards;
+    }
 
-    @keyframes step3-phone { 0%, 20% { transform: translateX(-40px) rotate(-10deg); } 40%, 80% { transform: translateX(5px) rotate(0deg); } 100% { transform: translateX(-40px) rotate(-10deg); } }
-    @keyframes step3-keyring { 0%, 20% { transform: translateX(40px) rotate(15deg); } 40%, 80% { transform: translateX(-5px) rotate(0deg); box-shadow: 0 0 20px #ff914d; } 100% { transform: translateX(40px) rotate(15deg); } }
-    @keyframes step3-waves { 0%, 35% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 45%, 75% { opacity: 1; transform: translate(-50%, -50%) scale(1.5); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } }
+    @keyframes step2-btn {
+
+      0%,
+      10% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      15% {
+        transform: scale(0.9);
+      }
+
+      20%,
+      100% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+    }
+
+    @keyframes step2-story {
+
+      0%,
+      20% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      25%,
+      45% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      50%,
+      100% {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+
+    @keyframes step2-prog {
+
+      0%,
+      50% {
+        opacity: 0;
+      }
+
+      55%,
+      85% {
+        opacity: 1;
+      }
+
+      90%,
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes step2-done {
+
+      0%,
+      90% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      95%,
+      100% {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .nfc-animation {
+      position: relative;
+      width: 160px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .nfc-phone {
+      font-size: 3.5rem;
+      transform: translateX(-30px) rotate(-10deg);
+      text-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .nfc-keyring {
+      width: 50px;
+      height: 50px;
+      background: url('sumbnail.png') no-repeat center/cover;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      transform: translateX(30px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .nfc-waves {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: #ff914d;
+      font-weight: bold;
+      opacity: 0;
+      font-size: 1.5rem;
+      white-space: nowrap;
+    }
+
+    .step-wrapper.active .nfc-phone {
+      animation: step3-phone 5s forwards;
+    }
+
+    .step-wrapper.active .nfc-keyring {
+      animation: step3-keyring 5s forwards;
+    }
+
+    .step-wrapper.active .nfc-waves {
+      animation: step3-waves 5s forwards;
+    }
+
+    @keyframes step3-phone {
+
+      0%,
+      20% {
+        transform: translateX(-40px) rotate(-10deg);
+      }
+
+      40%,
+      80% {
+        transform: translateX(5px) rotate(0deg);
+      }
+
+      100% {
+        transform: translateX(-40px) rotate(-10deg);
+      }
+    }
+
+    @keyframes step3-keyring {
+
+      0%,
+      20% {
+        transform: translateX(40px) rotate(15deg);
+      }
+
+      40%,
+      80% {
+        transform: translateX(-5px) rotate(0deg);
+        box-shadow: 0 0 20px #ff914d;
+      }
+
+      100% {
+        transform: translateX(40px) rotate(15deg);
+      }
+    }
+
+    @keyframes step3-waves {
+
+      0%,
+      35% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+
+      45%,
+      75% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.5);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+    }
   </style>
 </head>
+
 <body>
 
   <div class="background-blur"></div>
-  
+
   <div id="clickTooltip" class="click-tooltip">키링을 탭하여 열어보세요</div>
 
   <div class="persona-text" id="personaDisplay">다양한 사람들의 이야기가 담겨있어요.</div>
@@ -354,17 +948,17 @@
   <div class="speech-container" id="completeBubble">
     <div class="speech-bubble">완성된 당신의 음악은?</div>
   </div>
-  
+
   <button id="finalEnterBtn" class="btn-primary" onclick="startExitSequence()">시작하기</button>
 
   <div id="cd-physics-layer"></div>
 
   <div class="keyring-scene" id="mainScene">
     <div class="keyring-album" id="keyringAlbum">
-      
+
       <div class="top-attachment">
-         <div class="hole-inner"></div>
-         <div id="chain-beads-wrap"></div>
+        <div class="hole-inner"></div>
+        <div id="chain-beads-wrap"></div>
       </div>
 
       <div class="album-inside">
@@ -372,7 +966,7 @@
           <div class="animation-container">
             <div class="logo-pulse"></div>
             <h3 style="color: #ff914d; font-size: 1.5rem; margin-top: 15px;">환영합니다!</h3>
-            <p>제리키링 샘플 투어입니다.</p>
+            <p>제리키링AI 플레이어입니다.</p>
           </div>
         </div>
         <div class="step-wrapper" id="step2">
@@ -394,7 +988,7 @@
           <div class="animation-container">
             <div class="nfc-animation">
               <div class="nfc-phone">📱</div>
-              <div class="nfc-waves">~ ~ ~</div>
+              <div class="nfc-waves"> --- </div>
               <div class="nfc-keyring"></div>
             </div>
             <h3 style="color: #ff914d; font-size: 1.3rem; margin-top: 10px;">스마트폰 태깅</h3>
@@ -426,7 +1020,7 @@
     let nfcFinal = '';
     let personaInterval = null;
     let clickTimer = null;
-    
+
     const personas = [
       "임산부 태교 음악을 만들었어요.", "내 사랑하는 지인을 위해 만들었어요.", "아픈 우리 아빠를 위해 만들었어요.",
       "잠 못 드는 밤, 나를 위로하기 위해 만들었어요.", "백일 된 조카에게 들려줄 거예요.", "멀리 있는 친규에게 깜짝 선물로!",
@@ -463,35 +1057,35 @@
       "다시 태어나면 이 노래를 부를 거야.", "오늘 하루도 수고한 나 자신에게.", "기적을 바라는 간절한 순간에.",
       "눈 감고 있으면 위로가 되는 천사의 소리."
     ];
-    
+
     const cbw = document.getElementById('chain-beads-wrap');
-    const chH = window.innerHeight * 0.6; 
-    for(let py=0; py>=-chH; py-=20) {
+    const chH = window.innerHeight * 0.6;
+    for (let py = 0; py >= -chH; py -= 20) {
       let b = document.createElement('div');
       b.className = 'chain-bead';
       b.style.setProperty('--px', '-14px');
       b.style.setProperty('--py', py + 'px');
-      b.style.animationDelay = `${ (py / -chH) * 0.2 }s`;
+      b.style.animationDelay = `${(py / -chH) * 0.2}s`;
       cbw.appendChild(b);
     }
-    for(let py=0; py>=-chH; py-=20) {
+    for (let py = 0; py >= -chH; py -= 20) {
       let b = document.createElement('div');
       b.className = 'chain-bead';
       b.style.setProperty('--px', '14px');
       b.style.setProperty('--py', py + 'px');
-      b.style.animationDelay = `${ (py / -chH) * 0.2 }s`;
+      b.style.animationDelay = `${(py / -chH) * 0.2}s`;
       cbw.appendChild(b);
     }
-    for(let i=1; i<4; i++) {
-       let angle = Math.PI + (i/4)*Math.PI; 
-       let px = 14 * Math.cos(angle);
-       let py = 14 * Math.sin(angle);
-       let b = document.createElement('div');
-       b.className = 'chain-bead';
-       b.style.setProperty('--px', px + 'px');
-       b.style.setProperty('--py', py + 'px');
-       b.style.animationDelay = '0s'; 
-       cbw.appendChild(b);
+    for (let i = 1; i < 4; i++) {
+      let angle = Math.PI + (i / 4) * Math.PI;
+      let px = 14 * Math.cos(angle);
+      let py = 14 * Math.sin(angle);
+      let b = document.createElement('div');
+      b.className = 'chain-bead';
+      b.style.setProperty('--px', px + 'px');
+      b.style.setProperty('--py', py + 'px');
+      b.style.animationDelay = '0s';
+      cbw.appendChild(b);
     }
 
     const cdLayer = document.getElementById('cd-physics-layer');
@@ -509,75 +1103,75 @@
       const vw = window.innerWidth;
       const margin = w * 0.7;
 
-      for(let i=0; i<count; i++) {
+      for (let i = 0; i < count; i++) {
         setTimeout(() => {
           const cd = document.createElement('div');
           cd.className = 'lite-cd';
           cd.style.width = `${w}px`;
           cdLayer.appendChild(cd);
-          
+
           let endX, endY;
           let attempts = 0;
-          while(attempts < 40) {
-            endX = (Math.random() * (vw - w)) + w/2;
-            endY = (Math.random() * (vh - w)) + w/2;
+          while (attempts < 40) {
+            endX = (Math.random() * (vw - w)) + w / 2;
+            endY = (Math.random() * (vh - w)) + w / 2;
             let collision = false;
-            for(let s of landingSpots) {
+            for (let s of landingSpots) {
               if (Math.hypot(s.x - endX, s.y - endY) < margin) { collision = true; break; }
             }
-            if(!collision) break;
+            if (!collision) break;
             attempts++;
           }
-          landingSpots.push({x: endX, y: endY});
-          if(landingSpots.length > 25) landingSpots.shift(); 
-          
+          landingSpots.push({ x: endX, y: endY });
+          if (landingSpots.length > 25) landingSpots.shift();
+
           let startX = endX, startY = endY;
-          const edge = Math.floor(Math.random() * 4); 
-          if(edge===0) startY = -w - 300;
-          else if(edge===1) startX = vw + w + 300;
-          else if(edge===2) startY = vh + w + 300;
+          const edge = Math.floor(Math.random() * 4);
+          if (edge === 0) startY = -w - 300;
+          else if (edge === 1) startX = vw + w + 300;
+          else if (edge === 2) startY = vh + w + 300;
           else startX = -w - 300;
-          
-          cd.style.transform = `translate3d(${startX - w/2}px, ${startY - w/2}px, 0) scale(1) rotate(${Math.random()*360}deg)`;
-          cd.style.opacity = '1'; 
-          
-          const rot = Math.random() * 720 + 360; 
-          
+
+          cd.style.transform = `translate3d(${startX - w / 2}px, ${startY - w / 2}px, 0) scale(1) rotate(${Math.random() * 360}deg)`;
+          cd.style.opacity = '1';
+
+          const rot = Math.random() * 720 + 360;
+
           requestAnimationFrame(() => {
             cd.style.transition = 'transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1.1)';
-            cd.style.transform = `translate3d(${endX - w/2}px, ${endY - w/2}px, 0) scale(1) rotate(${rot}deg)`;
+            cd.style.transform = `translate3d(${endX - w / 2}px, ${endY - w / 2}px, 0) scale(1) rotate(${rot}deg)`;
           });
-          
-          cd.dataset.x = endX - w/2; 
-          cd.dataset.y = endY - w/2;
+
+          cd.dataset.x = endX - w / 2;
+          cd.dataset.y = endY - w / 2;
           cd.dataset.rot = rot;
 
           cd.onclick = (e) => {
             e.stopPropagation();
             let newRot = parseFloat(cd.dataset.rot) + 360;
             cd.dataset.rot = newRot;
-            
+
             albumEl.style.filter = 'drop-shadow(0 30px 40px rgba(0,0,0,1)) drop-shadow(0 0 30px rgba(255,145,77,0.7))';
-            
+
             cd.style.transition = 'transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s, border-color 0.3s';
             cd.style.transform = `translate3d(${cd.dataset.x}px, ${cd.dataset.y}px, 0) scale(1) rotate(${newRot}deg)`;
             cd.style.borderColor = '#ff914d';
             cd.style.boxShadow = 'inset 0 0 15px rgba(255,145,77,0.5), 0 10px 20px rgba(0,0,0,0.8)';
-            
-            setTimeout(() => { 
-              cd.style.transform = `translate3d(${cd.dataset.x}px, ${cd.dataset.y}px, 0) scale(1) rotate(${newRot}deg)`; 
-              cd.style.borderColor = '#ffffff'; 
+
+            setTimeout(() => {
+              cd.style.transform = `translate3d(${cd.dataset.x}px, ${cd.dataset.y}px, 0) scale(1) rotate(${newRot}deg)`;
+              cd.style.borderColor = '#ffffff';
               cd.style.boxShadow = '0 5px 15px rgba(0,0,0,0.5)';
               albumEl.style.filter = 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))';
             }, 800);
           };
-          
+
           physicsCds.push(cd);
-        }, i * 80); 
+        }, i * 80);
       }
     }
 
-    window.onload = function() {
+    window.onload = function () {
       // 샘플 투어에서는 기존 V2 접속 기록 무시하고 항상 인트로 시퀀스 진행
 
 
@@ -612,10 +1206,10 @@
             // 자동 시퀀스: 5초마다 다음 단계로
             setTimeout(() => { switchStep(1, 2); }, 5000);
             setTimeout(() => { switchStep(2, 3); }, 10000);
-            setTimeout(() => { 
-               nfcFinal = 'sample';
-               localStorage.setItem('auth_nfc_number', 'sample');
-               triggerSuccessSequence();
+            setTimeout(() => {
+              nfcFinal = 'sample';
+              localStorage.setItem('auth_nfc_number', 'sample');
+              triggerSuccessSequence();
             }, 15000);
           }, 700);
         }, 700);
@@ -625,7 +1219,7 @@
     function triggerPullBounce() {
       const scene = document.getElementById('mainScene');
       scene.classList.remove('pull-bounce');
-      void scene.offsetWidth; 
+      void scene.offsetWidth;
       scene.classList.add('pull-bounce');
     }
 
@@ -635,18 +1229,18 @@
       document.getElementById(`step${from}`).classList.remove('active');
       if (to > from) document.getElementById(`step${from}`).classList.add('completed');
       else document.getElementById(`step${from}`).classList.remove('completed');
-      
+
       const nextStepElement = document.getElementById(`step${to}`);
       nextStepElement.classList.remove('completed');
       nextStepElement.classList.add('active');
-      
-      triggerPullBounce(); 
-      if (to > from) setTimeout(() => scatterCDs(6), 750); 
+
+      triggerPullBounce();
+      if (to > from) setTimeout(() => scatterCDs(6), 750);
 
       setTimeout(() => {
         const nextInput = nextStepElement.querySelector('input');
-        if(nextInput) nextInput.focus();
-      }, 1000); 
+        if (nextInput) nextInput.focus();
+      }, 1000);
     }
 
     function nextStep(current) {
@@ -674,7 +1268,7 @@
 
       try {
         const response = await window.api.verifyUser(nfcNum, userName, phoneNum);
-        
+
         if (response.success) {
           localStorage.setItem('auth_nfc_number', nfcNum);
           localStorage.setItem('auth_name', userName);
@@ -686,24 +1280,24 @@
         }
       } catch (err) {
         document.getElementById('err3').innerText = "서버 오류";
-        showError(3, true); submitBtn.disabled = false; 
+        showError(3, true); submitBtn.disabled = false;
       }
     }
 
     function triggerSuccessSequence() {
       albumEl.classList.remove('is-open');
       document.getElementById('step3').classList.add('completed');
-      
+
       albumEl.style.transition = 'transform 2s cubic-bezier(0.2, 0.8, 0.2, 1)';
-      albumEl.style.transform = 'translateY(-40vh) scale(0.35)'; 
-      
+      albumEl.style.transform = 'translateY(-40vh) scale(0.35)';
+
       setTimeout(() => {
         let spins = 0;
-        let delay = 30; 
+        let delay = 30;
 
         function runSpin() {
-          physicsCds.forEach(c => { 
-            c.style.borderColor = '#ffffff'; 
+          physicsCds.forEach(c => {
+            c.style.borderColor = '#ffffff';
             c.style.zIndex = '1';
           });
           const r = Math.floor(Math.random() * physicsCds.length);
@@ -711,166 +1305,167 @@
           physicsCds[r].style.zIndex = '40'; // 스핀 중 타겟이 무조건 최상위지만 키링(50) 아래
           spins++;
 
-          if (delay > 450) { 
+          if (delay > 450) {
             const winner = physicsCds[r];
             executeCdInsertion(winner);
           } else {
-            delay = delay * 1.09; 
+            delay = delay * 1.09;
             setTimeout(runSpin, delay);
           }
         }
-        
-        runSpin(); 
-      }, 2000); 
+
+        runSpin();
+      }, 2000);
     }
 
     function executeCdInsertion(winnerCd) {
       document.body.appendChild(winnerCd);
       winnerCd.style.zIndex = '9999';
-      
+
       const vwCenter = window.innerWidth / 2;
       const vhCenter = window.innerHeight / 2;
-      const isMobile = window.innerWidth < 650; 
+      const isMobile = window.innerWidth < 650;
       const w = parseFloat(winnerCd.style.width);
       const albumWidth = albumEl.offsetWidth;
 
       // 1단계: 선 당첨 직후 바로 날아가지 않고 제자리에서 2초간 폭발적인 붉은 이펙트 방출
       winnerCd.classList.add('winner-glow');
       albumEl.style.filter = 'drop-shadow(0 30px 50px rgba(0,0,0,1)) drop-shadow(0 0 30px rgba(255,145,77,0.7))';
-      
+
       // 2초 딜레이 추가
-      setTimeout(() => {  
+      setTimeout(() => {
         // 2단계: 해당 자리에서부터 지정된 타겟으로 스르륵 비행 시퀀스 시작
         if (!isMobile) {
-           const targetX = vwCenter + (albumWidth / 2) + 15; 
-           winnerCd.style.transition = 'all 1.2s cubic-bezier(0.25, 1, 0.5, 1)';
-           winnerCd.style.transform = `translate3d(${targetX}px, ${vhCenter - w/2}px, 0) scale(1) rotate(720deg)`;
+          const targetX = vwCenter + (albumWidth / 2) + 15;
+          winnerCd.style.transition = 'all 1.2s cubic-bezier(0.25, 1, 0.5, 1)';
+          winnerCd.style.transform = `translate3d(${targetX}px, ${vhCenter - w / 2}px, 0) scale(1) rotate(720deg)`;
         } else {
-           winnerCd.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1), opacity 1s ease';
-           winnerCd.style.transform = `translate3d(${vwCenter - w/2}px, ${vhCenter - w/2 - 250}px, 0) scale(1) rotate(720deg)`;
-           winnerCd.style.opacity = '0'; 
+          winnerCd.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1), opacity 1s ease';
+          winnerCd.style.transform = `translate3d(${vwCenter - w / 2}px, ${vhCenter - w / 2 - 250}px, 0) scale(1) rotate(720deg)`;
+          winnerCd.style.opacity = '0';
         }
-        
+
         setTimeout(() => {
           albumEl.style.transition = 'transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
           albumEl.style.transform = 'translateY(0) scale(1)';
-          
+
           setTimeout(() => {
             albumEl.classList.add('is-open');
-            
+
             setTimeout(() => {
-              physicsCds.forEach(cd => { if(cd !== winnerCd) cd.style.opacity = '0.05'; });
+              physicsCds.forEach(cd => { if (cd !== winnerCd) cd.style.opacity = '0.05'; });
 
               if (!isMobile) {
-                 winnerCd.style.transition = 'all 1s cubic-bezier(0.2, 0.8, 0.2, 1)';
-                 winnerCd.style.transform = `translate3d(${vwCenter - w/2}px, ${vhCenter - w/2}px, 0) scale(1) rotate(1440deg)`; 
+                winnerCd.style.transition = 'all 1s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                winnerCd.style.transform = `translate3d(${vwCenter - w / 2}px, ${vhCenter - w / 2}px, 0) scale(1) rotate(1440deg)`;
               } else {
-                 winnerCd.style.transition = 'all 1.2s cubic-bezier(0.25, 1, 0.2, 1), opacity 1s ease';
-                 winnerCd.style.transform = `translate3d(${vwCenter - w/2}px, ${vhCenter - w/2}px, 0) scale(1) rotate(1440deg)`; 
-                 winnerCd.style.opacity = '1';
+                winnerCd.style.transition = 'all 1.2s cubic-bezier(0.25, 1, 0.2, 1), opacity 1s ease';
+                winnerCd.style.transform = `translate3d(${vwCenter - w / 2}px, ${vhCenter - w / 2}px, 0) scale(1) rotate(1440deg)`;
+                winnerCd.style.opacity = '1';
               }
 
               setTimeout(() => {
-                 winnerCd.classList.add('inserted-pulse');
+                winnerCd.classList.add('inserted-pulse');
 
-                 winnerCd.style.transition = 'none';
-                 winnerCd.style.top = '50%'; winnerCd.style.left = '50%';
-                 winnerCd.style.transform = `translate3d(-50%, -50%, 80px) scale(1) rotate(1440deg)`;
-                 albumEl.appendChild(winnerCd);
+                winnerCd.style.transition = 'none';
+                winnerCd.style.top = '50%'; winnerCd.style.left = '50%';
+                winnerCd.style.transform = `translate3d(-50%, -50%, 80px) scale(1) rotate(1440deg)`;
+                albumEl.appendChild(winnerCd);
 
-                 document.getElementById('finalEnterBtn').style.display = 'block';
-                 
-                 setTimeout(() => {
-                   document.getElementById('completeBubble').style.opacity = '1';
-                   
-                   const pDisp = document.getElementById('personaDisplay');
-                   // 텍스트 강제 점등
-                   pDisp.style.opacity = '1';
-                   
-                   personaInterval = setInterval(() => {
-                     pDisp.style.opacity = '0'; 
-                     setTimeout(() => {
-                       const r = Math.floor(Math.random() * personas.length);
-                       pDisp.innerText = personas[r];
-                       pDisp.style.opacity = '1';
-                     }, 400); 
-                   }, 3000);
+                document.getElementById('finalEnterBtn').style.display = 'block';
 
-                 }, 600);
+                setTimeout(() => {
+                  document.getElementById('completeBubble').style.opacity = '1';
 
-              }, 1000); 
-            }, 800); 
-          }, 1500); 
-        }, 1200); 
-      }, 2000); 
+                  const pDisp = document.getElementById('personaDisplay');
+                  // 텍스트 강제 점등
+                  pDisp.style.opacity = '1';
+
+                  personaInterval = setInterval(() => {
+                    pDisp.style.opacity = '0';
+                    setTimeout(() => {
+                      const r = Math.floor(Math.random() * personas.length);
+                      pDisp.innerText = personas[r];
+                      pDisp.style.opacity = '1';
+                    }, 400);
+                  }, 3000);
+
+                }, 600);
+
+              }, 1000);
+            }, 800);
+          }, 1500);
+        }, 1200);
+      }, 2000);
     }
 
     function startExitSequence() {
       document.getElementById('finalEnterBtn').style.opacity = '0';
       document.getElementById('completeBubble').style.opacity = '0';
       document.getElementById('personaDisplay').style.opacity = '0';
-      if(personaInterval) clearInterval(personaInterval);
-      
+      if (personaInterval) clearInterval(personaInterval);
+
       const scene = document.getElementById('mainScene');
       const winnerCd = document.querySelector('.winner-glow');
 
-      if(winnerCd) {
-         winnerCd.style.transition = 'opacity 0.4s ease';
-         winnerCd.style.opacity = '0';
+      if (winnerCd) {
+        winnerCd.style.transition = 'opacity 0.4s ease';
+        winnerCd.style.opacity = '0';
       }
 
       setTimeout(() => {
         albumEl.classList.remove('is-open');
-        albumEl.style.filter = 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))'; 
+        albumEl.style.filter = 'drop-shadow(0 10px 15px rgba(0,0,0,0.5))';
 
         setTimeout(() => {
           scene.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 1, 1)';
-          scene.style.transform = 'translateY(15vh)'; 
-          
+          scene.style.transform = 'translateY(15vh)';
+
           setTimeout(() => {
             scene.style.transition = 'transform 1.8s cubic-bezier(0.4, 0, 0.2, 1)';
-            scene.style.transform = 'translateY(-200vh)'; 
-            
+            scene.style.transform = 'translateY(-200vh)';
+
             setTimeout(() => {
-               // 입장 티켓(V2) 발급
-               localStorage.setItem('seen_interactive_v2', 'true');
-               // 3. 샘플 투어 종료 후 샘플 플레이어로 직접 이동
-               window.location.replace(`player.html?id=sample`);
+              // 입장 티켓(V2) 발급
+              localStorage.setItem('seen_interactive_v2', 'true');
+              // 3. 샘플 투어 종료 후 샘플 플레이어로 직접 이동
+              window.location.replace(`player.html?id=sample`);
             }, 1000);
-          }, 800); 
-        }, 600); 
-      }, 400); 
+          }, 800);
+        }, 600);
+      }, 400);
     }
 
     function formatPhoneNumber(input) {
       let val = input.value.replace(/\D/g, '');
-      
+
       if (val.length > 11) {
-         val = val.substring(0, 11);
-         input.classList.remove('shake-error');
-         void input.offsetWidth; 
-         input.classList.add('shake-error');
+        val = val.substring(0, 11);
+        input.classList.remove('shake-error');
+        void input.offsetWidth;
+        input.classList.add('shake-error');
       } else {
-         input.classList.remove('shake-error');
+        input.classList.remove('shake-error');
       }
 
       let formatted = '';
       if (val.length < 4) formatted = val;
       else if (val.length < 8) formatted = val.substring(0, 3) + '-' + val.substring(3);
       else formatted = val.substring(0, 3) + '-' + val.substring(3, 7) + '-' + val.substring(7);
-      
+
       input.value = formatted;
     }
-    
+
     // --- 강력한 트래픽 세이브 마법 (Service Worker Cache API) ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js')
           .then((registration) => {
-             console.log('[Jerry Cache] 서비스 워커 가동 완료! (index.html)', registration.scope);
-          }).catch((err) => {});
+            console.log('[Jerry Cache] 서비스 워커 가동 완료! (index.html)', registration.scope);
+          }).catch((err) => { });
       });
     }
   </script>
 </body>
+
 </html>

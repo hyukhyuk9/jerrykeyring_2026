@@ -1,12 +1,24 @@
 /**
  * jerrykeyring_legacy/js/api.js
- * 데이터 및 백엔드 연동을 위한 API 추상화 계층
- * 추후 Supabase 등의 DB나 백엔드 서버 연동 시 본 파일의 함수들만 수정하면 됩니다.
+ * 데이터 및 백엔드 연동을 위한 API 추상화 계층 - Supabase 통합 버전
  */
 
-// 데이터: 추후 DB에서 비동기로 불러오는 것으로 대체 가능
 window.api = window.api || {};
 
+// 수파베이스 설정
+const SUPABASE_URL = 'https://ndvwvprwjergkyfvbytd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kdnd2cHJ3amVyZ2t5ZnZieXRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTkyMzUsImV4cCI6MjA5MTgzNTIzNX0.Nm0pwyGX9pBU13BSFED7rrutfAqpBOtCijG3zpsy3dos';
+
+// 수파베이스 클라이언트 초기화 (CDN으로 로드된 supabase 객체 사용)
+let supabaseClient = null;
+function getSupabase() {
+  if (!supabaseClient && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return supabaseClient;
+}
+
+// MBTI 데이터 (기존 유지)
 window.api.mbtiQuestions = {
   1: { "title": "Q.<br><br>콘서트에 간다면 당신은?", "type": "EI", "A": "귀가 녹는다... 박효신이 내 심장을 간질간질", "B": "지디 나왔다!!! 다비켜ㅕㅕ🔥 아갓더 단독" },
   2: { "title": "Q.<br><br>콘서트 당일의 당신 행동은?", "type": "EI", "A": "굿즈부터 싹쓸이! 이건 투자야... (합리화 완료)", "B": "떼창하다가 성대 나감. 근데 행복이가 되." },
@@ -41,74 +53,125 @@ window.api.mbtiResults = {
   "ESFP": { "genre": "🧀 Hip-hop", "img": "6파마산.png", "cheese": "파마산" }
 };
 
-window.api.resultExplain = {
-  "INTJ": { "explain": "INTJ" }, "INTP": { "explain": "INTP" }, "ENTJ": { "explain": "ENTJ" }, "ENTP": { "explain": "ENTP" },
-  "INFJ": { "explain": "INFJ" }, "INFP": { "explain": "INFP" }, "ENFJ": { "explain": "ENFJ" }, "ENFP": { "explain": "ENFP" },
-  "ISTJ": { "explain": "ISTJ" }, "ISFJ": { "explain": "ISFJ" }, "ESTJ": { "explain": "ESTJ" }, "ESFJ": { "explain": "ESFJ" },
-  "ISTP": { "explain": "ISTP" }, "ISFP": { "explain": "ISFP" }, "ESTP": { "explain": "ESTP" }, "ESFP": { "explain": "ESFP" }
-};
-
-window.api.fetchQuestions = async function () {
-  return Promise.resolve(window.api.mbtiQuestions);
-};
-
+window.api.fetchQuestions = async function () { return Promise.resolve(window.api.mbtiQuestions); };
 window.api.fetchResult = async function (mbtiCode) {
   return Promise.resolve({
     result: window.api.mbtiResults[mbtiCode],
-    explain: window.api.resultExplain[mbtiCode]
+    explain: { "explain": mbtiCode }
   });
 };
 
 /**
- * 구글 앱스 스크립트 웹앱 주소를 넣는 곳입니다.
+ * Supabase를 통한 유저 정보 조회
  */
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6CTQ9zuuFmA60snWmEDLrNaPYXvnuNENP1R2u2gORHXd5COTObt4au5fDh2KmJdzg/exec';
-
 window.api.getUserInfo = async function (nfcNumber) {
   if (nfcNumber === 'sample') {
     return {
       success: true,
       data: {
-        'nfc_number': '16', // Use a valid demo track from the local music folder
-        '장르': '샘플 체험용 트랙',
-        '가사': '환영합니다! 제리키링 샘플 플레이어입니다.\n[00:02.00] 이 곡은 기능 체험을 위해 제공되는 샘플 음원입니다.\n[00:06.00] 하단의 다양한 버튼들을 직접 눌러보세요.\n[00:10.00] 다른 사용자의 음원 연동이나, 랜덤 음원 재생도 가능합니다.\n[00:15.00] 환경 설정에서 옵션을 변경해보며 기능을 테스트해보세요!',
-        '시리얼': 'SAMPLE-1004'
+        'nfc_id': '16',
+        'genre': '샘플 체험용 트랙',
+        'lyrics': '환영합니다! 제리키링 샘플 플레이어입니다.\n[00:02.00] 이 곡은 기능 체험을 위해 제공되는 샘플 음원입니다.\n[00:06.00] 하단의 다양한 버튼들을 직접 눌러보세요.\n[00:10.00] 다른 사용자의 음원 연동이나, 랜덤 음원 재생도 가능합니다.\n[00:15.00] 환경 설정에서 옵션을 변경해보며 기능을 테스트해보세요!',
+        'serial': 'SAMPLE-1004'
       }
     };
   }
 
-  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('여기에_배포된')) {
-    return { success: false };
-  }
+  const client = getSupabase();
+  if (!client) return { success: false, message: 'Supabase client not initialized' };
+
   try {
-    // [보안/CORS 방지] POST 대신 GET 방식으로 전환하여 더 안정적으로 데이터를 가져옵니다.
-    const url = `${GOOGLE_SCRIPT_URL}?action=getUserInfo&nfcNumber=${encodeURIComponent(nfcNumber)}`;
-    const response = await fetch(url);
-    return await response.json();
+    const { data, error } = await client
+      .from('tracks')
+      .select('*')
+      .eq('nfc_id', nfcNumber)
+      .single();
+
+    if (error) throw error;
+    return { success: true, data: data };
   } catch (err) {
     console.error('유저 정보 불러오기 에러:', err);
     return { success: false };
   }
 };
 
+/**
+ * Supabase를 통한 NFC 인증
+ */
 window.api.verifyUser = async function (nfcNumber, name, phone) {
-  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('여기에_배포된')) {
-    console.warn('구글 시트 연동 URL이 비어 있습니다. 임시 통과 모드로 작동합니다.');
-    return new Promise((resolve) => setTimeout(() => {
-      if (nfcNumber && name && phone) resolve({ success: true, message: '임시 통과' });
-      else resolve({ success: false, message: '모든 정보를 입력해주세요.' });
-    }, 500));
-  }
+  const client = getSupabase();
+  if (!client) return { success: false };
 
   const cleanPhone = phone.replace(/[^0-9]/g, '').replace(/^0/, '');
 
   try {
-    // 인증 요청도 더 안정적인 GET 방식으로 시도
-    const url = `${GOOGLE_SCRIPT_URL}?action=verifyNfc&nfcNumber=${encodeURIComponent(nfcNumber)}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(cleanPhone)}`;
-    const response = await fetch(url);
-    return await response.json();
+    const { data, error } = await client
+      .from('tracks')
+      .select('nfc_id')
+      .eq('nfc_id', nfcNumber)
+      .eq('user_name', name)
+      .ilike('phone_number', `%${cleanPhone}`)
+      .single();
+
+    if (error || !data) return { success: false, message: '기입된 정보가 일치하지 않습니다.' };
+    return { success: true, message: '인증 완료' };
   } catch (err) {
-    console.error('구글 시트 연동 에러:', err);
-    throw err;
+    console.error('인증 에러:', err);
+    return { success: false, message: '서버 통신 중 오류가 발생했습니다.' };
+  }
+};
+
+/**
+ * Supabase를 통한 음원 파일 목록 조회
+ */
+window.api.getAudioFiles = async function (nfcNumber) {
+  const client = getSupabase();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('audio_files')
+      .select('*')
+      .eq('nfc_id', nfcNumber)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('음원 목록 불러오기 에러:', err);
+    return [];
+  }
+};
+
+/**
+ * Supabase를 통해 랜덤으로 음원 한 곡과 해당 곡의 정보를 가져옵니다.
+ */
+window.api.getRandomTrack = async function () {
+  const client = getSupabase();
+  if (!client) return null;
+
+  try {
+    // 1. 전체 오디오 파일 개수를 파악합니다.
+    const { count, error: countError } = await client
+      .from('audio_files')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError || !count) throw countError || new Error('No tracks found');
+
+    // 2. 무작위 인덱스를 선택합니다.
+    const randomIndex = Math.floor(Math.random() * count);
+
+    // 3. 해당 인덱스의 오디오 파일과 트랙 정보를 가져옵니다.
+    const { data, error } = await client
+      .from('audio_files')
+      .select('*, tracks(genre, lyrics, modify)')
+      .range(randomIndex, randomIndex)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('랜덤 음원 불러오기 에러:', err);
+    return null;
   }
 };

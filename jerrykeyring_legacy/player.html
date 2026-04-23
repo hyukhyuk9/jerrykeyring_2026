@@ -762,7 +762,7 @@
     <span class="ts-date" id="tsDate">26.04.17 FRI</span>
   </div>
 
-  <div class="lyrics-container" id="lyricsBox">
+  <div class="lyrics-container" id="lyricsBox" onclick="toggleFullLyrics(true)" style="cursor: pointer;">
     <div class="lyrics-inner" id="lyricsInner"></div>
   </div>
 
@@ -848,6 +848,17 @@
       <button class="track-button"
         style="margin-top:20px; width:100%; border-color:#ff914d; color:#ff914d; background:transparent;"
         onclick="document.getElementById('iosInstallGuide').style.display='none'">닫기</button>
+    </div>
+  </div>
+
+  <!-- 전체 가사 모달 -->
+  <div class="modal-overlay" id="fullLyricsModal" onclick="toggleFullLyrics(false)" style="display: none; align-items: center; justify-content: center; z-index: 4000;">
+    <div class="settings-modal" style="width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; text-align: center; border-color: #ff914d;" onclick="event.stopPropagation()">
+      <h6 style="color: #ff914d; font-size: 1.2rem; margin-bottom: 20px; border-left: none; padding-left: 0; text-align: center;">전체 가사</h6>
+      <div id="fullLyricsContent" style="color: #ccc; font-size: 0.95rem; line-height: 1.8; margin-bottom: 20px; white-space: pre-wrap;">
+        <!-- 가사 들어감 -->
+      </div>
+      <button class="track-button" style="width: 100%; border-color: #ff914d; color: #ff914d; margin: 0; background: rgba(255,145,77,0.1);" onclick="toggleFullLyrics(false)">닫기</button>
     </div>
   </div>
 
@@ -961,6 +972,8 @@
 
     function toggleModal(show) { document.getElementById('modalOverlay').style.display = show ? 'flex' : 'none'; }
     function toggleFriendModal(show) { document.getElementById('friendModalOverlay').style.display = show ? 'flex' : 'none'; }
+    function toggleFullLyrics(show) { document.getElementById('fullLyricsModal').style.display = show ? 'flex' : 'none'; }
+
 
     function showToast(message) {
       const toast = document.getElementById('toastMsg');
@@ -1531,11 +1544,20 @@
 
     function renderLyrics() {
       const inner = document.getElementById('lyricsInner');
+      const fullContent = document.getElementById('fullLyricsContent');
       inner.innerHTML = '';
+      let fullTextHtml = '';
+
       lyricsData.forEach((line, idx) => {
         const p = document.createElement('div'); p.className = 'lyrics-line'; p.id = 'lyr-' + idx; p.innerText = line.text;
         inner.appendChild(p);
+        fullTextHtml += line.text + '\n';
       });
+
+      if (fullContent) {
+        fullContent.innerHTML = fullTextHtml.trim() || "가사가 등록되지 않았습니다.";
+      }
+
       currentLyricIndex = -1;
     }
 

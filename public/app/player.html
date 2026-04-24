@@ -1820,27 +1820,31 @@
               }));
             } else {
               // 음악 파일은 없고 라디오만 있는 경우 등 엣지케이스 대비
-              playlist = [{
-                src: `./music/${targetId}.mp3`,
-                name: data.genre || `트랙 ${targetId}`,
+              // 음악 파일은 없고 라디오만 있는 경우 등 엣지케이스 대비 (장르 개수에 맞춰 폴백 생성)
+              let genreList = String(data.genre || '트랙').split(',').map(s => s.trim());
+              playlist = genreList.map((g, idx) => ({
+                src: genreList.length > 1 ? `./music/${targetId}-${idx + 1}.mp3` : `./music/${targetId}.mp3`,
+                name: g,
                 lyricsText: finalLyrics,
                 isLoading: false,
                 story: data.story,
                 radioAudioUrl: radioTts ? radioTts.audio_url : null,
                 radioScript: radioTts ? radioTts.radio_script : null
-              }];
+              }));
             }
           } else {
             // DB에 등록된 음원이 없을 경우 기존 방식(NFC번호.mp3)으로 시도 (폴백)
-            playlist = [{
-              src: `./music/${targetId}.mp3`,
-              name: data.genre || `트랙 ${targetId}`,
+            // DB에 등록된 음원이 없을 경우 기존 방식(NFC-번호.mp3)으로 시도
+            let genreList = String(data.genre || '트랙').split(',').map(s => s.trim());
+            playlist = genreList.map((g, idx) => ({
+              src: genreList.length > 1 ? `./music/${targetId}-${idx + 1}.mp3` : `./music/${targetId}.mp3`,
+              name: g,
               lyricsText: finalLyrics,
               isLoading: false,
               story: data.story,
               radioAudioUrl: null,
               radioScript: null
-            }];
+            }));
           }
 
           renderPlaylist();
@@ -1881,15 +1885,18 @@
                     });
                   });
                 } else {
-                  // 친구 폴백
-                  playlist.push({
-                    src: `./music/${fNfc}.mp3`,
-                    name: `[${fName}] ${uData.genre}`,
-                    lyricsText: fLyr,
-                    isFriend: true,
-                    story: uData.story,
-                    radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
-                    radioScript: fRadioTts ? fRadioTts.radio_script : null
+                  // 친구 폴백 (장르 개수에 맞춰 -1, -2 규칙 적용)
+                  let fGenreList = String(uData.genre || '트랙').split(',').map(s => s.trim());
+                  fGenreList.forEach((fg, fidx) => {
+                    playlist.push({
+                      src: fGenreList.length > 1 ? `./music/${fNfc}-${fidx + 1}.mp3` : `./music/${fNfc}.mp3`,
+                      name: `[${fName}] ${fg}`,
+                      lyricsText: fLyr,
+                      isFriend: true,
+                      story: uData.story,
+                      radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
+                      radioScript: fRadioTts ? fRadioTts.radio_script : null
+                    });
                   });
                 }
               }

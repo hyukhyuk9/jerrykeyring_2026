@@ -32,9 +32,11 @@ export async function POST(request: Request) {
     if (!apiKey) return NextResponse.json({ error: 'Gemini API Key is missing' }, { status: 500 });
     if (!s3Client) return NextResponse.json({ error: 'R2 스토리지 설정(.env)이 누락되었습니다.' }, { status: 500 });
 
+    console.log(`[Radio Batch] Start: nfc_id=${nfc_id}`);
     const safeStory = story || '사연 없음';
 
     // 1. Gemini를 통해 라디오 대본 생성
+    console.log('[Radio Batch] 1. Generating script via Gemini...');
     const gptResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,10 +53,13 @@ export async function POST(request: Request) {
     const script = gptData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!script) {
+      console.error('[Radio Batch] Script generation failed:', gptData);
       return NextResponse.json({ error: '대본 생성 실패' }, { status: 500 });
     }
+    console.log('[Radio Batch] Script generated.');
 
     // 2. Google Cloud TTS를 통해 고품질 음성 생성 (ko-KR-Neural2-B)
+    console.log('[Radio Batch] 2. Generating TTS via Google Cloud...');
     const ttsResponse = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -75,10 +80,13 @@ export async function POST(request: Request) {
     const audioContentBase64 = ttsData.audioContent; // Base64 string
 
     if (!audioContentBase64) {
+      console.error('[Radio Batch] TTS generation failed:', ttsData);
       return NextResponse.json({ error: 'TTS 생성 실패' }, { status: 500 });
     }
+    console.log('[Radio Batch] TTS generated.');
 
     // 3. Buffer 변환 후 Cloudflare R2에 업로드
+    console.log('[Radio Batch] 3. Uploading to R2...');
     const audioBuffer = Buffer.from(audioContentBase64, 'base64');
     const fileName = `audio/${nfc_id}-TTS.mp3`;
 
@@ -92,9 +100,11 @@ export async function POST(request: Request) {
     );
 
     const audioUrl = `${r2PublicDomain}/${fileName}`;
+    console.log('[Radio Batch] R2 upload successful:', audioUrl);
 
     // 4. Supabase DB audio_files 업데이트 또는 삽입
     if (supabase) {
+      console.log('[Radio Batch] 4. Updating Supabase DB...');
       // 기존에 해당 NFC의 category='radio_tts' 가 있는지 확인
       const { data: existing } = await supabase
         .from('audio_files')
@@ -122,6 +132,7 @@ export async function POST(request: Request) {
             radio_script: script
           });
       }
+      console.log('[Radio Batch] DB update successful.');
     }
 
     return NextResponse.json({ 

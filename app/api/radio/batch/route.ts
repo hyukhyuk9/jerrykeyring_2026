@@ -4,39 +4,46 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const dynamic = 'force-dynamic';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
-// R2 설정
-const r2Endpoint = process.env.R2_ENDPOINT || '';
-const r2AccessKey = process.env.R2_ACCESS_KEY_ID || '';
-const r2SecretKey = process.env.R2_SECRET_ACCESS_KEY || '';
+function getS3Client() {
+  const endpoint = process.env.R2_ENDPOINT;
+  const accessKey = process.env.R2_ACCESS_KEY_ID;
+  const secretKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!endpoint || !accessKey || !secretKey) return null;
+  
+  return new S3Client({
+    region: "auto",
+    endpoint: endpoint,
+    credentials: {
+      accessKeyId: accessKey,
+      secretAccessKey: secretKey,
+    },
+  });
+}
+
 const r2Bucket = process.env.R2_BUCKET_NAME || '';
 const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://pub-5c6a6735682b4c08a8c7ee71c2d15cf7.r2.dev';
-
-const s3Client = (r2Endpoint && r2AccessKey && r2SecretKey) ? new S3Client({
-  region: "auto",
-  endpoint: r2Endpoint,
-  credentials: {
-    accessKeyId: r2AccessKey,
-    secretAccessKey: r2SecretKey,
-  },
-}) : null;
 
 export async function POST(request: Request) {
   try {
     const { story, nfc_id } = await request.json();
     const apiKey = process.env.GOOGLE_AI_API_KEY;
+    const supabase = getSupabaseClient();
+    const s3Client = getS3Client();
 
     if (!apiKey) return NextResponse.json({ error: 'Gemini API Key is missing' }, { status: 500 });
-    if (!s3Client) return NextResponse.json({ error: 'R2 스토리지 설정(.env)이 누락되었습니다.' }, { status: 500 });
+    if (!s3Client || !supabase) return NextResponse.json({ error: '서버 환경 변수 설정이 누락되었습니다.' }, { status: 500 });
 
     console.log(`[Radio Batch] Start: nfc_id=${nfc_id}`);
     const safeStory = story || '사연 없음';
 
     // 1. Gemini를 통해 라디오 대본 생성
-    console.log('[Radio Batch] 1. Generating script via Gemini...');
     const gptResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,17 +60,10 @@ export async function POST(request: Request) {
     const script = gptData.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!script) {
-      console.error('[Radio Batch] Script generation failed:', gptData);
-      return NextResponse.json({ 
-        error: '대본 생성 실패', 
-        details: gptData,
-        status: gptResponse.status 
-      }, { status: 500 });
+      return NextResponse.json({ error: '대본 생성 실패' }, { status: 500 });
     }
-    console.log('[Radio Batch] Script generated.');
 
-    // 2. Google Cloud TTS를 통해 고품질 음성 생성 (ko-KR-Neural2-B)
-    console.log('[Radio Batch] 2. Generating TTS via Google Cloud...');
+    // 2. Google Cloud TTS를 통해 고품질 음성 생성
     const ttsResponse = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -74,23 +74,18 @@ export async function POST(request: Request) {
           name: 'ko-KR-Neural2-B',
           ssmlGender: 'MALE'
         },
-        audioConfig: {
-          audioEncoding: 'MP3',
-        }
+        audioConfig: { audioEncoding: 'MP3' }
       }),
     });
 
     const ttsData = await ttsResponse.json();
-    const audioContentBase64 = ttsData.audioContent; // Base64 string
+    const audioContentBase64 = ttsData.audioContent;
 
     if (!audioContentBase64) {
-      console.error('[Radio Batch] TTS generation failed:', ttsData);
       return NextResponse.json({ error: 'TTS 생성 실패' }, { status: 500 });
     }
-    console.log('[Radio Batch] TTS generated.');
 
-    // 3. Buffer 변환 후 Cloudflare R2에 업로드
-    console.log('[Radio Batch] 3. Uploading to R2...');
+    // 3. Cloudflare R2 업로드
     const audioBuffer = Buffer.from(audioContentBase64, 'base64');
     const fileName = `audio/${nfc_id}-TTS.mp3`;
 
@@ -104,39 +99,33 @@ export async function POST(request: Request) {
     );
 
     const audioUrl = `${r2PublicDomain}/${fileName}`;
-    console.log('[Radio Batch] R2 upload successful:', audioUrl);
 
-    // 4. Supabase DB audio_files 업데이트 또는 삽입
-    if (supabase) {
-      console.log('[Radio Batch] 4. Updating Supabase DB...');
-      // 기존에 해당 NFC의 category='radio_tts' 가 있는지 확인
-      const { data: existing } = await supabase
+    // 4. Supabase DB 기록
+    const { data: existing } = await supabase
+      .from('audio_files')
+      .select('id')
+      .eq('nfc_id', nfc_id)
+      .eq('category', 'radio_tts')
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
         .from('audio_files')
-        .select('id')
-        .eq('nfc_id', nfc_id)
-        .eq('category', 'radio_tts')
-        .maybeSingle();
-
-      if (existing) {
-        await supabase
-          .from('audio_files')
-          .update({
-            audio_url: audioUrl,
-            radio_script: script,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existing.id);
-      } else {
-        await supabase
-          .from('audio_files')
-          .insert({
-            nfc_id: nfc_id,
-            audio_url: audioUrl,
-            category: 'radio_tts',
-            radio_script: script
-          });
-      }
-      console.log('[Radio Batch] DB update successful.');
+        .update({
+          audio_url: audioUrl,
+          radio_script: script,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id);
+    } else {
+      await supabase
+        .from('audio_files')
+        .insert({
+          nfc_id: nfc_id,
+          audio_url: audioUrl,
+          category: 'radio_tts',
+          radio_script: script
+        });
     }
 
     return NextResponse.json({ 
@@ -148,6 +137,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Radio Batch API Error:', error);
-    return NextResponse.json({ error: error.message || '서버 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || '서버 오류' }, { status: 500 });
   }
 }

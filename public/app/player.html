@@ -2007,6 +2007,7 @@
       radioTriggered = false;
       hideNextSongToast();
       const track = playlist[currentIdx];
+      console.log(`[🎵 Playing] Index: ${currentIdx}, Name: ${track.name}, Source: ${track.src}`);
       player.src = track.src;
       trackDisplay.innerHTML = `[ > ${track.name} ]${getRadioIconHtml()}`;
       obsTrackTitle.innerHTML = `${track.name}`;

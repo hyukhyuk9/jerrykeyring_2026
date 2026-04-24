@@ -181,7 +181,7 @@ window.api.getRandomTrack = async function () {
     // 3. 해당 음원의 트랙 정보(장르, 가사 등)를 가져옵니다.
     const { data: trackInfo, error: trackErr } = await client
       .from('tracks')
-      .select('genre, lyrics, modify')
+      .select('genre, lyrics')
       .eq('nfc_id', audioData.nfc_id)
       .maybeSingle();
 
@@ -192,7 +192,7 @@ window.api.getRandomTrack = async function () {
       id: audioData.id,
       audio_url: audioData.audio_url,
       nfc_id: audioData.nfc_id,
-      tracks: trackInfo || { genre: '랜덤 음원', lyrics: '제리키링AI', modify: '' }
+      tracks: trackInfo || { genre: '랜덤 음원', lyrics: '제리키링AI' }
     };
   } catch (err) {
     console.error('랜덤 음원 불러오기 에러:', err);

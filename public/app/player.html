@@ -297,7 +297,6 @@
       height: 44px;
       border: none;
       background: transparent;
-      display: inline-flex;
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
@@ -328,7 +327,15 @@
       position: relative;
     }
     .repeat-btn.active {
-      color: #ff914d;
+      color: #ffeb3b;
+      text-shadow: 0 0 8px rgba(255, 235, 59, 0.4);
+    }
+
+    /* 저장/인증 영역 세로 정렬 */
+    .save-area {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
     }
 
     /* 인증 마크 스타일 (저장 버튼 위치 활용) */
@@ -346,8 +353,6 @@
     .verified-mark.visible {
       display: inline-flex;
     }
-    .save-btn { display: none; }
-    .save-btn.visible { display: inline-block; }
 
     /* 저장 확인 팝업 */
     #saveConfirmPopup {
@@ -1556,8 +1561,6 @@
         document.getElementById('purchasePopup').style.display = 'flex';
         return;
       }
-
-      showToast('🎲 랜덤 음원을 불러오는 중...');
       
       try {
         const randomData = await window.api.getRandomTrack();
@@ -2061,34 +2064,41 @@
       const m = Math.floor(cur / 60), s = Math.floor(cur % 60);
       document.getElementById('currentTime').innerText = `${m}:${String(s).padStart(2, '0')}`;
 
-      /* 다음곡 안내 말풍선: 종료 30초 전 */
-      if (showNextSongGuide && repeatMode === 'all' && dur && !nextSongToastShown) {
+      /* 다음곡 안내 말풍선: 종료 30초 전, 3초간만 표시 */
+      if (showNextSongGuide && dur && !nextSongToastShown) {
         const remaining = dur - cur;
         if (remaining <= 30 && remaining > 0) {
           if (playingRandomTrack) {
             document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ 새로운 랜덤 음악 ]</b> 재생 예정`;
-            document.getElementById('nextSongToast').classList.add('show');
-            nextSongToastShown = true;
           } else {
             const nextIdx = (currentIdx + 1) % playlist.length;
             const nextTrack = playlist[nextIdx];
             if (nextTrack) {
               document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ ${nextTrack.name} ]</b> 재생 예정`;
-              document.getElementById('nextSongToast').classList.add('show');
-              nextSongToastShown = true;
             }
           }
+          document.getElementById('nextSongToast').classList.add('show');
+          nextSongToastShown = true;
+          setTimeout(() => { hideNextSongToast(); }, 3000);
         }
       }
 
-      /* AI 라디오: 종료 10초 전 트리거 */
-      if (aiRadioEnabled && repeatMode === 'all' && dur && !radioTriggered && !playingRandomTrack) {
+      /* AI 라디오: 종료 10초 전 트리거 (반복모드 무관, aiRadioEnabled만 체크) */
+      if (aiRadioEnabled && dur && !radioTriggered && !playingRandomTrack) {
         const remaining = dur - cur;
         if (remaining <= 10 && remaining > 0) {
           radioTriggered = true;
           const nextIdx = (currentIdx + 1) % playlist.length;
-          // 현재 곡 볼륨 서서히 줄이기
-          fadeOutAndPlayRadio(nextIdx);
+          if (remaining <= 3) {
+            // 3초 이하면 페이드아웃 할 시간이 없으므로 곡 끝나면 라디오 시작
+            player.addEventListener('ended', function onceRadio() {
+              player.removeEventListener('ended', onceRadio);
+              playRadioThenNext(nextIdx);
+            });
+          } else {
+            // 10초~3초 구간: 볼륨 서서히 줄이면서 라디오 준비
+            fadeOutAndPlayRadio(nextIdx);
+          }
         }
       }
     });
@@ -2131,12 +2141,18 @@
         if (repeatMode === 'all') playRandomMusic(); else { player.currentTime = 0; player.play(); }
         return;
       }
-      // 라디오가 이미 10초 전에 트리거되었으면 onended에서는 아무것도 하지 않음 (라디오가 처리)
+      // 라디오가 이미 트리거되었으면 onended에서는 아무것도 하지 않음 (라디오가 처리)
       if (aiRadioEnabled && radioTriggered) {
         radioTriggered = false;
         return;
       }
-      // 라디오 비활성 상태면 기본 동작
+      // 라디오 활성 + 아직 트리거 안 됐을 때 (짧은 곡 등 10초 미만에서 바로 끝난 경우)
+      if (aiRadioEnabled && !radioTriggered) {
+        const nextIdx = (currentIdx + 1) % playlist.length;
+        playRadioThenNext(nextIdx);
+        return;
+      }
+      // 기본 동작
       if (repeatMode === 'all') {
         initPlayer((currentIdx + 1) % playlist.length);
       } else { 
@@ -2317,6 +2333,11 @@
       }
       if (aiRadioEnabled && radioTriggered) {
         radioTriggered = false;
+        return;
+      }
+      if (aiRadioEnabled && !radioTriggered) {
+        const nextIdx = (currentIdx + 1) % playlist.length;
+        playRadioThenNext(nextIdx);
         return;
       }
       if (repeatMode === 'all') {

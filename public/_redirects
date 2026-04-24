@@ -1,0 +1,7 @@
+/sample               /app/sample_index.html 200
+/app/sample           /app/sample_index.html 200
+/sample/player        /app/player.html?id=sample 200
+/app/sample/player    /app/player.html?id=sample 200
+/player               /app/player.html 200
+/nfc/*                /app/player.html?id=:splat 200
+/admin                /app/admin.html 200

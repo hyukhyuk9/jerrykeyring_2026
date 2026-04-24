@@ -449,12 +449,13 @@
 
     .custom-controls {
       display: grid;
-      grid-template-columns: 1fr 180px 1fr;
+      grid-template-columns: 60px 1fr 60px;
       align-items: center;
+      justify-items: center;
       width: 100%;
-      max-width: 380px;
-      margin: 20px auto 0;
-      gap: 0;
+      max-width: 360px;
+      margin: 35px auto 0;
+      gap: 10px;
     }
 
     .center-controls {
@@ -858,8 +859,10 @@
       }
 
       .custom-controls {
-        gap: 20px;
-        font-size: 1.4rem;
+        grid-template-columns: 50px 1fr 50px;
+        gap: 5px;
+        max-width: 90%;
+        margin-top: 30px;
       }
 
       .main-play-btn {
@@ -1041,17 +1044,19 @@
         </div>
 
         <div id="playerControls" class="custom-controls" style="display: none;">
-          <i id="repeatBtn" class="fa-solid fa-repeat repeat-btn" onclick="toggleRepeat()" title="반복 재생"></i>
+          <div class="side-control" style="justify-self: center;">
+            <i id="repeatBtn" class="fa-solid fa-repeat repeat-btn" onclick="toggleRepeat()" title="반복 재생" style="font-size: 1.3rem; opacity: 0.6;"></i>
+          </div>
           
-          <div class="center-controls" style="font-size: 1.6rem;">
+          <div class="center-controls" style="font-size: 1.8rem; gap: 35px;">
             <i class="fa-solid fa-backward control-btn" onclick="changeTrack(-1)"></i>
             <i id="playPauseIcon" class="fa-solid fa-pause control-btn main-play-btn" onclick="togglePlay()"></i>
             <i class="fa-solid fa-forward control-btn" onclick="changeTrack(1)"></i>
           </div>
 
-          <div class="save-area">
-            <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장"></i>
-            <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark" style="display:none;" title="인증된 오리지널 음원"></i>
+          <div class="save-area" style="justify-self: center;">
+            <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장" style="font-size: 1.3rem; opacity: 0.6;"></i>
+            <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark" style="display:none; font-size: 1rem; color: #4db8ff;"></i>
           </div>
         </div>
 

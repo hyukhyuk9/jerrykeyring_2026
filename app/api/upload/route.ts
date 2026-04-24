@@ -4,45 +4,36 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const dynamic = 'force-dynamic';
 
-// 최상단에서 미리 생성하지 않고, 요청 시점에 생성하는 헬퍼 함수
-function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
-}
-
-function getS3Client() {
-  const endpoint = process.env.R2_ENDPOINT;
-  const accessKey = process.env.R2_ACCESS_KEY_ID;
-  const secretKey = process.env.R2_SECRET_ACCESS_KEY;
-  if (!endpoint || !accessKey || !secretKey) return null;
-  
-  return new S3Client({
-    region: "auto",
-    endpoint: endpoint,
-    credentials: {
-      accessKeyId: accessKey,
-      secretAccessKey: secretKey,
-    },
-  });
-}
-
-const r2Bucket = process.env.R2_BUCKET_NAME || '';
-const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://pub-5c6a6735682b4c08a8c7ee71c2d15cf7.r2.dev';
-
 export async function POST(request: NextRequest) {
+  // 모든 환경 변수와 클라이언트 생성을 POST 함수 내부로 이동하여 빌드 타임의 간섭을 원천 차단
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const r2Endpoint = process.env.R2_ENDPOINT;
+  const r2AccessKey = process.env.R2_ACCESS_KEY_ID;
+  const r2SecretKey = process.env.R2_SECRET_ACCESS_KEY;
+  const r2Bucket = process.env.R2_BUCKET_NAME;
+  const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://pub-5c6a6735682b4c08a8c7ee71c2d15cf7.r2.dev';
+
   const requestId = Math.random().toString(36).substring(7);
   console.log(`\n[🚀 Upload Start] ID: ${requestId}`);
 
   try {
-    const supabase = getSupabaseClient();
-    const s3Client = getS3Client();
-
-    if (!supabase || !s3Client) {
-      console.error(`[❌ Config Error] Supabase or S3 client initialization failed. Check ENV.`);
-      throw new Error('서버 환경 변수 설정이 누락되었습니다.');
+    // 환경 변수 체크
+    if (!supabaseUrl || !supabaseKey || !r2Endpoint || !r2AccessKey || !r2SecretKey || !r2Bucket) {
+      console.error(`[❌ Config Error] Missing environment variables.`);
+      throw new Error('서버 환경 변수 설정이 누락되었습니다. (.env 확인 필요)');
     }
+
+    // 클라이언트 생성 (요청 시점에만)
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const s3Client = new S3Client({
+      region: "auto",
+      endpoint: r2Endpoint,
+      credentials: {
+        accessKeyId: r2AccessKey,
+        secretAccessKey: r2SecretKey,
+      },
+    });
 
     const formData = await request.formData();
     const nfcId = formData.get('nfcId') as string;

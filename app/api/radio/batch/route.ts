@@ -4,41 +4,32 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const dynamic = 'force-dynamic';
 
-function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
-}
-
-function getS3Client() {
-  const endpoint = process.env.R2_ENDPOINT;
-  const accessKey = process.env.R2_ACCESS_KEY_ID;
-  const secretKey = process.env.R2_SECRET_ACCESS_KEY;
-  if (!endpoint || !accessKey || !secretKey) return null;
-  
-  return new S3Client({
-    region: "auto",
-    endpoint: endpoint,
-    credentials: {
-      accessKeyId: accessKey,
-      secretAccessKey: secretKey,
-    },
-  });
-}
-
-const r2Bucket = process.env.R2_BUCKET_NAME || '';
-const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://pub-5c6a6735682b4c08a8c7ee71c2d15cf7.r2.dev';
-
 export async function POST(request: Request) {
-  try {
-    const { story, nfc_id } = await request.json();
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
-    const supabase = getSupabaseClient();
-    const s3Client = getS3Client();
+  // 모든 설정과 클라이언트 생성을 함수 내부로 이동
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const r2Endpoint = process.env.R2_ENDPOINT;
+  const r2AccessKey = process.env.R2_ACCESS_KEY_ID;
+  const r2SecretKey = process.env.R2_SECRET_ACCESS_KEY;
+  const r2Bucket = process.env.R2_BUCKET_NAME;
+  const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://pub-5c6a6735682b4c08a8c7ee71c2d15cf7.r2.dev';
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
 
-    if (!apiKey) return NextResponse.json({ error: 'Gemini API Key is missing' }, { status: 500 });
-    if (!s3Client || !supabase) return NextResponse.json({ error: '서버 환경 변수 설정이 누락되었습니다.' }, { status: 500 });
+  try {
+    if (!supabaseUrl || !supabaseKey || !r2Endpoint || !r2AccessKey || !r2SecretKey || !r2Bucket || !apiKey) {
+      return NextResponse.json({ error: '서버 환경 변수 설정이 누락되었습니다.' }, { status: 500 });
+    }
+
+    const { story, nfc_id } = await request.json();
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const s3Client = new S3Client({
+      region: "auto",
+      endpoint: r2Endpoint,
+      credentials: {
+        accessKeyId: r2AccessKey,
+        secretAccessKey: r2SecretKey,
+      },
+    });
 
     console.log(`[Radio Batch] Start: nfc_id=${nfc_id}`);
     const safeStory = story || '사연 없음';
@@ -59,9 +50,7 @@ export async function POST(request: Request) {
     const gptData = await gptResponse.json();
     const script = gptData.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!script) {
-      return NextResponse.json({ error: '대본 생성 실패' }, { status: 500 });
-    }
+    if (!script) return NextResponse.json({ error: '대본 생성 실패' }, { status: 500 });
 
     // 2. Google Cloud TTS를 통해 고품질 음성 생성
     const ttsResponse = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
@@ -80,10 +69,7 @@ export async function POST(request: Request) {
 
     const ttsData = await ttsResponse.json();
     const audioContentBase64 = ttsData.audioContent;
-
-    if (!audioContentBase64) {
-      return NextResponse.json({ error: 'TTS 생성 실패' }, { status: 500 });
-    }
+    if (!audioContentBase64) return NextResponse.json({ error: 'TTS 생성 실패' }, { status: 500 });
 
     // 3. Cloudflare R2 업로드
     const audioBuffer = Buffer.from(audioContentBase64, 'base64');
@@ -128,12 +114,7 @@ export async function POST(request: Request) {
         });
     }
 
-    return NextResponse.json({ 
-        success: true,
-        script, 
-        audioUrl, 
-        message: '라디오 생성이 완료되었습니다.'
-    });
+    return NextResponse.json({ success: true, script, audioUrl });
 
   } catch (error: any) {
     console.error('Radio Batch API Error:', error);

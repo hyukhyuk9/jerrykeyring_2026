@@ -24,7 +24,7 @@ const nextConfig = {
       },
       {
         source: '/sample/player',
-        destination: '/app/player.html',
+        destination: '/app/player.html?id=sample',
       },
     ];
   },

@@ -448,17 +448,26 @@
     }
 
     .custom-controls {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr; /* 좌우 1:1 대칭, 중앙 자동 */
+      display: flex;
+      justify-content: center;
       align-items: center;
       width: 100%;
-      max-width: 380px;
-      margin: 30px auto 0;
-      gap: 15px;
+      max-width: 450px;
+      margin: 35px auto 0;
     }
-    .side-control-left { justify-self: start; padding-left: 15px; }
-    .side-control-right { justify-self: end; padding-right: 15px; }
-    .center-controls { justify-self: center; }
+    .side-control-area {
+      width: 80px; /* 고정 너비 확보 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .center-control-area {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 35px;
+    }
 
     .center-controls {
       display: flex;
@@ -1046,19 +1055,21 @@
         </div>
 
         <div id="playerControls" class="custom-controls" style="display: none;">
-          <div class="side-control-left">
-            <i id="repeatBtn" class="fa-solid fa-rotate-right repeat-btn" onclick="toggleRepeat()" title="반복 재생" style="font-size: 1.2rem; opacity: 0.6;"></i>
+          <div class="side-control-area">
+            <i id="repeatBtn" class="fa-solid fa-rotate-right repeat-btn" onclick="toggleRepeat()" title="반복 재생" style="font-size: 1.3rem; opacity: 0.6;"></i>
           </div>
           
-          <div class="center-controls" style="font-size: 1.8rem; display: flex; align-items: center; gap: 35px;">
+          <div class="center-control-area" style="font-size: 1.8rem;">
             <i class="fa-solid fa-backward control-btn" onclick="changeTrack(-1)"></i>
             <i id="playPauseIcon" class="fa-solid fa-pause control-btn main-play-btn" onclick="togglePlay()"></i>
             <i class="fa-solid fa-forward control-btn" onclick="changeTrack(1)"></i>
           </div>
 
-          <div class="side-control-right">
-            <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장" style="font-size: 1.2rem; opacity: 0.6;"></i>
-            <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark" style="display:none; font-size: 1rem; color: #4db8ff;"></i>
+          <div class="side-control-area">
+            <div id="saveArea" style="display: flex; align-items: center; gap: 8px; transition: opacity 0.3s; opacity: 0;">
+              <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장" style="font-size: 1.3rem;"></i>
+              <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark" style="display:none; font-size: 1.1rem; color: #4db8ff;"></i>
+            </div>
           </div>
         </div>
 
@@ -1715,6 +1726,7 @@
     }
 
     function updateSaveBtn() {
+      const saveArea = document.getElementById('saveArea');
       const saveBtn = document.getElementById('saveRandomBtn');
       const verifiedMark = document.getElementById('verifiedMark');
       const track = playingRandomTrack || playlist[currentIdx];
@@ -1722,18 +1734,27 @@
       if (!track) return;
 
       if (track.isRandom) {
-        // 랜덤 음원이면 저장 버튼 노출, 인증 마크 숨김
-        saveBtn.classList.add('visible');
-        verifiedMark.classList.remove('visible');
+        saveArea.style.opacity = '1';
+        saveArea.style.pointerEvents = 'auto';
+        saveBtn.style.display = 'block';
+        verifiedMark.style.display = 'none';
         
         const isSaved = savedRandomTracks.some(s => s.src === track.src);
         saveBtn.className = isSaved
-          ? 'fa-solid fa-bookmark save-btn visible active'
-          : 'fa-regular fa-bookmark save-btn visible';
+          ? 'fa-solid fa-bookmark save-btn active'
+          : 'fa-regular fa-bookmark save-btn';
+        if(isSaved) saveBtn.style.color = '#ffb3ba';
+        else saveBtn.style.color = '#ff914d';
       } else {
-        // 자기 음원이면 인증 마크 노출, 저장 버튼 숨김
-        saveBtn.classList.remove('visible', 'active');
-        verifiedMark.classList.add('visible');
+        saveArea.style.opacity = '0';
+        saveArea.style.pointerEvents = 'none';
+        
+        if (track.isVerified) {
+          saveArea.style.opacity = '1';
+          saveBtn.style.display = 'none';
+          verifiedMark.style.display = 'block';
+          verifiedMark.classList.add('visible');
+        }
       }
     }
 

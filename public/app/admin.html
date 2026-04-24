@@ -344,7 +344,10 @@
             
             timelineData = window.api.parseSyncLyrics(t.sync_lyrics);
             if(!timelineData) {
-                timelineData = window.api.generateInitialSync(t.modify || t.lyrics, audio.duration || 180);
+                // 스마트 폴백: status가 유효하지 않으면(비어있거나 '수정없음') lyrics 사용
+                const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+                let baseLyrics = isValid(t.status) ? t.status : t.lyrics;
+                timelineData = window.api.generateInitialSync(baseLyrics, audio.duration || 180);
             }
             renderEditor();
         }
@@ -365,9 +368,11 @@
         
         async function resetTimelineFromLyrics() {
             if(!currentTargetId) return;
-            if(!confirm('현재 싱크 데이터를 모두 지우고 원본 가사로 다시 에벌 구성을 할까요?')) return;
+            if(!confirm('현재 싱크 데이터를 모두 지우고 원본/수정 가사로 다시 에벌 구성을 할까요?')) return;
             const t = allTracks.find(x => x.id == currentTargetId);
-            timelineData = window.api.generateInitialSync(t.modify || t.lyrics, audio.duration || 180);
+            const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+            let baseLyrics = isValid(t.status) ? t.status : t.lyrics;
+            timelineData = window.api.generateInitialSync(baseLyrics, audio.duration || 180);
             renderEditor();
         }
         async function saveLyricsToDB() { 

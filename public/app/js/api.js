@@ -309,11 +309,12 @@ window.api.uploadAudio = async function (file, nfcId) {
  * [관리자용] 가사 싱크용 데이터 초기화 (에벌 데이터 생성)
  */
 window.api.generateInitialSync = function (lyricsText, durationSeconds) {
-  if (!lyricsText || lyricsText === '수정없음') {
-    lyricsText = "가사 데이터가 없습니다.";
-  }
+  // '수정없음', NULL, 공백 등을 모두 체크하여 실제 유효한 텍스트인지 판단
+  const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+  
+  let text = isValid(lyricsText) ? lyricsText : "가사가 등록되지 않았습니다. 관리자 페이지에서 가사를 입력해 주세요.";
 
-  const lines = lyricsText.split('\n')
+  const lines = text.split('\n')
     .map(l => l.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim())
     .filter(l => l.length > 0);
 

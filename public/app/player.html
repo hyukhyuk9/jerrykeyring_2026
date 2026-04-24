@@ -1501,7 +1501,9 @@
               const userInfo = await window.api.getUserInfo(f.nfc);
               if (userInfo.success && userInfo.data) {
                 let genreList = String(userInfo.data.genre).split(',').map(s => s.trim());
-                let finalLyrics = (userInfo.data.editedLyrics && userInfo.data.editedLyrics !== '수정없음') ? userInfo.data.editedLyrics : (userInfo.data.lyrics || "가사가 없습니다.");
+                const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+                let finalLyrics = userInfo.data.sync_lyrics || (isValid(userInfo.data.status) ? userInfo.data.status : userInfo.data.lyrics) || "가사가 없습니다.";
+                if (finalLyrics === '수정없음') finalLyrics = "가사가 없습니다.";
 
                 genreList.forEach((genreItem, idx) => {
                   let srcPath = genreList.length > 1 ? `./music/${f.nfc}-${idx + 1}.mp3` : `./music/${f.nfc}.mp3`;
@@ -1602,8 +1604,8 @@
         const audioUrl = randomData.audio_url;
         const trackInfo = randomData.tracks || {};
         
-        let finalLyrics = trackInfo.sync_lyrics || trackInfo.modify || trackInfo.lyrics || '제리키링AI';
-        if (finalLyrics === '수정없음') finalLyrics = trackInfo.lyrics || '제리키링AI';
+        const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+        let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
 
         // 제목을 가사 첫 줄로 설정 (태그 제거)
         const firstLine = finalLyrics.split('\n')[0].replace(/\[.*?\]/g, '').trim() || trackInfo.genre || '랜덤 음원';
@@ -1789,8 +1791,9 @@
             document.getElementById('serialDisplay').innerText = `SN: ${data.serial}`;
           }
 
-          let finalLyrics = data.sync_lyrics || data.modify || data.lyrics || "가사가 등록되지 않았습니다.";
-          if (finalLyrics === "수정없음") finalLyrics = data.lyrics || "가사가 등록되지 않았습니다.";
+          const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+          let finalLyrics = data.sync_lyrics || (isValid(data.status) ? data.status : data.lyrics) || "가사가 등록되지 않았습니다.";
+          if (finalLyrics === "수정없음") finalLyrics = "가사가 등록되지 않았습니다.";
           
           // 2. 실제 음원 파일 목록 로드 (audio_files 테이블 - R2 주소 포함)
           const audioFiles = await window.api.getAudioFiles(targetId);
@@ -1853,7 +1856,8 @@
               if (uRes && uRes.success && uRes.data) {
                 const uData = uRes.data;
                 const fName = linkedFriends.find(f => String(f.nfc) === String(fNfc))?.name || "친구";
-                const fLyr = (uData.modify && uData.modify !== '수정없음') ? uData.modify : (uData.lyrics || "가사가 없습니다.");
+                const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+                const fLyr = (uData.sync_lyrics && uData.sync_lyrics !== '') ? uData.sync_lyrics : (isValid(uData.status) ? uData.status : uData.lyrics);
                 
                 const fMusicFiles = uFiles.filter(f => f.category !== 'radio_tts');
                 const fRadioFiles = uFiles.filter(f => f.category === 'radio_tts');

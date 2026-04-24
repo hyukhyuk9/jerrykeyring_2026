@@ -2228,6 +2228,11 @@
       }
     };
 
+    function hideNextSongToast() {
+      const toast = document.getElementById('nextSongToast');
+      if (toast) toast.classList.remove('show');
+    }
+
     player.addEventListener('loadedmetadata', () => {
       document.getElementById('progressBar').max = player.duration;
       const m = Math.floor(player.duration / 60), s = Math.floor(player.duration % 60);

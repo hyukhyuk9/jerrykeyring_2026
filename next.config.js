@@ -18,6 +18,14 @@ const nextConfig = {
         source: '/admin',
         destination: '/app/admin.html',
       },
+      {
+        source: '/sample',
+        destination: '/app/sample_index.html',
+      },
+      {
+        source: '/sample/player',
+        destination: '/app/player.html',
+      },
     ];
   },
 };

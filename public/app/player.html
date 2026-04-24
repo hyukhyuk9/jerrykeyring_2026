@@ -438,7 +438,8 @@
 
     .time-info {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 10px;
       font-family: 'Courier New', monospace;
       font-size: 0.75rem;
       color: #ff914d;
@@ -798,10 +799,12 @@
     }
 
     .mini-controls {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       align-items: center;
       gap: 15px;
-      padding-left: 10px;
     }
     .mini-btn {
       color: #ff914d;

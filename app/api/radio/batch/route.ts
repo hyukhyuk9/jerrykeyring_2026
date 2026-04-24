@@ -54,7 +54,11 @@ export async function POST(request: Request) {
 
     if (!script) {
       console.error('[Radio Batch] Script generation failed:', gptData);
-      return NextResponse.json({ error: '대본 생성 실패' }, { status: 500 });
+      return NextResponse.json({ 
+        error: '대본 생성 실패', 
+        details: gptData,
+        status: gptResponse.status 
+      }, { status: 500 });
     }
     console.log('[Radio Batch] Script generated.');
 

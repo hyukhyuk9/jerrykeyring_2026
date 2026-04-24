@@ -97,7 +97,8 @@
     body.obs-mode main.container>.player-container>#trackDisplay,
     body.obs-mode #ui-controls,
     body.obs-mode .exit-container,
-    body.obs-mode .fullscreen-btn {
+    body.obs-mode .fullscreen-btn,
+    body.obs-mode #miniPlayerBar {
       opacity: 0 !important;
       pointer-events: none !important;
     }
@@ -1338,10 +1339,27 @@
         randomBtn.innerHTML = '<span><i class="fa-solid fa-shuffle"></i> 제리키링 랜덤음원듣기</span>';
         randomBtn.onclick = (e) => {
           e.stopPropagation();
-          // Safari Autoplay 정책 우회 (동기적으로 play 호출)
+          // Safari Autoplay 정책 우회
           player.play().catch(() => {});
           player.pause();
-          playRandomMusic();
+          
+          // 커뮤니티 스페셜 토스트 효과
+          const featToast = document.getElementById('newFeatureToast');
+          if (featToast) {
+            featToast.style.opacity = '1';
+            featToast.style.top = '45%';
+          }
+
+          // 약간의 딜레이 후 로딩 및 전환
+          setTimeout(() => {
+            playRandomMusic();
+            setTimeout(() => {
+              if (featToast) {
+                featToast.style.opacity = '0';
+                featToast.style.top = '35%';
+              }
+            }, 2500);
+          }, 1000);
         };
         commZone.appendChild(randomBtn);
 
@@ -1510,14 +1528,14 @@
         const audioUrl = randomData.audio_url;
         const trackInfo = randomData.tracks || {};
         
-        // 개인정보 보호를 위해 NFC 번호 대신 장르나 '랜덤 음원'으로 표시
-        const trackName = trackInfo.genre || '랜덤 음원';
-        
         let finalLyrics = trackInfo.lyrics || '제리키링AI';
-        // 수정가사가 있다면 우선 적용
         if (trackInfo.modify && trackInfo.modify !== '수정없음' && trackInfo.modify !== '') {
           finalLyrics = trackInfo.modify;
         }
+
+        // 제목을 가사 첫 줄로 설정 (태그 제거)
+        const firstLine = finalLyrics.split('\n')[0].replace(/\[.*?\]/g, '').trim() || trackInfo.genre || '랜덤 음원';
+        const trackName = firstLine;
 
         playingRandomTrack = { 
           src: audioUrl, 
@@ -1554,12 +1572,20 @@
         player.src = playingRandomTrack.src;
         trackDisplay.innerText = `[ > ${playingRandomTrack.name} ]`;
         obsTrackTitle.innerText = playingRandomTrack.name;
-        document.getElementById('lyricsBox').classList.remove('lyric-friend');
+        
+        // 타인/랜덤 음원은 가사를 노란색으로 강조
+        document.getElementById('lyricsBox').classList.add('lyric-friend');
+        document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
+        
         parseLyrics(playingRandomTrack.lyricsText);
         updateSaveBtn();
         player.play().catch(() => { });
         resetIdleTimer();
-        showToast(`🎲 랜덤 재생: ${trackName}`);
+        
+        // 가사 화면으로 전환된 후 닫기 버튼 서서히 등장
+        setTimeout(() => {
+          document.getElementById('exitContainer').style.display = 'block';
+        }, 1500);
 
         // 샘플 계정 카운트 증가
         if (isSampleUser) {
@@ -1968,8 +1994,22 @@
     };
 
     function resetIdleTimer() { showInterface(); clearTimeout(idleTimer); if (!player.paused) idleTimer = setTimeout(hideInterface, 5000); }
-    function hideInterface() { body.classList.add('obs-mode'); canvas.style.opacity = '1.0'; }
-    function showInterface() { body.classList.remove('obs-mode'); if (!player.paused) canvas.style.opacity = '0.4'; }
+    function hideInterface() { 
+      body.classList.add('obs-mode'); 
+      canvas.style.opacity = '1.0'; 
+      // 최소화(메인화면) 상태에서 대기 시 가사가 보이도록 처리
+      if (document.getElementById('mainUI').style.display === 'block' && showLyrics) {
+        document.getElementById('lyricsBox').classList.add('lyrics-on');
+      }
+    }
+    function showInterface() { 
+      body.classList.remove('obs-mode'); 
+      if (!player.paused) canvas.style.opacity = '0.4'; 
+      // 메인화면으로 돌아왔을 때는 다시 가사 숨김 (기본 최소화 UI 유지)
+      if (document.getElementById('mainUI').style.display === 'block') {
+        document.getElementById('lyricsBox').classList.remove('lyrics-on');
+      }
+    }
 
     function toggleFullScreen() {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;

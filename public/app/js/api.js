@@ -278,27 +278,20 @@ window.api.deleteTrack = async function (id) {
  * [관리자용] 음원 업로드 (백그라운드 처리용)
  */
 window.api.uploadAudio = async function (file, nfcId) {
-  const client = getSupabase();
-  if (!client) return { success: false };
-
   try {
-    const filePath = `audio/${Date.now()}_${file.name}`;
-    const { data: uploadData, error: uploadError } = await client.storage
-      .from('audio')
-      .upload(filePath, file);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('nfcId', nfcId);
 
-    if (uploadError) throw uploadError;
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    });
 
-    const { data: { publicUrl } } = client.storage.from('audio').getPublicUrl(filePath);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '업로드 실패');
 
-    // audio_files 테이블에 기록 (nfc_id 기반 매핑)
-    const { error: dbError } = await client
-      .from('audio_files')
-      .insert({ nfc_id: nfcId, audio_url: publicUrl });
-
-    if (dbError) throw dbError;
-
-    return { success: true, url: publicUrl };
+    return { success: true, url: data.url };
   } catch (err) {
     console.error('음원 업로드 에러:', err);
     return { success: false, message: err.message };

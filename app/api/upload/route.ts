@@ -1,71 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchSheetData } from '@/lib/sheets';
+import { createClient } from '@supabase/supabase-js';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-// 관리자 인증 확인
-function isAuthenticated(request: NextRequest): boolean {
-  const token = request.cookies.get('admin_token')?.value;
-  if (!token) return false;
-  try {
-    const decoded = Buffer.from(token, 'base64').toString();
-    return decoded.startsWith('admin:');
-  } catch {
-    return false;
-  }
-}
+// 환경 변수 로드
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function GET(request: NextRequest) {
-  if (!isAuthenticated(request)) {
-    return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
-  }
+const r2Endpoint = process.env.R2_ENDPOINT || '';
+const r2AccessKey = process.env.R2_ACCESS_KEY_ID || '';
+const r2SecretKey = process.env.R2_SECRET_ACCESS_KEY || '';
+const r2Bucket = process.env.R2_BUCKET_NAME || '';
+const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://pub-5c6a6735682b4c08a8c7ee71c2d15cf7.r2.dev';
 
-  try {
-    const data = await fetchSheetData();
-    // 관리자에게는 전체 데이터 반환 (이름, 장르, 상태 등)
-    const adminData = data.map(d => ({
-      nfc: d.nfc,
-      name: d.name,
-      genre: d.genre,
-      status: d.status,
-      date: d.date,
-      hasLyrics: !!d.lyrics,
-      lyrics: d.lyrics,
-    }));
-
-    return NextResponse.json({ data: adminData });
-  } catch (error) {
-    console.error('Admin tracks error:', error);
-    return NextResponse.json({ error: '데이터 조회 실패' }, { status: 500 });
-  }
-}
+const s3Client = new S3Client({
+  region: "auto",
+  endpoint: r2Endpoint,
+  credentials: {
+    accessKeyId: r2AccessKey,
+    secretAccessKey: r2SecretKey,
+  },
+});
 
 export async function POST(request: NextRequest) {
-  if (!isAuthenticated(request)) {
-    return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
-  }
-
-  // 파일 업로드 처리 (향후 Vercel Blob 연동)
   try {
     const formData = await request.formData();
     const nfcId = formData.get('nfcId') as string;
-    const files = formData.getAll('files') as File[];
+    const file = formData.get('file') as File;
 
-    if (!nfcId || files.length === 0) {
+    if (!nfcId || !file) {
       return NextResponse.json({ error: 'NFC ID와 파일이 필요합니다.' }, { status: 400 });
     }
 
-    // TODO: Vercel Blob 업로드 구현
-    // const uploadedUrls = [];
-    // for (const file of files) {
-    //   const blob = await put(`music/${nfcId}-${i}.mp3`, file, { access: 'public' });
-    //   uploadedUrls.push(blob.url);
-    // }
+    // 1. 파일 데이터 Buffer 변환
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // 2. R2 업로드 경로 설정 (media/music/NFCID_timestamp_파일명.mp3)
+    const fileName = `media/music/${nfcId}_${Date.now()}_${file.name}`;
+
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: r2Bucket,
+        Key: fileName,
+        Body: buffer,
+        ContentType: file.type || 'audio/mpeg',
+      })
+    );
+
+    const publicUrl = `${r2PublicDomain}/${fileName}`;
+
+    // 3. Supabase DB 기록
+    const { error: dbError } = await supabase
+      .from('audio_files')
+      .insert({
+        nfc_id: nfcId,
+        audio_url: publicUrl,
+        category: 'music' // 기본 카테고리는 음악으로 설정
+      });
+
+    if (dbError) throw dbError;
 
     return NextResponse.json({
       success: true,
-      message: `${files.length}개 파일이 업로드되었습니다. (Vercel Blob 연동 후 활성화)`,
+      url: publicUrl,
+      message: 'R2 업로드 및 DB 기록이 완료되었습니다.'
     });
-  } catch (error) {
-    console.error('Upload error:', error);
-    return NextResponse.json({ error: '업로드 실패' }, { status: 500 });
+
+  } catch (error: any) {
+    console.error('Upload API Error:', error);
+    return NextResponse.json({ error: error.message || '서버 오류가 발생했습니다.' }, { status: 500 });
   }
 }

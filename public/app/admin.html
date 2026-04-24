@@ -62,21 +62,24 @@
         .tag-pending { background: #222; color: #666; }
 
         /* Lyrics Editor - RESTORED UI */
-        .lyrics-grid { display: grid; grid-template-columns: 280px 1fr 350px; gap: 1.5rem; height: calc(100vh - 180px); }
+        .lyrics-grid { display: grid; grid-template-columns: 200px 1fr 350px; gap: 1rem; height: calc(100vh - 250px); margin-bottom: 20px; }
         .target-list-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
         .target-list { flex: 1; overflow-y: auto; }
-        .target-item { padding: 15px; border-bottom: 1px solid #1a1a1a; cursor: pointer; transition: all 0.2s; }
+        .target-item { padding: 12px 15px; border-bottom: 1px solid #1a1a1a; cursor: pointer; transition: all 0.2s; font-size: 0.8rem; }
         .target-item:hover { background: #1a1a1a; }
-        .target-item.active { border-left: 4px solid var(--primary); background: #1a1a1a; }
-        .editor-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; overflow-y: auto; }
-        .lyric-line-edit { display: flex; align-items: center; gap: 20px; background: #000; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #1a1a1a; }
-        .lyric-label { font-weight: 800; color: var(--primary); width: 80px; }
-        .time-picker { display: flex; align-items: center; gap: 8px; background: #111; padding: 6px 12px; border-radius: 8px; border: 1px solid #222; }
-        .time-picker select { background: transparent; color: var(--primary); border: none; outline: none; font-family: monospace; font-weight: bold; cursor: pointer; }
-        .preview-box { background: #000; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; }
-        .preview-content { flex: 1; overflow-y: auto; padding: 2rem; text-align: center; }
-        .preview-line { font-size: 1.1rem; color: #444; margin-bottom: 25px; transition: all 0.3s; }
-        .preview-line.highlight { color: var(--primary); font-weight: 900; transform: scale(1.1); }
+        .target-item.active { border-left: 4px solid var(--primary); background: #1a1a1a; font-weight: bold; }
+        .editor-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; overflow-y: auto; }
+        .lyric-line-edit { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #000; padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1a1a1a; }
+        .lyric-label { font-weight: 700; color: var(--primary); font-size: 0.85rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .time-picker { display: flex; align-items: center; gap: 5px; background: #111; padding: 6px 10px; border-radius: 8px; border: 1px solid #222; flex-shrink: 0; min-width: 110px; justify-content: center; font-size: 0.8rem; color: #666; }
+        .time-picker select { background: transparent; color: var(--primary); border: none; outline: none; font-family: monospace; font-weight: bold; cursor: pointer; font-size: 1rem; -webkit-appearance: none; appearance: none; padding: 0 4px; text-align: center; }
+        .preview-box { background: #000; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+        .preview-content { flex: 1; overflow-y: auto; padding: 1.5rem; text-align: center; }
+        .preview-line { font-size: 1rem; color: #333; margin-bottom: 15px; transition: all 0.3s; opacity: 0.6; }
+        .preview-line.highlight { color: var(--primary); font-weight: 900; transform: scale(1.1); opacity: 1; }
+        
+        .lyrics-player-bar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 25px; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .lyrics-player-bar .mini-play-btn { width: 45px; height: 45px; flex-shrink: 0; }
 
         /* Floating Widget & Mini Player */
         #floatingUploadWidget { position: fixed; bottom: 30px; right: 30px; background: #111; border: 1px solid var(--primary); border-radius: 20px; z-index: 4000; width: 340px; overflow: hidden; display: none; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
@@ -195,17 +198,29 @@
 
             <!-- Lyrics Timeline -->
             <section id="tab-lyrics" class="tab-content">
-                <div class="page-header"><h2 class="page-title">가사 타임라인 설정</h2><button class="btn btn-primary" onclick="saveLyricsToDB()">저장하기</button></div>
+                <div class="page-header"><h2 class="page-title">가사 타임라인 싱크 조절</h2><button class="btn btn-primary" onclick="saveLyricsToDB()">최종 저장하기</button></div>
                 <div class="lyrics-grid">
                     <div class="target-list-box"><div class="target-list" id="lyricTargetList"></div></div>
-                    <div class="editor-box"><div id="editorCurrentTarget" style="font-weight:900; color:var(--primary); margin-bottom:20px;">[대상 미지정]</div><div id="editorLinesContainer"></div></div>
+                    <div class="editor-box">
+                        <div id="editorCurrentTarget" style="font-weight:900; color:var(--primary); margin-bottom:15px; font-size:1.1rem;">[대상 미지정]</div>
+                        <div id="editorLinesContainer"></div>
+                    </div>
                     <div class="preview-box">
-                        <div class="preview-content" id="lyricPreviewArea"></div>
-                        <div style="background:#111; padding:20px; border-top:1px solid #222; display:flex; align-items:center; gap:15px;">
-                            <button class="mini-play-btn" style="width:40px; height:40px;" onclick="togglePlay()"><i class="fa-solid fa-play" id="lyricPlayIcon"></i></button>
-                            <div style="flex:1; height:6px; background:#222; border-radius:3px; cursor:pointer;" onclick="seek(event)"><div id="progressBar" style="height:100%; background:var(--primary); width:0%;"></div></div>
+                        <div class="preview-content" id="lyricPreviewArea">
+                            <p style="color:#444; margin-top:100px;">재생 시 실시간 가사 미리보기</p>
                         </div>
                     </div>
+                </div>
+                
+                <div class="lyrics-player-bar">
+                    <button class="mini-play-btn" onclick="togglePlay()"><i class="fa-solid fa-play" id="lyricPlayIcon"></i></button>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+                        <div id="lyricPlayerTitle" style="font-size:0.85rem; font-weight:bold; color:var(--primary);">선택된 곡 없음</div>
+                        <div style="height:6px; background:#222; border-radius:3px; cursor:pointer;" onclick="seek(event)">
+                            <div id="progressBar" style="height:100%; background:var(--primary); width:0%; border-radius:3px; box-shadow: 0 0 10px rgba(255,145,77,0.5);"></div>
+                        </div>
+                    </div>
+                    <div id="lyricTimeDisplay" style="font-family:monospace; color:#888; font-size:0.8rem;">00:00 / 00:00</div>
                 </div>
             </section>
 
@@ -324,6 +339,7 @@
             currentTargetId = id; const t = allTracks.find(x => x.id == id);
             if(!t) return;
             document.getElementById('editorCurrentTarget').innerText = `[${t.nfc_id}] ${t.user_name}`;
+            document.getElementById('lyricPlayerTitle').innerText = `${t.user_name} - ${t.nfc_id}`;
             if(t.audio_files?.length > 0) audio.src = t.audio_files[0].audio_url;
             timelineData = await window.api.getOrInitTimeline(id, audio.duration || 0); renderEditor();
         }
@@ -340,7 +356,13 @@
             const m = timelineData[i].start_time.match(/(\d{2})분 (\d{2})초/); let min=m[1], sec=m[2];
             if(p==='m')min=v; if(p==='s')sec=v; timelineData[i].start_time = `${min}분 ${sec}초`; renderPreview();
         }
-        function renderPreview() { const p = document.getElementById('lyricPreviewArea'); p.innerHTML = ''; timelineData.forEach(d => { p.innerHTML += `<div class="preview-line">${d.start_time} - ${d.section_name}</div>`; }); }
+        function renderPreview() { 
+            const p = document.getElementById('lyricPreviewArea'); 
+            p.innerHTML = ''; 
+            timelineData.forEach(d => { 
+                p.innerHTML += `<div class="preview-line">${d.section_name}</div>`; 
+            }); 
+        }
         async function saveLyricsToDB() { await window.api.updateTimeline(timelineData); const summary = timelineData.map(d => `[${d.start_time}] ${d.section_name}`).join('\n'); await window.api.updateTrack(currentTargetId, { modify: summary }); toast('저장됨'); loadData(); }
 
         /* Player Controls */
@@ -351,6 +373,14 @@
             const p = (audio.currentTime / audio.duration) * 100;
             const df = document.getElementById('detailProgress'); if(df) df.style.width = p + '%';
             const pf = document.getElementById('progressBar'); if(pf) pf.style.width = p + '%';
+            
+            const curMin = Math.floor(audio.currentTime / 60);
+            const curSec = Math.floor(audio.currentTime % 60);
+            const durMin = Math.floor(audio.duration / 60) || 0;
+            const durSec = Math.floor(audio.duration % 60) || 0;
+            const timeStr = `${String(curMin).padStart(2,'0')}:${String(curSec).padStart(2,'0')} / ${String(durMin).padStart(2,'0')}:${String(durSec).padStart(2,'0')}`;
+            const td = document.getElementById('lyricTimeDisplay'); if(td) td.innerText = timeStr;
+
             syncHighlight();
         };
         function detailSeek(e) { const rect=e.currentTarget.getBoundingClientRect(); audio.currentTime = ((e.clientX-rect.left)/rect.width) * audio.duration; }
@@ -360,7 +390,15 @@
                 const m = d.start_time.match(/(\d{2})분 (\d{2})초/); const t = parseInt(m[1])*60 + parseInt(m[2]);
                 if(audio.currentTime >= t) activeIdx = idx;
             });
-            document.querySelectorAll('.preview-line').forEach((el, idx) => { if(idx === activeIdx) el.classList.add('highlight'); else el.classList.remove('highlight'); });
+            const lines = document.querySelectorAll('.preview-line');
+            lines.forEach((el, idx) => { 
+                if(idx === activeIdx) {
+                    el.classList.add('highlight');
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    el.classList.remove('highlight');
+                }
+            });
         }
 
         /* Upload & Widget */

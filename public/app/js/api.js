@@ -321,19 +321,38 @@ window.api.getOrInitTimeline = async function (trackId, durationSeconds = 0) {
 
     if (error) throw error;
 
-    // 데이터가 없을 때만 6등분 초기화 진행
+    // 데이터가 없을 때만 원본 가사 기반 초기화 진행
     if (!data || data.length === 0) {
-      const sections = ["1절", "후렴 1", "2절", "후렴 2", "브릿지", "후렴 3"];
-      const interval = durationSeconds > 0 ? durationSeconds / 6 : 0;
+      // 해당 트랙의 원본 가사 가져오기
+      const { data: trackData, error: trackError } = await client
+        .from('tracks')
+        .select('lyrics, modify')
+        .eq('id', trackId)
+        .single();
+      
+      if (trackError) throw trackError;
 
-      const initData = sections.map((name, idx) => {
+      let lyricsText = trackData.modify || trackData.lyrics || "";
+      // 만약 가사가 없거나 '수정없음'인 경우 기본 섹션으로 대체
+      if (!lyricsText || lyricsText === '수정없음') {
+        lyricsText = "1절\n후렴 1\n2절\n후렴 2\n브릿지\n후렴 3";
+      }
+
+      // 가사 줄바꿈으로 나누고 태그 제거
+      const lines = lyricsText.split('\n')
+        .map(l => l.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim())
+        .filter(l => l.length > 0);
+
+      const interval = durationSeconds > 0 ? durationSeconds / (lines.length || 1) : 0;
+
+      const initData = lines.map((text, idx) => {
         const totalSeconds = Math.floor(interval * idx);
         const min = Math.floor(totalSeconds / 60);
         const sec = totalSeconds % 60;
         
         return {
           track_id: trackId,
-          section_name: name,
+          section_name: text.length > 50 ? text.substring(0, 47) + '...' : text, // 최대 길이 제한
           start_time: `${String(min).padStart(2, '0')}분 ${String(sec).padStart(2, '0')}초`
         };
       });

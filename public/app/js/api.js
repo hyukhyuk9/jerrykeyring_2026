@@ -355,14 +355,13 @@ window.api.getOrInitTimeline = async function (trackId, durationSeconds = 0) {
 };
 
 /**
- * [가사 타임라인] 전체 타임라인 데이터를 업데이트합니다.
+ * [관리자용] 가사 타임라인 업데이트
  */
 window.api.updateTimeline = async function (timelineItems) {
   const client = getSupabase();
   if (!client) return { success: false };
 
   try {
-    // upsert를 사용하여 기존 ID가 있으면 업데이트, 없으면 삽입
     const { error } = await client
       .from('lyrics_timeline')
       .upsert(timelineItems);
@@ -371,6 +370,27 @@ window.api.updateTimeline = async function (timelineItems) {
     return { success: true };
   } catch (err) {
     console.error('타임라인 업데이트 에러:', err);
+    return { success: false, message: err.message };
+  }
+};
+
+/**
+ * [관리자용] AI 라디오 배치 생성 (GPT + TTS -> R2)
+ */
+window.api.generateBatchRadio = async function (nfc_id, story) {
+  try {
+    const res = await fetch('/api/radio/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nfc_id, story })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '라디오 생성 실패');
+    
+    return { success: true, data };
+  } catch (err) {
+    console.error('AI 라디오 생성 에러:', err);
     return { success: false, message: err.message };
   }
 };

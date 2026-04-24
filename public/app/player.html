@@ -1793,14 +1793,32 @@
           const audioFiles = await window.api.getAudioFiles(targetId);
           
           if (audioFiles && audioFiles.length > 0) {
-            // R2에 등록된 실제 음원들을 플레이리스트로 구성
-            playlist = audioFiles.map((file, i) => ({
-              src: file.audio_url,
-              name: (audioFiles.length > 1) ? `${data.genre} (트랙 ${i + 1})` : data.genre,
-              lyricsText: finalLyrics,
-              isLoading: false,
-              story: data.story
-            }));
+            const musicFiles = audioFiles.filter(f => f.category !== 'radio_tts');
+            const radioFiles = audioFiles.filter(f => f.category === 'radio_tts');
+            const radioTts = radioFiles.length > 0 ? radioFiles[0] : null;
+
+            if (musicFiles.length > 0) {
+              playlist = musicFiles.map((file, i) => ({
+                src: file.audio_url,
+                name: (musicFiles.length > 1) ? `${data.genre} (트랙 ${i + 1})` : data.genre,
+                lyricsText: finalLyrics,
+                isLoading: false,
+                story: data.story,
+                radioAudioUrl: radioTts ? radioTts.audio_url : null,
+                radioScript: radioTts ? radioTts.radio_script : null
+              }));
+            } else {
+              // 음악 파일은 없고 라디오만 있는 경우 등 엣지케이스 대비
+              playlist = [{
+                src: `./music/${targetId}.mp3`,
+                name: data.genre || `트랙 ${targetId}`,
+                lyricsText: finalLyrics,
+                isLoading: false,
+                story: data.story,
+                radioAudioUrl: radioTts ? radioTts.audio_url : null,
+                radioScript: radioTts ? radioTts.radio_script : null
+              }];
+            }
           } else {
             // DB에 등록된 음원이 없을 경우 기존 방식(NFC번호.mp3)으로 시도 (폴백)
             playlist = [{
@@ -1808,7 +1826,9 @@
               name: data.genre || `트랙 ${targetId}`,
               lyricsText: finalLyrics,
               isLoading: false,
-              story: data.story
+              story: data.story,
+              radioAudioUrl: null,
+              radioScript: null
             }];
           }
 
@@ -1832,13 +1852,20 @@
                 const fName = linkedFriends.find(f => String(f.nfc) === String(fNfc))?.name || "친구";
                 const fLyr = (uData.modify && uData.modify !== '수정없음') ? uData.modify : (uData.lyrics || "가사가 없습니다.");
                 
-                if (uFiles.length > 0) {
-                  uFiles.forEach((file, i) => {
+                const fMusicFiles = uFiles.filter(f => f.category !== 'radio_tts');
+                const fRadioFiles = uFiles.filter(f => f.category === 'radio_tts');
+                const fRadioTts = fRadioFiles.length > 0 ? fRadioFiles[0] : null;
+
+                if (fMusicFiles.length > 0) {
+                  fMusicFiles.forEach((file, i) => {
                     playlist.push({
                       src: file.audio_url,
-                      name: `[${fName}] ${uData.genre}${uFiles.length > 1 ? ` (${i+1})` : ''}`,
+                      name: `[${fName}] ${uData.genre}${fMusicFiles.length > 1 ? ` (${i+1})` : ''}`,
                       lyricsText: fLyr,
-                      isFriend: true
+                      isFriend: true,
+                      story: uData.story,
+                      radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
+                      radioScript: fRadioTts ? fRadioTts.radio_script : null
                     });
                   });
                 } else {
@@ -1847,7 +1874,10 @@
                     src: `./music/${fNfc}.mp3`,
                     name: `[${fName}] ${uData.genre}`,
                     lyricsText: fLyr,
-                    isFriend: true
+                    isFriend: true,
+                    story: uData.story,
+                    radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
+                    radioScript: fRadioTts ? fRadioTts.radio_script : null
                   });
                 }
               }
@@ -1897,6 +1927,12 @@
       const track = playlist[index];
       if (!track) { initPlayer(index); return; }
 
+      // DB에 사전 생성된 오디오 URL이 없으면 라디오 생략
+      if (!track.radioAudioUrl) {
+        initPlayer(index);
+        return;
+      }
+
       // 라디오 로딩 안내 (가사 영역 활용)
       const lyricsBox = document.getElementById('lyricsBox');
       const lyricsInner = document.getElementById('lyricsInner');
@@ -1904,29 +1940,16 @@
       lyricsBox.classList.add('lyrics-on');
       
       try {
-        const res = await fetch('/api/radio', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            story: track.story, 
-            nfc_id: track.src.split('/').pop().split('.')[0] 
-          })
-        });
-        const data = await res.json();
-
-        if (data.audioContent) {
-          const tts = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-          
-          tts.onended = () => { 
-            initPlayer(index); // 라디오 종료 후 본 음원 재생
-          };
-          
-          // TTS 시작 시 가사창에 대본 표시
-          lyricsInner.innerHTML = `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${data.script}</div>`;
-          tts.play().catch(() => initPlayer(index));
-        } else {
-          initPlayer(index);
-        }
+        const tts = new Audio(track.radioAudioUrl);
+        tts.onended = () => { 
+          initPlayer(index); // 라디오 종료 후 본 음원 재생
+        };
+        
+        // TTS 시작 시 가사창에 대본 표시
+        const scriptHtml = track.radioScript ? `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${track.radioScript}</div>` : '';
+        lyricsInner.innerHTML = scriptHtml;
+        
+        await tts.play().catch(() => initPlayer(index));
       } catch (err) {
         console.error("Radio playback error:", err);
         initPlayer(index);
@@ -2345,7 +2368,7 @@
         btn.classList.add('radio-active');
         btn.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 OFF';
         statusText.style.display = 'block';
-        showToast('📻 제리 AI 라디오가 시작되었습니다!');
+        // 활성화 알림 토스트 제거
       } else {
         btn.classList.remove('radio-active');
         btn.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작';

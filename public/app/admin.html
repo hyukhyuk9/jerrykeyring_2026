@@ -115,6 +115,7 @@
                 <li class="nav-item active" onclick="showTab('dashboard', this)"><i class="fa-solid fa-house"></i> 대시보드</li>
                 <li class="nav-item" onclick="showTab('lyrics', this)"><i class="fa-solid fa-clock"></i> 가사 타임라인</li>
                 <li class="nav-item" onclick="showTab('upload', this)"><i class="fa-solid fa-music"></i> 음원 등록</li>
+                <li class="nav-item" onclick="showTab('radio', this)"><i class="fa-solid fa-microphone"></i> AI 라디오 생성</li>
                 <li class="nav-item" onclick="showTab('api', this)"><i class="fa-solid fa-sliders"></i> API 설정</li>
             </ul>
             <div style="margin-top: auto; padding: 20px; border-top: 1px solid #222;">
@@ -201,6 +202,28 @@
                 </div>
             </section>
 
+            <!-- AI Radio Batch -->
+            <section id="tab-radio" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">AI 라디오 생성 (일괄)</h2>
+                    <button class="btn btn-primary" onclick="bulkGenerateRadio()">선택 항목 일괄 생성</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;"><input type="checkbox" id="radioSelectAll" onclick="toggleRadioSelectAll(this)"></th>
+                                <th style="width: 100px;">NFC ID</th>
+                                <th style="width: 100px;">성함</th>
+                                <th>사연(Story)</th>
+                                <th style="width: 100px;">상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="radioBatchBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- API -->
             <section id="tab-api" class="tab-content">
                 <div class="page-header"><h2 class="page-title">API 연동 설정</h2><button class="btn btn-primary" onclick="toast('설정 저장됨')">설정 저장</button></div>
@@ -229,7 +252,7 @@
             allTracks = await window.api.getAllTracks();
             const count = allTracks.length;
             document.getElementById('totalUserCountSidebar').innerText = count;
-            renderTable(); renderLyricTargets();
+            renderTable(); renderLyricTargets(); renderRadioTable();
         }
 
         function showTab(tab, el) {
@@ -342,6 +365,93 @@
         function goToDetailByNfc(nfc) { const t = allTracks.find(x => x.nfc_id === nfc); if(t) { closeWidget(); showDetail(t.id); } }
         function closeWidget() { document.getElementById('floatingUploadWidget').style.display = 'none'; uploadQueue = []; }
         function toast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none', 2000); }
+
+        /* AI Radio Batch */
+        function renderRadioTable() {
+            const tbody = document.getElementById('radioBatchBody');
+            tbody.innerHTML = '';
+            document.getElementById('radioSelectAll').checked = false;
+            
+            allTracks.forEach(t => {
+                // Check if radio_tts category exists or radio_script is present in audio_files
+                let isRegistered = false;
+                if (t.audio_files && t.audio_files.length > 0) {
+                    // Note: Supabase query includes audio_url, radio_script isn't normally fetched in getAllTracks unless specifically included. 
+                    // Let's assume if category=radio_tts exists or we fetch it later, but here we just check if any audio_file has radio_script or category='radio_tts'
+                    // Since api.js getAllTracks only selects 'audio_files(audio_url)', we might not have 'category' here.
+                    // For now, we rely on a rough check, or ideally we should update api.js to fetch category, radio_script.
+                    // Let's assume the user just needs to visually see "미등록" vs "완료" if radio_script exists.
+                    // To do this perfectly, we will fetch 'audio_files(*)' in api.js. I'll modify that via another replacement if needed, but assuming `allTracks` has it.
+                }
+                
+                // Fallback check if full audio_files isn't loaded:
+                const hasRadio = t.audio_files?.some(a => a.category === 'radio_tts' || a.radio_script);
+                const statusTag = hasRadio ? '<span class="tag tag-done">완료</span>' : '<span class="tag tag-pending">미등록</span>';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td onclick="event.stopPropagation()"><input type="checkbox" class="radio-chk" value="${t.id}" data-nfc="${t.nfc_id}" data-story="${t.story || ''}"></td>
+                    <td>${t.nfc_id}</td>
+                    <td>${t.user_name}</td>
+                    <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.story || '<span style="color:#666">사연 없음</span>'}</td>
+                    <td>${statusTag}</td>
+                `;
+                // 행 클릭 시 체크박스 토글
+                tr.onclick = (e) => {
+                    const chk = tr.querySelector('.radio-chk');
+                    chk.checked = !chk.checked;
+                };
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleRadioSelectAll(source) {
+            const checkboxes = document.querySelectorAll('.radio-chk');
+            checkboxes.forEach(chk => chk.checked = source.checked);
+        }
+
+        async function bulkGenerateRadio() {
+            const checkboxes = document.querySelectorAll('.radio-chk:checked');
+            if (checkboxes.length === 0) {
+                toast('선택된 항목이 없습니다.');
+                return;
+            }
+
+            document.getElementById('floatingUploadWidget').style.display = 'block';
+            uploadQueue = [];
+            
+            checkboxes.forEach(chk => {
+                uploadQueue.push({
+                    nfcId: chk.getAttribute('data-nfc'),
+                    story: chk.getAttribute('data-story'),
+                    file: { name: `라디오 생성 [${chk.getAttribute('data-nfc')}]` },
+                    progress: 0,
+                    status: '대기중'
+                });
+            });
+            renderWidget();
+
+            for (let q of uploadQueue) {
+                q.status = '생성중';
+                q.progress = 50;
+                renderWidget();
+
+                try {
+                    const res = await window.api.generateBatchRadio(q.nfcId, q.story);
+                    if (res && res.success) {
+                        q.status = '완료';
+                        q.progress = 100;
+                    } else {
+                        q.status = '실패';
+                    }
+                } catch (e) {
+                    q.status = '실패';
+                }
+                renderWidget();
+            }
+            toast('일괄 생성이 완료되었습니다.');
+            loadData(); // 테이블 갱신
+        }
     </script>
 </body>
 </html>

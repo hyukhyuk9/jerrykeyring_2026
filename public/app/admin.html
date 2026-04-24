@@ -64,20 +64,30 @@
         .tag-pending { background: #222; color: #666; }
 
         /* Lyrics Editor */
-        .lyrics-grid { display: grid; grid-template-columns: 100px 1fr 400px; gap: 1rem; height: calc(100vh - 250px); margin-bottom: 20px; }
+        .lyrics-grid { display: grid; grid-template-columns: 200px 1fr 25%; gap: 1.5rem; height: calc(100vh - 250px); margin-bottom: 20px; }
         .target-list-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
         .target-list { flex: 1; overflow-y: auto; }
         .target-item { padding: 15px 5px; border-bottom: 1px solid #1a1a1a; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; text-align: center; font-weight: 700; color: #666; }
         .target-item:hover { background: #1a1a1a; color: #fff; }
         .target-item.active { border-left: 4px solid var(--primary); background: #1a1a1a; color: var(--primary); }
         .editor-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; overflow-y: auto; }
-        .lyric-line-edit { display: flex; align-items: center; justify-content: space-between; gap: 15px; background: #000; padding: 8px 15px; border-radius: 10px; margin-bottom: 6px; border: 1px solid #1a1a1a; }
-        .lyric-label { font-weight: 500; color: #eee; font-size: 0.85rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .time-picker { display: flex; align-items: center; gap: 4px; background: #111; padding: 4px 8px; border-radius: 8px; border: 1px solid #222; flex-shrink: 0; min-width: 120px; justify-content: center; }
-        .time-picker select { background: transparent; color: var(--primary); border: none; outline: none; font-family: monospace; font-weight: 900; cursor: pointer; font-size: 1rem; -webkit-appearance: none; appearance: none; padding: 0 4px; text-align: center; }
+        .lyric-line-edit { 
+            display: flex; align-items: center; justify-content: space-between; gap: 20px; background: #000; 
+            padding: 12px 20px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1a1a1a; 
+            cursor: pointer; transition: background 0.2s;
+        }
+        .lyric-line-edit:hover { background: #111; }
+        .lyric-label { font-weight: 500; color: #eee; font-size: 1rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .time-picker { display: flex; align-items: center; gap: 8px; background: #111; padding: 6px 12px; border-radius: 8px; border: 1px solid #222; flex-shrink: 0; }
+        .time-picker input { 
+            background: transparent; color: var(--primary); border: 1px solid #333; outline: none; 
+            font-family: monospace; font-weight: 900; width: 50px; text-align: center; 
+            font-size: 1.1rem; border-radius: 4px; padding: 4px;
+        }
         .preview-box { background: #000; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
-        .preview-content { flex: 1; overflow-y: auto; padding: 2rem 1.5rem; text-align: center; scroll-behavior: smooth; }
-        .preview-line { font-size: 1rem; color: #222; margin-bottom: 18px; transition: all 0.3s; line-height: 1.4; }
+        .preview-content { flex: 1; overflow-y: auto; padding: 2rem 1rem; text-align: center; scroll-behavior: smooth; }
+        .preview-line { font-size: 0.95rem; color: #444; margin-bottom: 18px; transition: all 0.3s; line-height: 1.4; cursor: pointer; }
+        .preview-line:hover { color: #fff; }
         .preview-line.highlight { color: var(--primary); font-weight: 900; transform: scale(1.1); }
         
         .lyrics-player-bar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 15px 25px; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -201,6 +211,7 @@
                     <h2 class="page-title">가사 타임라인 싱크 조절</h2>
                     <div style="display:flex; gap:10px;">
                         <button class="btn btn-outline btn-sm" onclick="resetTimelineFromLyrics()">가사로 초기화</button>
+                        <button class="btn btn-outline btn-sm" onclick="distributeTimestamps()">타임라인 자동 배분</button>
                         <button class="btn btn-primary" onclick="saveLyricsToDB()">최종 저장하기</button>
                     </div>
                 </div>
@@ -357,16 +368,69 @@
             const c = document.getElementById('editorLinesContainer'); c.innerHTML = '';
             timelineData.forEach((d, i) => {
                 const m = d.start_time.match(/(\d{2})분 (\d{2})초/); const min = m?m[1]:'00'; const sec = m?m[2]:'00';
-                c.innerHTML += `<div class="lyric-line-edit"><div class="lyric-label">${d.section_name}</div><div class="time-picker"><select onchange="uTime(${i},'m',this.value)">${rOpts(0,15,min)}</select>분<select onchange="uTime(${i},'s',this.value)">${rOpts(0,59,sec)}</select>초</div></div>`;
+                const row = document.createElement('div');
+                row.className = 'lyric-line-edit';
+                row.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        const totalSec = parseInt(min) * 60 + parseInt(sec);
+                        audio.currentTime = totalSec;
+                    }
+                };
+                row.innerHTML = `
+                    <div class="lyric-label">${d.section_name}</div>
+                    <div class="time-picker">
+                        <input type="text" value="${min}" onchange="uTime(${i},'m',this.value)" placeholder="MM">분
+                        <input type="text" value="${sec}" onchange="uTime(${i},'s',this.value)" placeholder="SS">초
+                    </div>
+                `;
+                c.appendChild(row);
             });
             renderPreview();
         }
-        function rOpts(s,e,c) { let h=''; for(let i=s;i<=e;i++){ const v=String(i).padStart(2,'0'); h+=`<option value="${v}" ${v===c?'selected':''}>${v}</option>`; } return h; }
         function uTime(i,p,v) { 
-            const m = timelineData[i].start_time.match(/(\d{2})분 (\d{2})초/); let min=m[1], sec=m[2];
-            if(p==='m')min=v; if(p==='s')sec=v; timelineData[i].start_time = `${min}분 ${sec}초`; renderPreview();
+            const m = timelineData[i].start_time.match(/(\d{2})분 (\d{2})초/); 
+            let min = m ? m[1] : '00'; 
+            let sec = m ? m[2] : '00';
+            let val = String(v).padStart(2, '0');
+            if(p==='m') min = val; if(p==='s') sec = val; 
+            timelineData[i].start_time = `${min}분 ${sec}초`; 
+            renderPreview(); 
         }
-        function renderPreview() { const p = document.getElementById('lyricPreviewArea'); p.innerHTML = ''; timelineData.forEach(d => { p.innerHTML += `<div class="preview-line">${d.section_name}</div>`; }); }
+        function renderPreview() { 
+            const p = document.getElementById('lyricPreviewArea'); p.innerHTML = ''; 
+            timelineData.forEach((d, i) => { 
+                const div = document.createElement('div');
+                div.className = 'preview-line';
+                div.innerText = d.section_name;
+                div.onclick = () => {
+                    const m = d.start_time.match(/(\d{2})분 (\d{2})초/);
+                    if(m) audio.currentTime = parseInt(m[1]) * 60 + parseInt(m[2]);
+                };
+                p.appendChild(div);
+            }); 
+        }
+
+        function distributeTimestamps() {
+            if (!audio.duration || timelineData.length === 0) return toast('오디오를 먼저 재생하거나 가사를 로드하세요.');
+            const totalDuration = audio.duration;
+            const interval = totalDuration / timelineData.length;
+            timelineData.forEach((d, i) => {
+                const curSec = Math.floor(i * interval);
+                const min = String(Math.floor(curSec / 60)).padStart(2, '0');
+                const sec = String(curSec % 60).padStart(2, '0');
+                d.start_time = `${min}분 ${sec}초`;
+            });
+            renderEditor();
+            toast('타임라인 자동 배분 완료');
+        }
+
+        // 키보드 단축키
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+            if (e.code === 'ArrowLeft') { e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - 5); }
+            if (e.code === 'ArrowRight') { e.preventDefault(); audio.currentTime = Math.min(audio.duration, audio.currentTime + 5); }
+        });
         
         async function resetTimelineFromLyrics() {
             if(!currentTargetId) return;

@@ -21,33 +21,33 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 네트워크 요청 가로채기 (음원 및 가사 파일 대상)
+// 네트워크 요청 가로채기 (가사 파일 등만 캐싱, 음원은 제외)
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // .mp3 파일이나 .txt(가사) 파일 요청이 들어올 경우 가로챔
-  if (url.includes('.mp3') || url.includes('.txt') || url.includes('music/')) {
+  // 음원 파일(.mp3)은 서비스 워커에서 가로채지 않고 브라우저가 직접 R2에서 스트리밍하도록 내버려둠
+  // 대용량 파일은 브라우저 기본 처리가 훨씬 안정적입니다.
+  if (url.includes('.mp3')) {
+    return; // 그냥 지나가게 함
+  }
+
+  // 가사(.txt) 등의 텍스트 리소스만 캐싱 시도
+  if (url.includes('.txt')) {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
-        // 1. 이미 핸드폰에 캐시(저장)된 파일이 있으면 넷틀리파이에 요청 안 하고 즉시 꺼내줌 (트래픽 0, 딜레이 0!)
-        if (cachedResponse) {
-          console.log('[Cache] 오프라인 캐시에서 미디어 재생:', url);
-          return cachedResponse;
-        }
+        if (cachedResponse) return cachedResponse;
 
-        // 2. 만약 처음 듣는 곡이라면, 평소처럼 넷틀리파이에 요청하여 가져오면서 동시에 몰래 캐시에 복사해둠!
         return fetch(event.request).then((networkResponse) => {
-          // 응답이 정상이면 복사해서 캐시에 넣기 (스트리밍 방해 안 됨)
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
-              console.log('[Cache] 미디어 영구 저장 완료:', url);
             });
           }
           return networkResponse;
-        }).catch((err) => {
-          console.log('[Cache] 오프라인 & 캐시 없음 상태:', err);
+        }).catch(() => {
+          // 페치 실패 시에도 에러를 내지 않고 그냥 네트워크 시도(또는 빈 응답)를 하도록 함
+          return null;
         });
       })
     );

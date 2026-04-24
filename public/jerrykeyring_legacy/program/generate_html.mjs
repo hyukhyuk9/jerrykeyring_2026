@@ -50,7 +50,7 @@ for (const num of args) {
 
   const buttonCode = `
     <button class="btn-orange btn-outline-primary track-button" style="display: none;" onclick="playTrack('/music/${num}.mp3', '/lyrics/${lyricsNum}.txt')">
-      <img src="sumbnail.png" class="size">
+      <img src="iphone.png" class="size">
       <p>음원</p>
     </button>`;
 

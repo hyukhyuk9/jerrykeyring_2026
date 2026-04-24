@@ -39,7 +39,7 @@ for file in "${numbers[@]}"; do
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>제리키링 | 내 음원 듣기</title>
-  <link rel="icon" type="image/png" href="sumbnail.png">
+  <link rel="icon" type="image/png" href="iphone.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
@@ -49,7 +49,7 @@ for file in "${numbers[@]}"; do
   </style>
 </head>
 <body class="dark-mode">
-  <header><img src="sumbnail.png" alt="로고" class="logo"></header>
+  <header><img src="iphone.png" alt="로고" class="logo"></header>
   <main>
     <audio id="audioPlayer" controls style="width:100%;max-width:300px;padding-bottom:15px;display:none;"></audio>
     <div class="intro-text"><p>AI 음원 불러오는중..</p></div>
@@ -59,7 +59,7 @@ for file in "${numbers[@]}"; do
 
     <!-- 여기에 변경 -->
     <button class="btn-orange btn-outline-primary track-button" style="display:none;" onclick="playTrack('/music/${file}.mp3', '/lyrics/${lyrics_num}.txt')">
-      <img src="sumbnail.png" class="size">
+      <img src="iphone.png" class="size">
       <p>음원</p>
     </button>
 

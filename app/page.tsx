@@ -785,7 +785,7 @@ export default function HomePage() {
 
           <div className="album-cover" onClick={openKeyring}>
             <div className="cover-front">
-              <img src="/jerrykeyring_legacy/sumbnail.png" alt="앨범" />
+              <img src="/jerrykeyring_legacy/iphone.png" alt="앨범" />
             </div>
             <div className="cover-back"></div>
             <div className="cover-edge-right"></div>

@@ -330,23 +330,24 @@
     .repeat-btn.active {
       color: #ff914d;
     }
-    .repeat-btn .repeat-one-text {
-      position: absolute;
-      font-size: 0.65rem;
-      font-weight: 900;
-      top: 52%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #ffeb3b; /* 한곡 반복 숫자는 노란색으로 강조 */
-    }
 
-    /* 인증 마크 스타일 */
+    /* 인증 마크 스타일 (저장 버튼 위치 활용) */
     .verified-mark {
       color: #ffeb3b;
-      font-size: 0.8rem;
-      margin-left: 5px;
-      vertical-align: middle;
+      font-size: 1.3rem;
+      width: 44px;
+      height: 44px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      justify-self: end;
+      text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
     }
+    .verified-mark.visible {
+      display: inline-flex;
+    }
+    .save-btn { display: none; }
+    .save-btn.visible { display: inline-block; }
 
     /* 저장 확인 팝업 */
     #saveConfirmPopup {
@@ -1022,7 +1023,7 @@
         </div>
 
         <div id="playerControls" class="custom-controls" style="display: none;">
-          <i id="repeatBtn" class="fa-solid fa-repeat repeat-btn" onclick="toggleRepeat()" title="한곡 반복"></i>
+          <i id="repeatBtn" class="fa-solid fa-repeat repeat-btn" onclick="toggleRepeat()" title="반복 재생"></i>
           
           <div class="center-controls" style="font-size: 1.6rem;">
             <i class="fa-solid fa-backward control-btn" onclick="changeTrack(-1)"></i>
@@ -1030,7 +1031,10 @@
             <i class="fa-solid fa-forward control-btn" onclick="changeTrack(1)"></i>
           </div>
 
-          <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장"></i>
+          <div class="save-area">
+            <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장"></i>
+            <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark" style="display:none;" title="인증된 오리지널 음원"></i>
+          </div>
         </div>
 
         <div id="mainUI">
@@ -1310,11 +1314,11 @@
       repeatMode = mode; 
       const btn = document.getElementById('repeatBtn');
       if (mode === 'single') {
-        btn.innerHTML = '<i class="fa-solid fa-repeat"></i><span class="repeat-one-text">1</span>';
-        btn.classList.add('active');
+        // 한곡 반복 아이콘으로 완전 교체
+        btn.className = 'fa-solid fa-rotate-right repeat-btn active';
       } else {
-        btn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
-        btn.classList.remove('active');
+        // 전체 반복 아이콘으로 복구
+        btn.className = 'fa-solid fa-repeat repeat-btn';
       }
     }
     function toggleRepeat() {
@@ -1325,13 +1329,11 @@
       buttonList.innerHTML = '';
       playlist.forEach((track, index) => {
         if (track.isRandom) return;
-        const isOwner = (!track.isFriend && !track.isRandom);
-        const verifiedHtml = isOwner ? ' <i class="fa-solid fa-circle-check verified-mark"></i>' : '';
         const btn = document.createElement('button'); 
         btn.className = 'track-button'; 
-        btn.innerHTML = `<span> ${track.name}${verifiedHtml} </span>`;
+        btn.innerHTML = `<span> ${track.name} </span>`;
         if (track.isLoading) { btn.style.pointerEvents = 'none'; }
-        else { btn.onclick = (e) => { e.stopPropagation(); initPlayer(index); }; }
+        else { btn.onclick = (e) => { e.stopPropagation(); playWithRadio(index); }; }
         buttonList.appendChild(btn);
       });
 
@@ -1659,17 +1661,25 @@
     }
 
     function updateSaveBtn() {
-      const btn = document.getElementById('saveRandomBtn');
+      const saveBtn = document.getElementById('saveRandomBtn');
+      const verifiedMark = document.getElementById('verifiedMark');
       const track = playingRandomTrack || playlist[currentIdx];
-      if (track && track.isRandom) {
-        btn.classList.add('visible');
+      
+      if (!track) return;
+
+      if (track.isRandom) {
+        // 랜덤 음원이면 저장 버튼 노출, 인증 마크 숨김
+        saveBtn.classList.add('visible');
+        verifiedMark.classList.remove('visible');
+        
         const isSaved = savedRandomTracks.some(s => s.src === track.src);
-        btn.className = isSaved
+        saveBtn.className = isSaved
           ? 'fa-solid fa-bookmark save-btn visible active'
           : 'fa-regular fa-bookmark save-btn visible';
       } else {
-        btn.classList.remove('visible', 'active');
-        btn.className = 'fa-regular fa-bookmark save-btn';
+        // 자기 음원이면 인증 마크 노출, 저장 버튼 숨김
+        saveBtn.classList.remove('visible', 'active');
+        verifiedMark.classList.add('visible');
       }
     }
 
@@ -1809,6 +1819,60 @@
 
       updateLiveTime();
     };
+    async function playWithRadio(index) {
+      const track = playlist[index];
+      if (!track) return;
+      
+      // 사연이 없거나 빈 문자열이면 라디오 없이 바로 재생
+      if (!track.story || track.story === '사연 없음' || track.story === '' || track.story === '응원 사연') {
+        initPlayer(index);
+        return;
+      }
+
+      // 라디오 모드로 UI 선전환
+      playingRandomTrack = null;
+      document.getElementById('mainUI').style.display = 'none';
+      document.getElementById('playerControls').style.display = 'flex';
+      document.getElementById('navBar').style.display = 'block';
+      trackDisplay.style.display = 'block';
+      document.getElementById('exitContainer').style.display = 'block';
+
+      // 라디오 로딩 안내 (가사 영역 활용)
+      const lyricsBox = document.getElementById('lyricsBox');
+      lyricsBox.innerHTML = '<div class="lyrics-line active" style="color:#ff914d;">📻 제리 DJ가 사연을 읽어주는 중...</div>';
+      lyricsBox.classList.add('lyrics-on');
+      
+      try {
+        const res = await fetch('/api/radio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            story: track.story, 
+            nfc_id: track.src.split('/').pop().split('.')[0] 
+          })
+        });
+        const data = await res.json();
+
+        if (data.audioContent) {
+          // TTS 재생을 위한 오디오 객체 (징글/BGM 생략 가능, 여기서는 TTS 위주)
+          const tts = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+          
+          tts.onended = () => { 
+            initPlayer(index); // 라디오 종료 후 본 음원 재생
+          };
+          
+          // TTS 시작 시 가사창에 대본 표시
+          lyricsBox.innerHTML = `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${data.script}</div>`;
+          tts.play().catch(() => initPlayer(index));
+        } else {
+          initPlayer(index);
+        }
+      } catch (err) {
+        console.error("Radio playback error:", err);
+        initPlayer(index);
+      }
+    }
+
 
     function initPlayer(index) {
       playingRandomTrack = null;
@@ -1843,12 +1907,9 @@
       nextSongToastShown = false;
       hideNextSongToast();
       const track = playlist[currentIdx];
-      const isOwner = (!track.isFriend && !track.isRandom);
-      const verifiedHtml = isOwner ? ' <i class="fa-solid fa-circle-check verified-mark"></i>' : '';
-      
       player.src = track.src;
-      trackDisplay.innerHTML = `[ > ${track.name}${verifiedHtml} ]`;
-      obsTrackTitle.innerHTML = `${track.name}${verifiedHtml}`;
+      trackDisplay.innerHTML = `[ > ${track.name} ]`;
+      obsTrackTitle.innerHTML = `${track.name}`;
       if (track.isFriend) document.getElementById('lyricsBox').classList.add('lyric-friend');
       else document.getElementById('lyricsBox').classList.remove('lyric-friend');
       parseLyrics(playlist[currentIdx].lyricsText);
@@ -2010,15 +2071,15 @@
         playRandomMusic();
         return;
       }
-      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; loadTrack(currentIdx); player.play();
-      document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
+      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; 
+      playWithRadio(currentIdx);
     }
     player.onended = () => { 
       if (playingRandomTrack) {
         if (repeatMode === 'all') playRandomMusic(); else { player.currentTime = 0; player.play(); }
         return;
       }
-      if (repeatMode === 'all') changeTrack(1); else { player.currentTime = 0; player.play(); } 
+      if (repeatMode === 'all') playWithRadio((currentIdx + 1) % playlist.length); else { player.currentTime = 0; player.play(); } 
     };
 
     function resetIdleTimer() { showInterface(); clearTimeout(idleTimer); if (!player.paused) idleTimer = setTimeout(hideInterface, 5000); }

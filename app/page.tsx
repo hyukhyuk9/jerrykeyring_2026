@@ -486,8 +486,13 @@ export default function HomePage() {
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Pretendard Variable", sans-serif; -webkit-tap-highlight-color: transparent; }
         
         body {
-          background-color: var(--app-bg); color: var(--text-main);
-          height: 100vh; width: 100vw; overflow: hidden; position: relative;
+          background-color: var(--app-bg) !important; 
+          color: var(--text-main) !important;
+          height: 100vh !important; 
+          width: 100vw !important; 
+          overflow: hidden !important; 
+          position: relative !important;
+          display: block !important;
         }
 
         .background-blur {

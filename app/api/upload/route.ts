@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-// 환경 변수 로드
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -23,21 +22,26 @@ const s3Client = new S3Client({
 });
 
 export async function POST(request: NextRequest) {
+  const requestId = Math.random().toString(36).substring(7);
+  console.log(`\n[🚀 Upload Start] ID: ${requestId}`);
+
   try {
     const formData = await request.formData();
     const nfcId = formData.get('nfcId') as string;
     const file = formData.get('file') as File;
 
     if (!nfcId || !file) {
+      console.error(`[❌ Upload Error] Missing nfcId or file`);
       return NextResponse.json({ error: 'NFC ID와 파일이 필요합니다.' }, { status: 400 });
     }
 
-    // 1. 파일 데이터 Buffer 변환
+    console.log(`[📦 Info] NFC_ID: ${nfcId} | FileName: ${file.name} | Size: ${file.size} bytes`);
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 2. R2 업로드 경로 설정 (media/music/NFCID_timestamp_파일명.mp3)
     const fileName = `media/music/${nfcId}_${Date.now()}_${file.name}`;
+    console.log(`[☁️ R2 Uploading] Path: ${fileName}...`);
 
     await s3Client.send(
       new PutObjectCommand({
@@ -49,26 +53,32 @@ export async function POST(request: NextRequest) {
     );
 
     const publicUrl = `${r2PublicDomain}/${fileName}`;
+    console.log(`[✅ R2 Success] URL: ${publicUrl}`);
 
-    // 3. Supabase DB 기록
+    console.log(`[🗄️ DB Updating] Inserting into audio_files table...`);
     const { error: dbError } = await supabase
       .from('audio_files')
       .insert({
         nfc_id: nfcId,
         audio_url: publicUrl,
-        category: 'music' // 기본 카테고리는 음악으로 설정
+        category: 'music'
       });
 
-    if (dbError) throw dbError;
+    if (dbError) {
+      console.error(`[❌ DB Error]`, dbError);
+      throw dbError;
+    }
+
+    console.log(`[🎉 Request Finished] ID: ${requestId} - All Done.\n`);
 
     return NextResponse.json({
       success: true,
       url: publicUrl,
-      message: 'R2 업로드 및 DB 기록이 완료되었습니다.'
+      message: '업로드 성공!'
     });
 
   } catch (error: any) {
-    console.error('Upload API Error:', error);
-    return NextResponse.json({ error: error.message || '서버 오류가 발생했습니다.' }, { status: 500 });
+    console.error(`[🚨 Fatal Error] ID: ${requestId}`, error);
+    return NextResponse.json({ error: error.message || '서버 오류' }, { status: 500 });
   }
 }

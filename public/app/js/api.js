@@ -278,6 +278,7 @@ window.api.deleteTrack = async function (id) {
  * [관리자용] 음원 업로드 (백그라운드 처리용)
  */
 window.api.uploadAudio = async function (file, nfcId) {
+  console.log(`[📤 Upload] Starting upload for NFC: ${nfcId}, File: ${file.name}`);
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -291,9 +292,10 @@ window.api.uploadAudio = async function (file, nfcId) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || '업로드 실패');
 
+    console.log(`[✅ Success] Upload finished:`, data.url);
     return { success: true, url: data.url };
   } catch (err) {
-    console.error('음원 업로드 에러:', err);
+    console.error(`[❌ Error] Upload failed:`, err.message);
     return { success: false, message: err.message };
   }
 };

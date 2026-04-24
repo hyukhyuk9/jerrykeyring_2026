@@ -10,6 +10,14 @@ const nextConfig = {
         source: '/nfc/:id.html',
         destination: '/nfc/:id',
       },
+      {
+        source: '/player',
+        destination: '/app/player.html',
+      },
+      {
+        source: '/admin',
+        destination: '/app/admin.html',
+      },
     ];
   },
 };

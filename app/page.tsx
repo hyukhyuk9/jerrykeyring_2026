@@ -25,7 +25,7 @@ export default function HomePage() {
     if (typeof window !== 'undefined') {
       const savedNfc = localStorage.getItem('auth_nfc_number');
       if (localStorage.getItem('seen_interactive_v2') && savedNfc) {
-         window.location.replace(`/jerrykeyring_legacy/player.html?id=${savedNfc}`);
+          window.location.replace(`/player?id=${savedNfc}`);
       }
     }
 
@@ -458,7 +458,7 @@ export default function HomePage() {
             
             setTimeout(() => {
                localStorage.setItem('seen_interactive_v2', 'true');
-               window.location.replace(`/jerrykeyring_legacy/player.html?id=${nfcFinal.current}`);
+               window.location.replace(`/player?id=${nfcFinal.current}`);
             }, 1000);
           }, 800); 
         }
@@ -470,7 +470,7 @@ export default function HomePage() {
     <>
       <link rel="stylesheet" as="style" crossOrigin="anonymous" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
       <Script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" strategy="beforeInteractive" />
-      <Script src="/jerrykeyring_legacy/js/api.js" strategy="afterInteractive" />
+      <Script src="/app/js/api.js" strategy="afterInteractive" />
 
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
@@ -785,7 +785,7 @@ export default function HomePage() {
 
           <div className="album-cover" onClick={openKeyring}>
             <div className="cover-front">
-              <img src="/jerrykeyring_legacy/iphone.png" alt="앨범" />
+              <img src="/app/sumbnail.png" alt="앨범" />
             </div>
             <div className="cover-back"></div>
             <div className="cover-edge-right"></div>

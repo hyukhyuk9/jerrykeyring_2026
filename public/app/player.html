@@ -55,7 +55,7 @@
       justify-content: center;
       padding: 30px 0;
       border-bottom: 1px solid rgba(255, 145, 77, 0.2);
-      transition: all 1.5s ease;
+      transition: opacity 0.8s ease;
       z-index: 10;
       background: transparent;
     }
@@ -71,7 +71,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      transition: opacity 1.5s ease;
+      transition: opacity 0.8s ease;
       position: relative;
     }
 
@@ -101,6 +101,7 @@
     body.obs-mode #miniPlayerBar {
       opacity: 0 !important;
       pointer-events: none !important;
+      transform: none !important;
     }
 
     .obs-nav-bar {
@@ -2152,7 +2153,17 @@
     }
     // 초기 설정 동기화
     setRepeat(repeatMode);
+
+    // 아이폰 사파리 대응: 전체화면 버튼 숨김
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+      const fsBtn = document.querySelector('.fullscreen-btn');
+      if (fsBtn) {
+        fsBtn.style.display = 'none';
+        fsBtn.style.opacity = '0';
+        fsBtn.style.pointerEvents = 'none';
+      }
+    }
   </script>
 </body>
-
 </html>

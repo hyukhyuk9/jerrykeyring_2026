@@ -361,8 +361,17 @@
       justify-content: center;
     }
 
-    #newFeatureToast {
-      position: fixed;
+    /* 라디오 활성화 버튼 애니메이션 */
+    @keyframes radioGlow {
+      0% { box-shadow: 0 0 5px rgba(255, 145, 77, 0.4), inset 0 0 5px rgba(255, 145, 77, 0.2); border-color: #ff914d; }
+      50% { box-shadow: 0 0 20px rgba(255, 145, 77, 0.8), inset 0 0 10px rgba(255, 145, 77, 0.4); border-color: #ffeb3b; }
+      100% { box-shadow: 0 0 5px rgba(255, 145, 77, 0.4), inset 0 0 5px rgba(255, 145, 77, 0.2); border-color: #ff914d; }
+    }
+    .radio-active {
+      animation: radioGlow 2s infinite ease-in-out !important;
+      background: rgba(255, 145, 77, 0.1) !important;
+      color: #ffeb3b !important;
+    }
       top: 35%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -1078,9 +1087,10 @@
       </div>
       <div class="settings-section">
         <h6>실험실 (LAB)</h6>
-        <button class="track-button" style="width:100%; border-color:#ff914d; color:#ff914d; margin:0;" onclick="startAIRadio()">
+        <button id="radioToggleBtn" class="track-button" style="width:100%; border-color:#ff914d; color:#ff914d; margin:0;" onclick="toggleAIRadio()">
           <i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작
         </button>
+        <p id="radioStatusText" style="font-size:0.7rem; color:#888; margin-top:8px; text-align:center; display:none;">📻 라디오 ON — 다음곡 10초 전에 DJ가 사연을 읽어줍니다</p>
       </div>
       <div class="settings-section">
         <h6>계정 및 기기</h6>
@@ -1253,6 +1263,10 @@
     let lyricsLoadTimer = null;
     let playingRandomTrack = null;
 
+    // AI 라디오 상태 관리
+    let aiRadioEnabled = false;
+    let radioTriggered = false; // 현재 곡에서 라디오가 이미 트리거되었는지
+
     let lyricsData = [];
     let showLyrics = true;
     let currentLyricIndex = -1;
@@ -1333,7 +1347,7 @@
         btn.className = 'track-button'; 
         btn.innerHTML = `<span> ${track.name} </span>`;
         if (track.isLoading) { btn.style.pointerEvents = 'none'; }
-        else { btn.onclick = (e) => { e.stopPropagation(); playWithRadio(index); }; }
+        else { btn.onclick = (e) => { e.stopPropagation(); initPlayer(index); }; }
         buttonList.appendChild(btn);
       });
 
@@ -1819,27 +1833,45 @@
 
       updateLiveTime();
     };
-    async function playWithRadio(index) {
-      const track = playlist[index];
-      if (!track) return;
-      
-      // 사연이 없거나 빈 문자열이면 라디오 없이 바로 재생
+    /* AI 라디오: 곡 종료 10초 전에 볼륨 페이드아웃 + 라디오 재생 */
+    async function fadeOutAndPlayRadio(nextIndex) {
+      const track = playlist[nextIndex];
+      if (!track) { initPlayer(nextIndex); return; }
+
+      // 사연이 없거나 빈 문자열이면 라디오 없이 바로 다음곡
       if (!track.story || track.story === '사연 없음' || track.story === '' || track.story === '응원 사연') {
-        initPlayer(index);
+        // radioTriggered 상태이므로 onended에서 아무것도 안 함 → 여기서 직접 다음곡
+        player.onended = null; // 일시적으로 해제
+        player.addEventListener('ended', function onceEnd() {
+          player.removeEventListener('ended', onceEnd);
+          initPlayer(nextIndex);
+          // onended 복원
+          player.onended = originalOnEnded;
+        });
         return;
       }
 
-      // 라디오 모드로 UI 선전환
-      playingRandomTrack = null;
-      document.getElementById('mainUI').style.display = 'none';
-      document.getElementById('playerControls').style.display = 'flex';
-      document.getElementById('navBar').style.display = 'block';
-      trackDisplay.style.display = 'block';
-      document.getElementById('exitContainer').style.display = 'block';
+      // 현재 곡 볼륨 페이드아웃 (10초에 걸쳐 서서히)
+      const fadeInterval = setInterval(() => {
+        if (player.volume > 0.05) {
+          player.volume = Math.max(0, player.volume - 0.05);
+        } else {
+          clearInterval(fadeInterval);
+          player.pause();
+          player.volume = 1.0;
+          playRadioThenNext(nextIndex);
+        }
+      }, 500);
+    }
+
+    async function playRadioThenNext(index) {
+      const track = playlist[index];
+      if (!track) { initPlayer(index); return; }
 
       // 라디오 로딩 안내 (가사 영역 활용)
       const lyricsBox = document.getElementById('lyricsBox');
-      lyricsBox.innerHTML = '<div class="lyrics-line active" style="color:#ff914d;">📻 제리 DJ가 사연을 읽어주는 중...</div>';
+      const lyricsInner = document.getElementById('lyricsInner');
+      lyricsInner.innerHTML = '<div class="lyrics-line active" style="color:#ff914d;">📻 제리 DJ가 사연을 읽어주는 중...</div>';
       lyricsBox.classList.add('lyrics-on');
       
       try {
@@ -1854,7 +1886,6 @@
         const data = await res.json();
 
         if (data.audioContent) {
-          // TTS 재생을 위한 오디오 객체 (징글/BGM 생략 가능, 여기서는 TTS 위주)
           const tts = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
           
           tts.onended = () => { 
@@ -1862,7 +1893,7 @@
           };
           
           // TTS 시작 시 가사창에 대본 표시
-          lyricsBox.innerHTML = `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${data.script}</div>`;
+          lyricsInner.innerHTML = `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${data.script}</div>`;
           tts.play().catch(() => initPlayer(index));
         } else {
           initPlayer(index);
@@ -1871,6 +1902,15 @@
         console.error("Radio playback error:", err);
         initPlayer(index);
       }
+    }
+
+    // playWithRadio는 이제 aiRadioEnabled 체크를 포함
+    async function playWithRadio(index) {
+      if (!aiRadioEnabled) {
+        initPlayer(index);
+        return;
+      }
+      playRadioThenNext(index);
     }
 
 
@@ -1905,6 +1945,7 @@
     function loadTrack(index) {
       currentIdx = index;
       nextSongToastShown = false;
+      radioTriggered = false;
       hideNextSongToast();
       const track = playlist[currentIdx];
       player.src = track.src;
@@ -2039,6 +2080,17 @@
           }
         }
       }
+
+      /* AI 라디오: 종료 10초 전 트리거 */
+      if (aiRadioEnabled && repeatMode === 'all' && dur && !radioTriggered && !playingRandomTrack) {
+        const remaining = dur - cur;
+        if (remaining <= 10 && remaining > 0) {
+          radioTriggered = true;
+          const nextIdx = (currentIdx + 1) % playlist.length;
+          // 현재 곡 볼륨 서서히 줄이기
+          fadeOutAndPlayRadio(nextIdx);
+        }
+      }
     });
 
     function hideNextSongToast() {
@@ -2071,15 +2123,26 @@
         playRandomMusic();
         return;
       }
-      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; 
-      playWithRadio(currentIdx);
+      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; loadTrack(currentIdx); player.play();
+      document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
     }
     player.onended = () => { 
       if (playingRandomTrack) {
         if (repeatMode === 'all') playRandomMusic(); else { player.currentTime = 0; player.play(); }
         return;
       }
-      if (repeatMode === 'all') playWithRadio((currentIdx + 1) % playlist.length); else { player.currentTime = 0; player.play(); } 
+      // 라디오가 이미 10초 전에 트리거되었으면 onended에서는 아무것도 하지 않음 (라디오가 처리)
+      if (aiRadioEnabled && radioTriggered) {
+        radioTriggered = false;
+        return;
+      }
+      // 라디오 비활성 상태면 기본 동작
+      if (repeatMode === 'all') {
+        initPlayer((currentIdx + 1) % playlist.length);
+      } else { 
+        player.currentTime = 0; 
+        player.play(); 
+      } 
     };
 
     function resetIdleTimer() { showInterface(); clearTimeout(idleTimer); if (!player.paused) idleTimer = setTimeout(hideInterface, 5000); }
@@ -2226,6 +2289,44 @@
         showToast("라디오 기능을 시작하지 못했습니다.");
       }
     }
+    // AI 라디오 토글 함수
+    function toggleAIRadio() {
+      aiRadioEnabled = !aiRadioEnabled;
+      const btn = document.getElementById('radioToggleBtn');
+      const statusText = document.getElementById('radioStatusText');
+      
+      if (aiRadioEnabled) {
+        btn.classList.add('radio-active');
+        btn.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 OFF';
+        statusText.style.display = 'block';
+        showToast('📻 제리 AI 라디오가 시작되었습니다!');
+      } else {
+        btn.classList.remove('radio-active');
+        btn.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작';
+        statusText.style.display = 'none';
+        radioTriggered = false;
+        showToast('라디오가 종료되었습니다.');
+      }
+    }
+
+    // onended 핸들러를 변수로 보관 (라디오 fade 복원용)
+    const originalOnEnded = () => { 
+      if (playingRandomTrack) {
+        if (repeatMode === 'all') playRandomMusic(); else { player.currentTime = 0; player.play(); }
+        return;
+      }
+      if (aiRadioEnabled && radioTriggered) {
+        radioTriggered = false;
+        return;
+      }
+      if (repeatMode === 'all') {
+        initPlayer((currentIdx + 1) % playlist.length);
+      } else { 
+        player.currentTime = 0; 
+        player.play(); 
+      } 
+    };
+
     // 초기 설정 동기화
     setRepeat(repeatMode);
 

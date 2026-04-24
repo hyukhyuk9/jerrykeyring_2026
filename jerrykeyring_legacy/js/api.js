@@ -166,6 +166,7 @@ window.api.getRandomTrack = async function () {
   if (!client) return null;
 
   try {
+    // 1. 전체 오디오 파일 목록을 가져옵니다.
     const { data: allAudios, error: fetchErr } = await client
       .from('audio_files')
       .select('*, tracks(genre, lyrics, modify)');
@@ -173,12 +174,24 @@ window.api.getRandomTrack = async function () {
     if (fetchErr) throw fetchErr;
     if (!allAudios || allAudios.length === 0) throw new Error('No tracks found');
 
+    // 2. 무작위 한 곡을 선택합니다.
     const randomIndex = Math.floor(Math.random() * allAudios.length);
     const data = allAudios[randomIndex];
     
-    // Ensure tracks is an object if it comes as an array
-    if (data && Array.isArray(data.tracks) && data.tracks.length > 0) {
-        data.tracks = data.tracks[0];
+    // 3. 트랙 정보(장르, 가사 등)를 정제합니다.
+    // Supabase Join 결과가 배열일 경우 첫 번째 요소를 사용합니다.
+    if (data && Array.isArray(data.tracks)) {
+      data.tracks = data.tracks.length > 0 ? data.tracks[0] : {};
+    }
+    
+    // 만약 Join으로 가져오지 못했다면 nfc_id로 직접 한 번 더 시도합니다. (보험용)
+    if (!data.tracks || !data.tracks.genre) {
+        const { data: trackInfo } = await client
+            .from('tracks')
+            .select('genre, lyrics, modify')
+            .eq('nfc_id', data.nfc_id)
+            .single();
+        if (trackInfo) data.tracks = trackInfo;
     }
     
     return data;

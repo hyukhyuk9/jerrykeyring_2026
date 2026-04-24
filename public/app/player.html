@@ -1337,11 +1337,37 @@
         btn.className = 'fa-solid fa-rotate-right repeat-btn active';
       } else {
         // 전체 반복 아이콘으로 복구
-        btn.className = 'fa-solid fa-repeat repeat-btn';
+        btn.className = 'fa-solid fa-repeat repeat-btn active';
       }
     }
     function toggleRepeat() {
-      setRepeat(repeatMode === 'single' ? 'all' : 'single');
+      const newMode = repeatMode === 'single' ? 'all' : 'single';
+      // 한곡 반복으로 전환 시 라디오 자동 종료
+      if (newMode === 'single' && aiRadioEnabled) {
+        aiRadioEnabled = false;
+        radioTriggered = false;
+        const radioBtn = document.getElementById('radioToggleBtn');
+        const statusText = document.getElementById('radioStatusText');
+        radioBtn.classList.remove('radio-active');
+        radioBtn.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작';
+        statusText.style.display = 'none';
+        showToast('🔁 한곡 반복 전환 — AI 라디오 기능이 종료됩니다.');
+        updateRadioIcon();
+      }
+      setRepeat(newMode);
+    }
+
+    // 라디오 아이콘 표시 헬퍼
+    function getRadioIconHtml() {
+      return aiRadioEnabled ? ' <i class="fa-solid fa-radio" style="color:#ffeb3b; font-size:0.7rem; margin-left:5px;"></i>' : '';
+    }
+    function updateRadioIcon() {
+      // 현재 재생 중인 트랙 제목에 라디오 아이콘 갱신
+      const track = playingRandomTrack || playlist[currentIdx];
+      if (!track) return;
+      if (trackDisplay.style.display !== 'none') {
+        trackDisplay.innerHTML = `[ > ${track.name} ]${getRadioIconHtml()}`;
+      }
     }
 
     function renderPlaylist() {
@@ -1614,7 +1640,7 @@
         nextSongToastShown = false;
         hideNextSongToast();
         player.src = playingRandomTrack.src;
-        trackDisplay.innerHTML = `[ > ${playingRandomTrack.name} ]`;
+        trackDisplay.innerHTML = `[ > ${playingRandomTrack.name} ]${getRadioIconHtml()}`;
         obsTrackTitle.innerHTML = playingRandomTrack.name;
         
         // 타인/랜덤 음원은 가사를 노란색으로 강조
@@ -1952,7 +1978,7 @@
       hideNextSongToast();
       const track = playlist[currentIdx];
       player.src = track.src;
-      trackDisplay.innerHTML = `[ > ${track.name} ]`;
+      trackDisplay.innerHTML = `[ > ${track.name} ]${getRadioIconHtml()}`;
       obsTrackTitle.innerHTML = `${track.name}`;
       if (track.isFriend) document.getElementById('lyricsBox').classList.add('lyric-friend');
       else document.getElementById('lyricsBox').classList.remove('lyric-friend');
@@ -2312,6 +2338,10 @@
       const statusText = document.getElementById('radioStatusText');
       
       if (aiRadioEnabled) {
+        // 한곡 반복이면 자동으로 전체 반복으로 전환
+        if (repeatMode === 'single') {
+          setRepeat('all');
+        }
         btn.classList.add('radio-active');
         btn.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 OFF';
         statusText.style.display = 'block';
@@ -2323,6 +2353,7 @@
         radioTriggered = false;
         showToast('라디오가 종료되었습니다.');
       }
+      updateRadioIcon();
     }
 
     // onended 핸들러를 변수로 보관 (라디오 fade 복원용)

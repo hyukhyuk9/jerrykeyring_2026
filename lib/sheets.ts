@@ -108,6 +108,7 @@ export function sanitizeForClient(track: TrackData) {
   return {
     nfc: track.nfc,
     genre: track.genre,
+    story: track.story, // 사연 데이터 추가
     lyrics: track.lyrics,
     status: track.status,
     hasMusic: hasLyrics,

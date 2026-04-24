@@ -887,38 +887,42 @@
 
   <div class="modal-overlay" id="modalOverlay" onclick="toggleModal(false)">
     <div class="settings-modal" onclick="event.stopPropagation()">
+      <div class="settings-header">
+        <h5>환경 설정</h5>
+        <div class="settings-close" onclick="toggleModal(false)"><i class="fa-solid fa-xmark"></i></div>
+      </div>
+
       <div class="settings-section">
-        <h6>감상 모드 : 타임스탬프 외형</h6>
-        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('large')"> 크게 중앙 (하얀색
-          가사 작게)</label>
-        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('small')" checked> 작게 하단 (중앙에 가사
-          위주)</label>
+        <h6><i class="fa-solid fa-display"></i> 감상 모드</h6>
+        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('large')"> 크게 중앙 (하얀색 가사)</label>
+        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('small')" checked> 작게 하단 (중앙 가사 위주)</label>
         <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('off')"> 시계 완전히 끄기</label>
       </div>
+
       <div class="settings-section">
-        <h6>반복 재생 설정</h6>
-        <label class="option-item"><input type="radio" name="repeatOpt" onchange="setRepeat('single')" checked> 한곡
-          반복</label>
-        <label class="option-item"><input type="radio" name="repeatOpt" onchange="setRepeat('all')"> 전체 곡 반복 플레이</label>
+        <h6><i class="fa-solid fa-rotate"></i> 재생 모드</h6>
+        <label class="option-item"><input type="radio" name="repeatOpt" onchange="setRepeat('single')" checked> 한곡 반복</label>
+        <label class="option-item"><input type="radio" name="repeatOpt" onchange="setRepeat('all')"> 전체 곡 무한 재생</label>
       </div>
+
       <div class="settings-section">
-        <h6>가사 텍스트 표시</h6>
-        <label class="option-item"><input type="radio" name="lyr" onchange="toggleLyrics(true)" checked> 가사 켜기</label>
-        <label class="option-item"><input type="radio" name="lyr" onchange="toggleLyrics(false)"> 가사 숨기기</label>
-      </div>
-      <div class="settings-section">
-        <h6>커뮤니티 소셜</h6>
-        <label class="option-item"><input type="checkbox" id="shareOpt" onchange="toggleShareSetting(this.checked)"> 다른
-          사람의 음원 공유 허용</label>
-      </div>
-      <div class="settings-section">
-        <h6>초보자 가이드</h6>
+        <h6><i class="fa-solid fa-quote-left"></i> 가사 및 안내</h6>
+        <label class="option-item"><input type="checkbox" id="lyricsOpt" onchange="toggleLyrics(this.checked)" checked> 실시간 가사 표시</label>
         <label class="option-item"><input type="checkbox" id="nextSongGuideOpt" onchange="toggleNextSongGuide(this.checked)" checked> 다음곡 안내 말풍선</label>
       </div>
+
       <div class="settings-section">
-        <h6>계정 및 기기</h6>
-        <div class="option-item" style="color: #ff3b30; font-weight: bold; margin-top: 10px;" onclick="reAuth()">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i> 기기 인증 해제 및 다시 로그인
+        <h6><i class="fa-solid fa-flask"></i> 실험실 (LAB)</h6>
+        <p style="font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-bottom: 10px;">베타 기능을 미리 체험해보세요.</p>
+        <button class="lab-button" onclick="startAIRadio()">
+          <i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작
+        </button>
+      </div>
+
+      <div class="settings-section">
+        <h6><i class="fa-solid fa-user"></i> 계정</h6>
+        <div class="option-item logout-item" onclick="reAuth()">
+          <i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 10px;"></i> 기기 인증 해제 및 로그아웃
         </div>
       </div>
     </div>
@@ -1204,6 +1208,15 @@
         };
         commZone.appendChild(gameBtn);
         */
+
+        const radioBtn = document.createElement('button');
+        radioBtn.className = 'track-button'; radioBtn.style.borderColor = '#ff914d'; radioBtn.style.color = '#ff914d';
+        radioBtn.innerHTML = '<span><i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작</span>';
+        radioBtn.onclick = (e) => {
+          e.stopPropagation();
+          startAIRadio();
+        };
+        // commZone.appendChild(radioBtn); // 실험실로 이동함
 
         const frList = document.createElement('div');
         frList.id = 'friendListZone'; frList.style.marginTop = '25px'; frList.style.width = '100%';
@@ -1822,28 +1835,73 @@
         playRandomMusic();
         return;
       }
-      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; loadTrack(currentIdx); player.play();
-      updatePlayButton();
-    }
-    player.onended = () => { 
-      if (playingRandomTrack) {
-        if (repeatMode === 'all') playRandomMusic(); else { player.currentTime = 0; player.play(); }
-        return;
+      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; loa    /* 미니게임 제어 로직 주석 처리 ... (생략) ... */
+
+    // AI 라디오 로직
+    let isRadioPlaying = false;
+    async function startAIRadio() {
+      if (isRadioPlaying) return;
+      isRadioPlaying = true;
+      
+      const story = prompt("라디오에서 소개할 사연을 입력해주세요!", "오늘 하루도 수고한 당신에게 제리가 전하는 따뜻한 응원입니다.");
+      if (!story) { isRadioPlaying = false; return; }
+
+      try {
+        showToast("📻 제리 AI 라디오가 시작됩니다...");
+        
+        // 1. 테마곡 (Jingle) 재생
+        const jingleSrc = '8 EDM.mp3'; // 신나는 느낌으로 시작
+        const prevSrc = player.src;
+        player.src = jingleSrc;
+        player.volume = 1.0;
+        await player.play();
+
+        // 5초 후 배경음악 깔고 TTS 시작 (테마곡은 작게 유지)
+        setTimeout(async () => {
+          player.volume = 0.15; // 메인 볼륨 줄임 (Ducking)
+          
+          // 배경음악용 오디오 객체 생성
+          const bgm = new Audio('4 Jazz.mp3');
+          bgm.loop = true;
+          bgm.volume = 0.2;
+          bgm.play();
+
+          // TTS 실행 (Google TTS URL 활용)
+          const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(story)}&tl=ko&client=tw-ob`;
+          const ttsAudio = new Audio(ttsUrl);
+          
+          ttsAudio.onended = () => {
+            showToast("🎵 다음 곡을 재생합니다.");
+            bgm.pause();
+            player.volume = 1.0;
+            isRadioPlaying = false;
+            changeTrack(1); // 다음 곡으로
+          };
+
+          ttsAudio.play().catch(e => {
+            console.error("TTS 재생 실패:", e);
+            // TTS 실패 시 Web Speech API로 대체
+            const uttr = new SpeechSynthesisUtterance(story);
+            uttr.lang = 'ko-KR';
+            uttr.onend = () => {
+              bgm.pause();
+              player.volume = 1.0;
+              isRadioPlaying = false;
+              changeTrack(1);
+            };
+            window.speechSynthesis.speak(uttr);
+          });
+        }, 5000);
+
+      } catch (e) {
+        console.error("라디오 실행 오류:", e);
+        isRadioPlaying = false;
       }
-      if (repeatMode === 'all') changeTrack(1); else { player.currentTime = 0; player.play(); } 
-    };
-
-    function resetIdleTimer() { showInterface(); clearTimeout(idleTimer); if (!player.paused) idleTimer = setTimeout(hideInterface, 5000); }
-    function hideInterface() { body.classList.add('obs-mode'); canvas.style.opacity = '1.0'; }
-    function showInterface() { body.classList.remove('obs-mode'); if (!player.paused) canvas.style.opacity = '0.4'; }
-
-    function toggleFullScreen() {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const isMini = window.innerHeight <= 630;
-
-      // 1. 아이폰 미니 유저를 위한 A/B 테스트 가이드 노출
-      if (isIOS && isMini) {
-        document.getElementById('iosInstallGuide').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
+d('iosInstallGuide').style.display = 'flex';
         return;
       }
 
@@ -1914,6 +1972,103 @@
       }
     });
     */
+
+    // AI 라디오 로직
+    let isRadioPlaying = false;
+    async function startAIRadio() {
+      if (isRadioPlaying) return;
+      
+      const currentTrack = playlist[currentIdx];
+      const defaultStory = (currentTrack && currentTrack.story) ? currentTrack.story : "오늘 하루도 수고한 당신에게 제리가 전하는 따뜻한 응원입니다.";
+      
+      const story = prompt("라디오에서 소개할 사연을 확인해주세요!", defaultStory);
+      if (!story) return;
+
+      isRadioPlaying = true;
+      try {
+        showToast("🤖 제리 DJ가 사연을 다듬고 있습니다...");
+        
+        // 1. GPT를 통해 사연을 라디오 대본으로 각색 및 TTS 생성 (서버 저장)
+        let script = story;
+        let audioUrl = "";
+        let audioContent = "";
+        try {
+          const gptRes = await fetch('/api/radio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                story,
+                nfc_id: currentTrack ? (currentTrack.nfc || currentTrack.nfc_id) : 'unknown'
+            })
+          });
+          const gptData = await gptRes.json();
+          if (gptData.script) script = gptData.script;
+          if (gptData.audioUrl) audioUrl = gptData.audioUrl;
+          if (gptData.audioContent) audioContent = gptData.audioContent;
+        } catch (gptErr) {
+          console.error("Radio API 실패, 클라이언트 TTS 시도:", gptErr);
+        }
+
+        showToast("📻 제리 AI 라디오가 시작됩니다...");
+        
+        // 2. 테마곡 (Jingle) 재생
+        const jingleSrc = '8 EDM.mp3'; 
+        player.src = jingleSrc;
+        player.volume = 1.0;
+        await player.play();
+
+        // 5초 후 배경음악 깔고 TTS 시작
+        setTimeout(async () => {
+          player.volume = 0.15; 
+          
+          const bgm = new Audio('4 Jazz.mp3');
+          bgm.loop = true;
+          bgm.volume = 0.2;
+          bgm.play();
+
+          // TTS 실행 (서버에서 생성된 audioContent(Base64) 또는 audioUrl 사용)
+          let finalTtsUrl = audioUrl || `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(script)}&tl=ko&client=tw-ob`;
+          
+          if (audioContent) {
+            const byteCharacters = atob(audioContent);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'audio/mp3' });
+            finalTtsUrl = URL.createObjectURL(blob);
+          }
+
+          const ttsAudio = new Audio(finalTtsUrl);
+          
+          ttsAudio.onended = () => {
+            showToast("🎵 다음 곡을 재생합니다.");
+            bgm.pause();
+            player.volume = 1.0;
+            isRadioPlaying = false;
+            changeTrack(1); 
+          };
+
+          ttsAudio.play().catch(e => {
+            console.error("TTS 재생 실패:", e);
+            const uttr = new SpeechSynthesisUtterance(script);
+            uttr.lang = 'ko-KR';
+            uttr.onend = () => {
+              bgm.pause();
+              player.volume = 1.0;
+              isRadioPlaying = false;
+              changeTrack(1);
+            };
+            window.speechSynthesis.speak(uttr);
+          });
+        }, 5000);
+
+      } catch (e) {
+        console.error("라디오 실행 오류:", e);
+        isRadioPlaying = false;
+      }
+    }
   </script>
 </body>
 </html>

@@ -1602,10 +1602,8 @@
         const audioUrl = randomData.audio_url;
         const trackInfo = randomData.tracks || {};
         
-        let finalLyrics = trackInfo.lyrics || '제리키링AI';
-        if (trackInfo.modify && trackInfo.modify !== '수정없음' && trackInfo.modify !== '') {
-          finalLyrics = trackInfo.modify;
-        }
+        let finalLyrics = trackInfo.sync_lyrics || trackInfo.modify || trackInfo.lyrics || '제리키링AI';
+        if (finalLyrics === '수정없음') finalLyrics = trackInfo.lyrics || '제리키링AI';
 
         // 제목을 가사 첫 줄로 설정 (태그 제거)
         const firstLine = finalLyrics.split('\n')[0].replace(/\[.*?\]/g, '').trim() || trackInfo.genre || '랜덤 음원';
@@ -1791,7 +1789,8 @@
             document.getElementById('serialDisplay').innerText = `SN: ${data.serial}`;
           }
 
-          const finalLyrics = (data.modify && data.modify !== "수정없음") ? data.modify : (data.lyrics || "가사가 등록되지 않았습니다.");
+          let finalLyrics = data.sync_lyrics || data.modify || data.lyrics || "가사가 등록되지 않았습니다.";
+          if (finalLyrics === "수정없음") finalLyrics = data.lyrics || "가사가 등록되지 않았습니다.";
           
           // 2. 실제 음원 파일 목록 로드 (audio_files 테이블 - R2 주소 포함)
           const audioFiles = await window.api.getAudioFiles(targetId);

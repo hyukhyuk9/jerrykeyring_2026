@@ -306,92 +306,52 @@ window.api.uploadAudio = async function (file, nfcId) {
 };
 
 /**
- * [가사 타임라인] 곡 길이를 기반으로 타임라인을 가져오거나 6등분하여 초기화합니다.
+ * [관리자용] 가사 싱크용 데이터 초기화 (에벌 데이터 생성)
  */
-window.api.getOrInitTimeline = async function (trackId, durationSeconds = 0) {
-  const client = getSupabase();
-  if (!client) return [];
-
-  try {
-    let { data, error } = await client
-      .from('lyrics_timeline')
-      .select('*')
-      .eq('track_id', trackId)
-      .order('id', { ascending: true });
-
-    if (error) throw error;
-
-    // 데이터가 없을 때만 원본 가사 기반 초기화 진행
-    if (!data || data.length === 0) {
-      // 해당 트랙의 원본 가사 가져오기
-      const { data: trackData, error: trackError } = await client
-        .from('tracks')
-        .select('lyrics, modify')
-        .eq('id', trackId)
-        .single();
-      
-      if (trackError) throw trackError;
-
-      let lyricsText = trackData.modify || trackData.lyrics || "";
-      // 만약 가사가 없거나 '수정없음'인 경우 기본 섹션으로 대체
-      if (!lyricsText || lyricsText === '수정없음') {
-        lyricsText = "1절\n후렴 1\n2절\n후렴 2\n브릿지\n후렴 3";
-      }
-
-      // 가사 줄바꿈으로 나누고 태그 제거
-      const lines = lyricsText.split('\n')
-        .map(l => l.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim())
-        .filter(l => l.length > 0);
-
-      const interval = durationSeconds > 0 ? durationSeconds / (lines.length || 1) : 0;
-
-      const initData = lines.map((text, idx) => {
-        const totalSeconds = Math.floor(interval * idx);
-        const min = Math.floor(totalSeconds / 60);
-        const sec = totalSeconds % 60;
-        
-        return {
-          track_id: trackId,
-          section_name: text.length > 50 ? text.substring(0, 47) + '...' : text, // 최대 길이 제한
-          start_time: `${String(min).padStart(2, '0')}분 ${String(sec).padStart(2, '0')}초`
-        };
-      });
-
-      const { data: newData, error: initError } = await client
-        .from('lyrics_timeline')
-        .insert(initData)
-        .select();
-
-      if (initError) throw initError;
-      return newData;
-    }
-
-    return data;
-  } catch (err) {
-    console.error('타임라인 초기화 에러:', err);
-    return [];
+window.api.generateInitialSync = function (lyricsText, durationSeconds) {
+  if (!lyricsText || lyricsText === '수정없음') {
+    lyricsText = "가사 데이터가 없습니다.";
   }
+
+  const lines = lyricsText.split('\n')
+    .map(l => l.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim())
+    .filter(l => l.length > 0);
+
+  const interval = durationSeconds > 0 ? durationSeconds / (lines.length || 1) : 0;
+
+  return lines.map((text, idx) => {
+    const totalSeconds = Math.floor(interval * idx);
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    
+    return {
+      section_name: text.length > 80 ? text.substring(0, 77) + '...' : text,
+      start_time: `${String(min).padStart(2, '0')}분 ${String(sec).padStart(2, '0')}초`
+    };
+  });
 };
 
 /**
- * [관리자용] 가사 타임라인 업데이트
+ * [관리자용] LRC 문자열을 에디터용 배열로 변환
  */
-window.api.updateTimeline = async function (timelineItems) {
-  const client = getSupabase();
-  if (!client) return { success: false };
+window.api.parseSyncLyrics = function (lrcText) {
+  if (!lrcText) return null;
+  const lines = lrcText.split('\n');
+  const result = [];
+  const regex = /\[(\d{2}):(\d{2})\.\d{2}\]\s*(.*)/;
 
-  try {
-    const { error } = await client
-      .from('lyrics_timeline')
-      .upsert(timelineItems);
-
-    if (error) throw error;
-    return { success: true };
-  } catch (err) {
-    console.error('타임라인 업데이트 에러:', err);
-    return { success: false, message: err.message };
-  }
+  lines.forEach(line => {
+    const match = line.match(regex);
+    if (match) {
+      result.push({
+        start_time: `${match[1]}분 ${match[2]}초`,
+        section_name: match[3].trim()
+      });
+    }
+  });
+  return result.length > 0 ? result : null;
 };
+
 
 /**
  * [관리자용] AI 라디오 배치 생성 (GPT + TTS -> R2)

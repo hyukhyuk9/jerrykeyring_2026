@@ -1450,9 +1450,14 @@
         randomBtn.innerHTML = '<span><i class="fa-solid fa-shuffle"></i> 제리키링 랜덤음원듣기</span>';
         randomBtn.onclick = (e) => {
           e.stopPropagation();
-          // Safari Autoplay 정책 우회
-          player.play().catch(() => {});
-          player.pause();
+          player.onerror = () => {
+            if (!player.src.includes('-1.mp3')) {
+              const fallbackSrc = player.src.replace('.mp3', '-1.mp3');
+              player.src = fallbackSrc;
+              player.play().catch(() => { });
+            }
+          };
+          player.play().catch(e => { });
           playRandomMusic();
         };
         commZone.appendChild(randomBtn);
@@ -1625,9 +1630,14 @@
         const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
         let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
 
-        // 제목을 가사 첫 줄로 설정 (태그 제거)
-        const firstLine = finalLyrics.split('\n')[0].replace(/\[.*?\]/g, '').trim() || trackInfo.genre || '랜덤 음원';
-        const trackName = firstLine;
+        // 제목을 가사 두 번째 줄로 설정 (없으면 첫 줄)
+        const lyricLines = finalLyrics.split('\n').filter(l => l.trim() !== "");
+        let trackName = "랜덤 음원";
+        if (lyricLines.length > 1) {
+          trackName = lyricLines[1].replace(/\[.*?\]/g, '').trim();
+        } else if (lyricLines.length > 0) {
+          trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
+        }
 
         playingRandomTrack = { 
           src: audioUrl, 
@@ -2195,9 +2205,15 @@
       }
     });
 
-    function hideNextSongToast() {
-      document.getElementById('nextSongToast').classList.remove('show');
-    }
+    /* 전역 플레이어 에러 핸들러: 404 발생 시 -1 폴백 */
+    player.onerror = () => {
+      if (player.src && !player.src.includes('-1.mp3') && !player.src.includes('-2.mp3')) {
+        const fallbackSrc = player.src.replace('.mp3', '-1.mp3');
+        console.log(`[🔄 Fallback] ${player.src} 404 -> Trying ${fallbackSrc}...`);
+        player.src = fallbackSrc;
+        player.play().catch(() => { });
+      }
+    };
 
     player.addEventListener('loadedmetadata', () => {
       document.getElementById('progressBar').max = player.duration;

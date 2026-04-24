@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// 수파베이스 초기화
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// 빌드 시 에러 방지를 위한 다이내믹 렌더링 설정
+export const dynamic = 'force-dynamic';
+
+// 수파베이스 초기화 방어 로직
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+// URL과 Key가 있을 때만 클라이언트 생성
+const supabase = (supabaseUrl && supabaseKey) 
+  ? createClient(supabaseUrl, supabaseKey) 
+  : null;
 
 export async function POST(request: Request) {
   try {
@@ -54,15 +61,19 @@ export async function POST(request: Request) {
       // 3. 기존 audio_files 테이블에 라디오 데이터 저장
       // 사용자의 요청대로 신규 테이블이 아닌 기존 audio_files에 컬럼을 추가하여 활용
       try {
-        const { error: dbError } = await supabase
-          .from('audio_files')
-          .insert({
-            nfc_id: nfc_id || 'unknown',
-            audio_url: '', // 음원 파일 저장 시 여기에 URL이 들어갈 예정 (현재는 빈값)
-            radio_script: script, // 새로 추가할 컬럼명: radio_script
-          });
-        
-        if (dbError) console.warn('Database save warning:', dbError.message);
+        if (supabase) {
+          const { error: dbError } = await supabase
+            .from('audio_files')
+            .insert({
+              nfc_id: nfc_id || 'unknown',
+              audio_url: '', // 음원 파일 저장 시 여기에 URL이 들어갈 예정 (현재는 빈값)
+              radio_script: script, // 새로 추가할 컬럼명: radio_script
+            });
+          
+          if (dbError) console.warn('Database save warning:', dbError.message);
+        } else {
+          console.warn('Supabase client is not initialized. Skipping DB insert.');
+        }
       } catch (dbErr) {
         console.error('Database connection error:', dbErr);
       }

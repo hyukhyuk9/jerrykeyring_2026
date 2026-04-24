@@ -664,49 +664,54 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 65px;
+      height: 70px;
       background: rgba(18, 18, 18, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid rgba(255, 145, 77, 0.3);
       z-index: 6000;
-      padding: 0 20px;
+      padding: 0 15px;
       align-items: center;
       justify-content: space-between;
       animation: miniSlideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-      cursor: pointer;
-      box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+      box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
+      transition: border-color 0.4s ease;
     }
     #miniPlayerBar.show { display: flex; }
+    #miniPlayerBar.theme-yellow { border-top-color: rgba(255, 235, 59, 0.5); }
     
     @keyframes miniSlideUp {
       from { transform: translateY(100%); }
       to { transform: translateY(0); }
     }
 
-    .mini-info {
+    .mini-info-area {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
       flex: 1;
-      margin-right: 20px;
+      margin-right: 15px;
       overflow: hidden;
+      cursor: pointer;
     }
     .mini-title {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 700;
       color: #ff914d;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      letter-spacing: -0.5px;
+      transition: color 0.4s ease;
     }
+    #miniPlayerBar.theme-yellow .mini-title { color: #ffeb3b; }
+
     .mini-progress-container {
       width: 100%;
-      height: 3px;
+      height: 4px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 2px;
       position: relative;
+      cursor: pointer;
     }
     #miniProgressFill {
       position: absolute;
@@ -715,12 +720,42 @@
       width: 0%;
       border-radius: 2px;
       box-shadow: 0 0 10px rgba(255, 145, 77, 0.6);
+      transition: background 0.4s ease;
+    }
+    #miniPlayerBar.theme-yellow #miniProgressFill { 
+      background: #ffeb3b; 
+      box-shadow: 0 0 10px rgba(255, 235, 59, 0.6); 
+    }
+
+    .mini-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding-left: 10px;
+    }
+    .mini-btn {
+      color: #ff914d;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      opacity: 0.8;
+    }
+    #miniPlayerBar.theme-yellow .mini-btn { color: #ffeb3b; }
+    .mini-btn:active { transform: scale(0.9); opacity: 1; }
+    .mini-btn.play-pause { font-size: 1.4rem; }
+
+    .mini-disc-area {
+      margin-left: 10px;
+      cursor: pointer;
     }
     .mini-disc {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       color: #ff914d;
       animation: discRotate 3s linear infinite;
+      transition: color 0.4s ease;
     }
+    #miniPlayerBar.theme-yellow .mini-disc { color: #ffeb3b; }
+
     @keyframes discRotate {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -1041,15 +1076,22 @@
   </div>
 
   <!-- 하단 미니 플레이어 바 -->
-  <div id="miniPlayerBar" onclick="restoreFullPlayer()">
-    <div class="mini-info">
+  <div id="miniPlayerBar">
+    <div class="mini-info-area" onclick="restoreFullPlayer()">
       <div id="miniTitle" class="mini-title">곡 제목</div>
-      <div class="mini-progress-container">
+      <div class="mini-progress-container" onclick="event.stopPropagation(); miniSeek(event)">
         <div id="miniProgressFill"></div>
       </div>
     </div>
-    <div class="mini-disc">
-      <i class="fa-solid fa-compact-disc"></i>
+    <div class="mini-controls">
+      <i class="fa-solid fa-backward mini-btn" onclick="event.stopPropagation(); changeTrack(-1)"></i>
+      <i id="miniPlayPauseIcon" class="fa-solid fa-pause mini-btn play-pause" onclick="event.stopPropagation(); togglePlay()"></i>
+      <i class="fa-solid fa-forward mini-btn" onclick="event.stopPropagation(); changeTrack(1)"></i>
+    </div>
+    <div class="mini-disc-area" onclick="restoreFullPlayer()">
+      <div class="mini-disc">
+        <i class="fa-solid fa-compact-disc"></i>
+      </div>
     </div>
   </div>
 
@@ -1428,6 +1470,7 @@
         };
 
         /* 화면 및 플레이어 UI 전환 (독립 플레이어) */
+        document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
         document.getElementById('mainUI').style.display = 'none';
         document.getElementById('playerControls').style.display = 'flex';
         document.getElementById('navBar').style.display = 'block';
@@ -1662,6 +1705,7 @@
 
     function initPlayer(index) {
       playingRandomTrack = null;
+      document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
       document.getElementById('mainUI').style.display = 'none';
       document.getElementById('playerControls').style.display = 'flex';
       document.getElementById('navBar').style.display = 'block';
@@ -1838,8 +1882,17 @@
 
     function togglePlay() {
       const icon = document.getElementById('playPauseIcon');
-      if (player.paused) { player.play(); icon.className = 'fa-solid fa-pause control-btn main-play-btn'; }
-      else { player.pause(); icon.className = 'fa-solid fa-play control-btn main-play-btn'; }
+      const miniIcon = document.getElementById('miniPlayPauseIcon');
+      if (player.paused) { 
+        player.play(); 
+        icon.className = 'fa-solid fa-pause control-btn main-play-btn';
+        miniIcon.className = 'fa-solid fa-pause mini-btn play-pause';
+      }
+      else { 
+        player.pause(); 
+        icon.className = 'fa-solid fa-play control-btn main-play-btn';
+        miniIcon.className = 'fa-solid fa-play mini-btn play-pause';
+      }
     }
     function changeTrack(dir) {
       if (playingRandomTrack) {
@@ -1896,9 +1949,26 @@
       const miniBar = document.getElementById('miniPlayerBar');
       const track = playingRandomTrack || playlist[currentIdx];
       document.getElementById('miniTitle').innerText = track ? track.name : "재생 중";
-      miniBar.classList.add('show');
       
+      // 타인/랜덤 음원일 경우 노란색 테마 적용
+      if (track && (track.isFriend || track.isRandom)) {
+        miniBar.classList.add('theme-yellow');
+      } else {
+        miniBar.classList.remove('theme-yellow');
+      }
+      
+      // 재생 아이콘 상태 동기화
+      const miniIcon = document.getElementById('miniPlayPauseIcon');
+      miniIcon.className = player.paused ? 'fa-solid fa-play mini-btn play-pause' : 'fa-solid fa-pause mini-btn play-pause';
+
+      miniBar.classList.add('show');
       showInterface();
+    }
+
+    function miniSeek(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      player.currentTime = percent * player.duration;
     }
 
     function restoreFullPlayer() {

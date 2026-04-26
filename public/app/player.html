@@ -1835,34 +1835,26 @@
           let finalLyrics = data.sync_lyrics || (isValid(data.status) ? data.status : data.lyrics) || "가사가 등록되지 않았습니다.";
           if (finalLyrics === "수정없음") finalLyrics = "가사가 등록되지 않았습니다.";
           
-          // 2. 실제 음원 파일 목록 로드 (audio_files 테이블 - R2 주소 포함)
+          // 2. 음원 목록 생성 (장르 기반 분할 + DB/로컬 하이브리드 로드)
+          let genreList = String(data.genre || '트랙').split(',').map(s => s.trim());
           const audioFiles = await window.api.getAudioFiles(targetId);
-          
-          if (audioFiles && audioFiles.length > 0) {
-            const musicFiles = audioFiles.filter(f => f.category !== 'radio_tts');
-            const radioFiles = audioFiles.filter(f => f.category === 'radio_tts');
-            const radioTts = radioFiles.length > 0 ? radioFiles[0] : null;
+          const musicFiles = audioFiles.filter(f => f.category !== 'radio_tts');
+          const radioFiles = audioFiles.filter(f => f.category === 'radio_tts');
+          const radioTts = radioFiles.length > 0 ? radioFiles[0] : null;
 
-            if (musicFiles.length > 0) {
-              playlist = musicFiles.map((file, i) => ({
-                src: file.audio_url,
-                name: (musicFiles.length > 1) ? `${data.genre} (트랙 ${i + 1})` : data.genre,
-                lyricsText: finalLyrics,
-                isLoading: false,
-                story: data.story,
-                radioAudioUrl: radioTts ? radioTts.audio_url : null,
-                radioScript: radioTts ? radioTts.radio_script : null
-              }));
-            } else {
-              // 음원 파일이 아예 없는 경우
-              playlist = [{ src: '', name: '등록된 음원이 없습니다.', isLoading: true }];
-              showToast("⚠️ 등록된 음원이 없습니다.");
-            }
-          } else {
-            // DB 기록 자체가 없는 경우
-            playlist = [{ src: '', name: '등록된 음원이 없습니다.', isLoading: true }];
-            showToast("⚠️ 등록된 음원이 없습니다.");
-          }
+          playlist = genreList.map((g, idx) => {
+            // DB에 매칭되는 음원이 있으면 해당 URL 사용, 없으면 기존 폴백 경로 사용
+            const dbFile = musicFiles[idx];
+            return {
+              src: dbFile ? dbFile.audio_url : (genreList.length > 1 ? `./music/${targetId}-${idx + 1}.mp3` : `./music/${targetId}.mp3`),
+              name: g,
+              lyricsText: finalLyrics,
+              isLoading: false,
+              story: data.story,
+              radioAudioUrl: radioTts ? radioTts.audio_url : null,
+              radioScript: radioTts ? radioTts.radio_script : null
+            };
+          });
 
           renderPlaylist();
 
@@ -1885,23 +1877,23 @@
                 const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
                 const fLyr = (uData.sync_lyrics && uData.sync_lyrics !== '') ? uData.sync_lyrics : (isValid(uData.status) ? uData.status : uData.lyrics);
                 
+                let fGenreList = String(uData.genre || '트랙').split(',').map(s => s.trim());
                 const fMusicFiles = uFiles.filter(f => f.category !== 'radio_tts');
                 const fRadioFiles = uFiles.filter(f => f.category === 'radio_tts');
                 const fRadioTts = fRadioFiles.length > 0 ? fRadioFiles[0] : null;
 
-                if (fMusicFiles.length > 0) {
-                  fMusicFiles.forEach((file, i) => {
-                    playlist.push({
-                      src: file.audio_url,
-                      name: `[${fName}] ${uData.genre}${fMusicFiles.length > 1 ? ` (${i+1})` : ''}`,
-                      lyricsText: fLyr,
-                      isFriend: true,
-                      story: uData.story,
-                      radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
-                      radioScript: fRadioTts ? fRadioTts.radio_script : null
-                    });
+                fGenreList.forEach((fg, fidx) => {
+                  const fDbFile = fMusicFiles[fidx];
+                  playlist.push({
+                    src: fDbFile ? fDbFile.audio_url : (fGenreList.length > 1 ? `./music/${fNfc}-${fidx + 1}.mp3` : `./music/${fNfc}.mp3`),
+                    name: `[${fName}] ${fg}`,
+                    lyricsText: fLyr,
+                    isFriend: true,
+                    story: uData.story,
+                    radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
+                    radioScript: fRadioTts ? fRadioTts.radio_script : null
                   });
-                }
+                });
               }
             });
             renderPlaylist();

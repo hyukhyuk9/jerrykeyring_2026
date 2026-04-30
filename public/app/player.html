@@ -1299,6 +1299,7 @@
     let showNextSongGuide = localStorage.getItem('nextSongGuide') !== 'false';
     let lyricsLoadTimer = null;
     let playingRandomTrack = null;
+    let nextRandomTrack = null;
 
     // AI 라디오 상태 관리
     let aiRadioEnabled = false;
@@ -1637,6 +1638,33 @@
     /* 제리키링 랜덤음원듣기 */
     let sampleRandomPlayCount = 0;
 
+    // 다음 랜덤 곡 미리 가져오기
+    async function prepareNextRandomTrack() {
+      try {
+        const randomData = await window.api.getRandomTrack();
+        if (!randomData) return;
+
+        const trackInfo = randomData.tracks || {};
+        const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+        let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
+
+        const lyricLines = finalLyrics.split('\n').filter(l => l.trim() !== "");
+        let trackName = "랜덤 음원";
+        if (lyricLines.length > 1) trackName = lyricLines[1].replace(/\[.*?\]/g, '').trim();
+        else if (lyricLines.length > 0) trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
+
+        nextRandomTrack = {
+          src: randomData.audio_url,
+          name: trackName,
+          lyricsText: finalLyrics,
+          isRandom: true
+        };
+        console.log(`[🎲 Next Ready] ${nextRandomTrack.name}`);
+      } catch (e) {
+        console.error("Next random track preparation failed:", e);
+      }
+    }
+
     async function playRandomMusic() {
       // 샘플 계정인 경우 1곡 제한
       const isSampleUser = (localStorage.getItem('auth_nfc_number') === '000000');
@@ -1667,12 +1695,16 @@
           trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
         }
 
-        playingRandomTrack = { 
+        playingRandomTrack = nextRandomTrack || { 
           src: audioUrl, 
           name: `${trackName}`, 
           lyricsText: finalLyrics || '제리키링AI', 
           isRandom: true 
         };
+        nextRandomTrack = null; // 사용 후 초기화
+        
+        // 다음 랜덤 곡 미리 준비 (안내 말풍선용)
+        prepareNextRandomTrack();
 
         /* 화면 및 플레이어 UI 전환 (독립 플레이어) */
         document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
@@ -2222,15 +2254,15 @@
       if (showNextSongGuide && dur && !nextSongToastShown) {
         const remaining = dur - cur;
         if (remaining <= 30 && remaining > 0) {
+          let nextTitle = "다음 곡";
           if (playingRandomTrack) {
-            document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ 새로운 랜덤 음악 ]</b> 재생 예정`;
+            nextTitle = nextRandomTrack ? nextRandomTrack.name : "새로운 랜덤 음악";
           } else {
             const nextIdx = (currentIdx + 1) % playlist.length;
-            const nextTrack = playlist[nextIdx];
-            if (nextTrack) {
-              document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ ${nextTrack.name} ]</b> 재생 예정`;
-            }
+            nextTitle = playlist[nextIdx] ? playlist[nextIdx].name : "다음 곡";
           }
+          
+          document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ ${nextTitle} ]</b> 재생 예정`;
           document.getElementById('nextSongToast').classList.add('show');
           nextSongToastShown = true;
           setTimeout(() => { hideNextSongToast(); }, 3000);

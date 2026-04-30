@@ -297,7 +297,9 @@
 
     /* 저장 버튼 스타일 - 아이콘만 표시 */
     .save-btn {
-      display: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       color: rgba(255, 255, 255, 0.4);
       font-size: 1.3rem;
       cursor: pointer;
@@ -305,10 +307,8 @@
       height: 44px;
       border: none;
       background: transparent;
-      align-items: center;
-      justify-content: center;
       transition: all 0.3s ease;
-      justify-self: end;
+      vertical-align: middle;
     }
     .save-btn.active {
       color: #ffeb3b;
@@ -331,8 +331,8 @@
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
-      justify-self: start;
       position: relative;
+      vertical-align: middle;
     }
     .repeat-btn.active {
       color: #ffeb3b;
@@ -484,6 +484,7 @@
     }
     .side-control-area {
       width: 80px; /* 고정 너비 확보 */
+      height: 60px; /* 중앙 버튼 높이에 맞춰 확보 */
       display: flex;
       align-items: center;
       justify-content: center;

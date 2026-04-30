@@ -6,6 +6,18 @@
 - **Storage (Media)**: Cloudflare R2
 - **Deployment**: Cloudflare Pages (Netlify is no longer used)
 
+### 🚀 주요 관리자 기능
+
+#### 음원 상태 동기화 API
+DB의 음원 목록과 실제 R2 스토리지의 파일을 대조하여 상태를 업데이트합니다.
+- **URL**: `/api/admin/sync-audio-status` (GET 요청)
+- **기능**:
+    - R2 스토리지 내 실제 파일 존재 여부 전수 조사
+    - `audio_files` 테이블의 `audio_url_status` 컬럼 자동 업데이트 (`TRUE`/`FALSE`)
+    - 작업 완료 후 전체 통계 리포트 제공
+
+---
+
 ## Deployment Guide (Cloudflare Pages)
 이 프로젝트는 Cloudflare Pages를 통해 `main` 브랜치에서 자동 배포됩니다.
 

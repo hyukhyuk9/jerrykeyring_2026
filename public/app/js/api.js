@@ -170,11 +170,19 @@ window.api.getRandomTrack = async function (retryCount = 0) {
   if (!client) return null;
 
   try {
-    // 1. 모든 오디오 파일 목록을 가져옵니다. (음원이 실제 존재하는 경우만)
-    const { data: allAudios, error: fetchErr } = await client
+    // 1. 먼저 음원이 실제 존재한다고 확인된 곡들만 가져와 봅니다.
+    let { data: allAudios, error: fetchErr } = await client
       .from('audio_files')
       .select('*')
       .eq('audio_url_status', true);
+
+    // 2. 만약 해당 필터로 검색된 곡이 하나도 없다면, 기존 곡 전체에서 다시 시도합니다. (폴백)
+    if (!allAudios || allAudios.length === 0) {
+      console.warn('⚠️ audio_url_status가 true인 곡이 없어 전체 곡에서 다시 검색합니다.');
+      const fallback = await client.from('audio_files').select('*');
+      allAudios = fallback.data;
+      if (fallback.error) throw fallback.error;
+    }
 
     if (fetchErr) throw fetchErr;
     if (!allAudios || allAudios.length === 0) throw new Error('No audio files found');

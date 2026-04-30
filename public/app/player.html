@@ -810,13 +810,13 @@
     .mini-title {
       font-size: 0.9rem;
       font-weight: 700;
-      color: #ffeb3b; /* 기본적으로 노란색으로 변경 */
+      color: #ff914d; /* 기본값 오렌지색으로 복구 */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       transition: color 0.4s ease;
     }
-    #miniPlayerBar .mini-title { color: #ffeb3b; }
+    #miniPlayerBar.theme-yellow .mini-title { color: #ffeb3b; }
 
     .mini-progress-container {
       display: none !important;
@@ -2135,11 +2135,11 @@
       player.src = track.src;
       
       const isRandomOrFriend = track.isRandom || track.isFriend;
-      const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ffeb3b'; // 사용자 요청에 따라 항상 노란색으로 표시 (혹은 랜덤/친구만)
+      const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ff914d';
       
-      trackDisplay.innerHTML = `<span style="color: #ffeb3b">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
-      obsTrackTitle.innerHTML = `<span style="color: #ffeb3b">< ${track.name} ></span>`;
-      obsTrackTitle.style.color = '#ffeb3b';
+      trackDisplay.innerHTML = `<span style="color: ${titleColor}">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
+      obsTrackTitle.innerHTML = `<span style="color: ${titleColor}">< ${track.name} ></span>`;
+      obsTrackTitle.style.color = titleColor;
       if (track.isFriend) document.getElementById('lyricsBox').classList.add('lyric-friend');
       else document.getElementById('lyricsBox').classList.remove('lyric-friend');
       parseLyrics(playlist[currentIdx].lyricsText);

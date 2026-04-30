@@ -273,21 +273,21 @@
 
     .next-song-toast {
       position: fixed;
-      bottom: 85px;
-      right: 20px;
+      top: 100px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
       background: #1a1a1ae6;
       color: #fff;
       padding: 12px 25px;
-      border-radius: 20px 20px 0 20px;
+      border-radius: 20px;
       border: 1px solid #ff914d;
       font-size: 0.8rem;
       font-weight: bold;
-      z-index: 100;
+      z-index: 10000;
       opacity: 0;
       pointer-events: none;
       transition: opacity 1.5s ease, transform 1.5s ease;
       box-shadow: 0 4px 15px rgba(255, 145, 77, 0.3);
-      transform: translateY(20px);
     }
 
     .next-song-toast.show {
@@ -337,6 +337,24 @@
     .repeat-btn.active {
       color: #ffeb3b;
       text-shadow: 0 0 8px rgba(255, 235, 59, 0.4);
+    }
+    /* 1곡 반복일 때 숫자 1 표시 */
+    .repeat-btn.single-mode::after {
+      content: '1';
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      font-size: 0.6rem;
+      font-weight: 900;
+      background: #ffeb3b;
+      color: #000;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
     }
 
     /* 저장/인증 영역 세로 정렬 */
@@ -783,12 +801,13 @@
       flex-direction: column;
       gap: 6px;
       flex: 1;
-      margin-right: 15px;
+      width: 100%;
+      text-align: center;
       overflow: hidden;
       cursor: pointer;
     }
     .mini-title {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: 700;
       color: #ff914d;
       white-space: nowrap;
@@ -1286,7 +1305,7 @@
     let isVisualizerSetup = false;
     let smoothedHeights = [], targetHeights = [], lastUpdateTimestamp = 0;
     let optiLevel = 0;
-    let repeatMode = 'single';
+    let repeatMode = 'all';
     let sparks = [];
     let lastDrawTime = 0;
     const fpsLimit = 25;
@@ -1317,6 +1336,24 @@
 
     function toggleModal(show) { document.getElementById('modalOverlay').style.display = show ? 'flex' : 'none'; }
     function toggleFriendModal(show) { document.getElementById('friendModalOverlay').style.display = show ? 'flex' : 'none'; }
+    
+    function setRepeat(mode) { 
+      repeatMode = mode; 
+      const btn = document.getElementById('repeatBtn');
+      if (mode === 'all') {
+        btn.classList.add('active');
+        btn.classList.remove('single-mode');
+        btn.title = "전체 반복";
+      } else if (mode === 'single') {
+        btn.classList.add('active');
+        btn.classList.add('single-mode');
+        btn.title = "1곡 반복";
+      } else {
+        btn.classList.remove('active');
+        btn.classList.remove('single-mode');
+        btn.title = "반복 안함";
+      }
+    }
     
     function toggleFullLyrics(show) { 
       const overlay = document.getElementById('fullLyricsOverlay');
@@ -1650,7 +1687,7 @@
 
         playingRandomTrack = { 
           src: audioUrl, 
-          name: `🎲 ${trackName}`, 
+          name: `${trackName}`, 
           lyricsText: finalLyrics || '제리키링AI', 
           isRandom: true 
         };
@@ -2082,8 +2119,15 @@
       const track = playlist[currentIdx];
       console.log(`[🎵 Playing] Index: ${currentIdx}, Name: ${track.name}, Source: ${track.src}`);
       player.src = track.src;
-      trackDisplay.innerHTML = `[ > ${track.name} ]${getRadioIconHtml()}`;
+      
+      // 랜덤 곡일 경우 노란색으로 제목 표시
+      const isRandomOrFriend = track.isRandom || track.isFriend;
+      const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ff914d';
+      
+      trackDisplay.innerHTML = `<span style="color: ${titleColor}">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
       obsTrackTitle.innerHTML = `${track.name}`;
+      if (isRandomOrFriend) obsTrackTitle.style.color = '#ffeb3b';
+      else obsTrackTitle.style.color = '#000000';
       if (track.isFriend) document.getElementById('lyricsBox').classList.add('lyric-friend');
       else document.getElementById('lyricsBox').classList.remove('lyric-friend');
       parseLyrics(playlist[currentIdx].lyricsText);
@@ -2379,9 +2423,15 @@
         miniBar.classList.remove('theme-yellow');
       }
       
-      // 재생 아이콘 상태 동기화
+      // 재생 아이콘 상태 동기화 (이제 아이콘은 숨겨지지만 데이터는 유지)
       const miniIcon = document.getElementById('miniPlayPauseIcon');
-      miniIcon.className = player.paused ? 'fa-solid fa-play mini-btn play-pause' : 'fa-solid fa-pause mini-btn play-pause';
+      if (miniIcon) miniIcon.className = player.paused ? 'fa-solid fa-play mini-btn play-pause' : 'fa-solid fa-pause mini-btn play-pause';
+
+      // 컨트롤 버튼 영역 숨기기 (제목만 보이게)
+      const miniControls = document.querySelector('.mini-controls');
+      if (miniControls) miniControls.style.display = 'none';
+      const miniProgress = document.getElementById('miniProgress');
+      if (miniProgress) miniProgress.style.display = 'none';
 
       miniBar.classList.add('show');
       showInterface();
@@ -2440,7 +2490,7 @@
       const statusText = document.getElementById('radioStatusText');
       
       if (aiRadioEnabled) {
-        if (repeatMode === 'single') setRepeat('all');
+        setRepeat('all');
         btn.classList.add('radio-active');
         btn.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 OFF';
         statusText.style.display = 'block';

@@ -15,27 +15,76 @@ interface MusicPlayerProps {
 
 export default function MusicPlayer({ tracks, lyrics, onTrackPlay }: MusicPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [currentTrack, setCurrentTrack] = useState<number>(-1);
+  const nextAudioRef = useRef<HTMLAudioElement>(null); // 다음 곡 프리로드용
+  
+  const [currentTrack, setCurrentTrack] = useState<number>(0);
   const [showPlayer, setShowPlayer] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
-  const [showActions, setShowActions] = useState(false);
+  const [showActions, setShowActions] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
 
+  // 초기 로드 시 첫 번째 곡 설정 및 두 번째 곡 프리로드
+  useEffect(() => {
+    if (tracks.length > 0) {
+      // 첫 번째 곡 로드
+      if (audioRef.current) {
+        audioRef.current.src = tracks[0].url;
+      }
+      
+      // 두 번째 곡이 있다면 미리 로드
+      if (tracks.length > 1 && nextAudioRef.current) {
+        nextAudioRef.current.src = tracks[1].url;
+        nextAudioRef.current.load();
+      }
+      
+      setShowPlayer(true);
+      setShowLyrics(!!lyrics);
+    }
+  }, [tracks, lyrics]);
+
+  /**
+   * 특정 곡 재생
+   */
   function playTrack(index: number) {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !tracks[index]) return;
 
-    audio.src = tracks[index].url;
+    // 현재 곡과 클릭한 곡이 다르면 소스 교체
+    if (currentTrack !== index) {
+      audio.src = tracks[index].url;
+    }
+    
     audio.play().catch(() => {});
     setCurrentTrack(index);
-    setShowPlayer(true);
-    setShowActions(true);
-
-    // 가사가 있으면 표시
-    if (lyrics) {
-      setShowLyrics(true);
-    }
-
+    setIsPlaying(true);
     onTrackPlay?.(index);
+
+    // 다음 곡 프리로드 업데이트
+    preloadNextTrack(index);
+  }
+
+  /**
+   * 다음 곡을 백그라운드에서 미리 로드
+   */
+  function preloadNextTrack(currentIndex: number) {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < tracks.length && nextAudioRef.current) {
+      nextAudioRef.current.src = tracks[nextIndex].url;
+      nextAudioRef.current.load();
+      console.log(`[Preload] Next track ready: ${tracks[nextIndex].label}`);
+    }
+  }
+
+  /**
+   * 노래 종료 시 자동 다음 곡 재생
+   */
+  function handleEnded() {
+    const nextIndex = currentTrack + 1;
+    if (nextIndex < tracks.length) {
+      playTrack(nextIndex);
+    } else {
+      setIsPlaying(false);
+    }
   }
 
   // 공유 기능
@@ -72,41 +121,51 @@ export default function MusicPlayer({ tracks, lyrics, onTrackPlay }: MusicPlayer
 
   return (
     <>
-      {/* Audio Player */}
+      {/* 실제 재생용 오디오 태그 */}
       <audio
         ref={audioRef}
         controls
+        onEnded={handleEnded}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
         className={`audio-player ${showPlayer ? 'visible' : ''}`}
       />
 
-      {/* Track Buttons */}
-      {tracks.map((track, i) => (
-        <button
-          key={i}
-          className={`track-button visible ${currentTrack === i ? 'playing' : ''}`}
-          onClick={() => playTrack(i)}
-          style={{ animationDelay: `${i * 0.1}s` }}
-        >
-          <img
-            src="/images/iphone.png"
-            alt=""
-            className="track-icon"
-          />
-          <span className="track-label">{track.label}</span>
-          {currentTrack === i && (
-            <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>♫</span>
-          )}
-        </button>
-      ))}
+      {/* 다음 곡 프리로드용 숨겨진 오디오 태그 */}
+      <audio ref={nextAudioRef} preload="auto" style={{ display: 'none' }} />
 
-      {/* Lyrics */}
+      {/* 트랙 버튼 목록 */}
+      <div className="track-list" style={{ marginTop: '20px' }}>
+        {tracks.map((track, i) => (
+          <button
+            key={i}
+            className={`track-button visible ${currentTrack === i ? 'playing' : ''}`}
+            onClick={() => playTrack(i)}
+            style={{ animationDelay: `${i * 0.1}s` }}
+          >
+            <img
+              src="/images/iphone.png"
+              alt=""
+              className="track-icon"
+            />
+            <span className="track-label">{track.label}</span>
+            {currentTrack === i && isPlaying && (
+              <span className="playing-indicator">♫</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* 가사 표시 */}
       {lyrics && (
         <div className={`lyrics-display ${showLyrics ? 'visible' : ''}`}>
-          {lyrics}
+          {lyrics.split('\n').map((line, idx) => (
+            <p key={idx}>{line}</p>
+          ))}
         </div>
       )}
 
-      {/* Action Buttons */}
+      {/* 하단 액션 버튼 */}
       <div className={`action-buttons ${showActions ? 'visible' : ''}`}>
         <a
           className="action-btn"

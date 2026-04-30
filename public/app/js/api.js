@@ -160,13 +160,17 @@ window.api.getAudioFiles = async function (nfcNumber) {
 
 /**
  * Supabase를 통해 랜덤으로 음원 한 곡과 해당 곡의 정보를 가져옵니다.
+ * 유효한 정보(가사 등)가 없으면 다음 곡을 자동으로 찾습니다.
  */
-window.api.getRandomTrack = async function () {
+window.api.getRandomTrack = async function (retryCount = 0) {
+  // 너무 많은 재시도 방지 (최대 10회)
+  if (retryCount > 10) return null;
+
   const client = getSupabase();
   if (!client) return null;
 
   try {
-    // 1. 모든 오디오 파일 목록을 가져옵니다. (필터 없이 전수 조사)
+    // 1. 모든 오디오 파일 목록을 가져옵니다.
     const { data: allAudios, error: fetchErr } = await client
       .from('audio_files')
       .select('*');
@@ -185,14 +189,18 @@ window.api.getRandomTrack = async function () {
       .eq('nfc_id', audioData.nfc_id)
       .maybeSingle();
 
-    if (trackErr) console.error('트랙 정보 로드 실패:', trackErr);
+    // 4. 정보가 없거나 가사가 없으면 "그냥 다음 곡으로 넘어감" (재시도)
+    if (trackErr || !trackInfo || !trackInfo.lyrics) {
+      console.warn(`[Skip] ${audioData.nfc_id}번 트랙 정보가 부족하여 다음 랜덤 곡을 찾습니다.`);
+      return await window.api.getRandomTrack(retryCount + 1);
+    }
 
-    // 4. 데이터 정제 및 반환
+    // 5. 데이터 정제 및 반환
     return {
       id: audioData.id,
       audio_url: audioData.audio_url,
       nfc_id: audioData.nfc_id,
-      tracks: trackInfo || { genre: '랜덤 음원', lyrics: '제리키링AI' }
+      tracks: trackInfo
     };
   } catch (err) {
     console.error('랜덤 음원 불러오기 에러:', err);

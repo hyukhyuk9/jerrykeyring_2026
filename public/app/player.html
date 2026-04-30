@@ -2053,6 +2053,25 @@
       loadTrack(index);
       player.play().catch(() => { });
       resetIdleTimer();
+      
+      // 다음 곡 프리로드
+      preloadNextTrack(index);
+    }
+
+    // 다음 곡 프리로드용 숨겨진 오디오 객체
+    const nextPlayer = new Audio();
+    nextPlayer.preload = "auto";
+
+    function preloadNextTrack(currentIndex) {
+      if (playingRandomTrack) return; // 랜덤 재생 중에는 별도 처리
+      
+      const nextIdx = (currentIndex + 1) % playlist.length;
+      const nextTrack = playlist[nextIdx];
+      if (nextTrack && nextTrack.src) {
+        nextPlayer.src = nextTrack.src;
+        nextPlayer.load();
+        console.log(`[🚀 Preload] Next track ready: ${nextTrack.name}`);
+      }
     }
 
     function loadTrack(index) {

@@ -1,13 +1,19 @@
 import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3';
 
-const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: process.env.R2_ENDPOINT || '',
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-  },
-});
+const r2Endpoint = process.env.R2_ENDPOINT;
+const r2AccessKey = process.env.R2_ACCESS_KEY_ID;
+const r2SecretKey = process.env.R2_SECRET_ACCESS_KEY;
+
+const r2Client = (r2Endpoint && r2AccessKey && r2SecretKey) 
+  ? new S3Client({
+      region: 'auto',
+      endpoint: r2Endpoint,
+      credentials: {
+        accessKeyId: r2AccessKey,
+        secretAccessKey: r2SecretKey,
+      },
+    })
+  : (null as any);
 
 const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'media';
 const PUBLIC_DOMAIN = process.env.R2_PUBLIC_DOMAIN || '';

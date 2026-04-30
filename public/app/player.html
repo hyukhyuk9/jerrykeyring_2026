@@ -809,30 +809,16 @@
     .mini-title {
       font-size: 0.9rem;
       font-weight: 700;
-      color: #ff914d;
+      color: #ffeb3b; /* 기본적으로 노란색으로 변경 */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       transition: color 0.4s ease;
     }
-    #miniPlayerBar.theme-yellow .mini-title { color: #ffeb3b; }
+    #miniPlayerBar .mini-title { color: #ffeb3b; }
 
     .mini-progress-container {
-      width: 100%;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
-      position: relative;
-      cursor: pointer;
-    }
-    #miniProgressFill {
-      position: absolute;
-      left: 0; top: 0; height: 100%;
-      background: #ff914d;
-      width: 0%;
-      border-radius: 2px;
-      box-shadow: 0 0 10px rgba(255, 145, 77, 0.6);
-      transition: background 0.4s ease;
+      display: none !important;
     }
     #miniPlayerBar.theme-yellow #miniProgressFill { 
       background: #ffeb3b; 
@@ -840,12 +826,7 @@
     }
 
     .mini-controls {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 15px;
+      display: none !important;
     }
     .mini-btn {
       color: #ff914d;
@@ -2120,14 +2101,12 @@
       console.log(`[🎵 Playing] Index: ${currentIdx}, Name: ${track.name}, Source: ${track.src}`);
       player.src = track.src;
       
-      // 랜덤 곡일 경우 노란색으로 제목 표시
       const isRandomOrFriend = track.isRandom || track.isFriend;
-      const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ff914d';
+      const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ffeb3b'; // 사용자 요청에 따라 항상 노란색으로 표시 (혹은 랜덤/친구만)
       
-      trackDisplay.innerHTML = `<span style="color: ${titleColor}">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
-      obsTrackTitle.innerHTML = `${track.name}`;
-      if (isRandomOrFriend) obsTrackTitle.style.color = '#ffeb3b';
-      else obsTrackTitle.style.color = '#000000';
+      trackDisplay.innerHTML = `<span style="color: #ffeb3b">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
+      obsTrackTitle.innerHTML = `<span style="color: #ffeb3b">< ${track.name} ></span>`;
+      obsTrackTitle.style.color = '#ffeb3b';
       if (track.isFriend) document.getElementById('lyricsBox').classList.add('lyric-friend');
       else document.getElementById('lyricsBox').classList.remove('lyric-friend');
       parseLyrics(playlist[currentIdx].lyricsText);

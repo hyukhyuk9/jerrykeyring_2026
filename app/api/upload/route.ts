@@ -66,7 +66,8 @@ export async function POST(request: NextRequest) {
       .insert({
         nfc_id: nfcId,
         audio_url: publicUrl,
-        category: 'music'
+        category: 'music',
+        audio_url_status: true
       });
 
     if (dbError) throw dbError;

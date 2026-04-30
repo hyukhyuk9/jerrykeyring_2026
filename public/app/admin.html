@@ -315,8 +315,9 @@
             allTracks.filter(t => t.nfc_id.toLowerCase().includes(query) || t.user_name.toLowerCase().includes(query)).forEach(t => {
                 const tr = document.createElement('tr'); tr.onclick = () => showDetail(t.id);
                 const isDone = (t.sync_lyrics && t.sync_lyrics.length > 0);
-                const hasAudio = t.audio_files && t.audio_files.length > 0;
-                tr.innerHTML = `<td>${t.nfc_id}</td><td>${t.user_name}</td><td>${t.genre || '-'}</td><td>${hasAudio ? '<span style="color:var(--success)">O</span>' : '-'}</td><td><span class="tag ${isDone ? 'tag-done' : 'tag-pending'}" onclick="routeToLyrics(event, '${t.id}')">${isDone ? '완료' : '미등록'}</span></td>`;
+                // 음원 O 표시 기준: 하나라도 audio_url_status가 true인 음원 파일이 있는 경우
+                const hasValidAudio = t.audio_files && t.audio_files.some(f => f.audio_url_status === true);
+                tr.innerHTML = `<td>${t.nfc_id}</td><td>${t.user_name}</td><td>${t.genre || '-'}</td><td>${hasValidAudio ? '<span style="color:var(--success)">O</span>' : '-'}</td><td><span class="tag ${isDone ? 'tag-done' : 'tag-pending'}" onclick="routeToLyrics(event, '${t.id}')">${isDone ? '완료' : '미등록'}</span></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -337,7 +338,36 @@
         function backToList() { audio.pause(); document.getElementById('dashboardDetail').classList.remove('active'); document.getElementById('dashboardList').classList.add('active'); }
         function renderDetailAudioList(files) {
             const list = document.getElementById('detailAudioList'); list.innerHTML = '';
-            files?.forEach(f => { list.innerHTML += `<div class="audio-item"><span>${decodeURIComponent(f.audio_url.split('/').pop())}</span><button class="btn-sm btn-danger" style="border:none;" onclick="deleteAudio('${f.id}')">X</button></div>`; });
+            if (!files || files.length === 0) {
+                list.innerHTML = '<p style="color:#555; font-size:0.8rem; text-align:center; padding:1rem;">등록된 음원이 없습니다.</p>';
+                return;
+            }
+            files.forEach(f => { 
+                const fileName = decodeURIComponent(f.audio_url.split('/').pop());
+                const isValid = f.audio_url_status === true;
+                list.innerHTML += `
+                    <div class="audio-item" style="opacity: ${isValid ? 1 : 0.5}">
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <span style="font-size:0.85rem;">${fileName}</span>
+                            <span style="font-size:0.7rem; color: ${isValid ? 'var(--success)' : 'var(--danger)'}">
+                                ${isValid ? '● 정상 재생 가능' : '○ 유효하지 않음 (R2 누락)'}
+                            </span>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-sm ${isValid ? 'btn-outline' : 'btn-success'}" style="padding:4px 8px; font-size:0.65rem;" onclick="toggleFileStatus('${f.id}', ${!isValid})">
+                                ${isValid ? '무효화' : '활성화'}
+                            </button>
+                            <button class="btn-sm btn-danger" style="border:none;" onclick="deleteAudio('${f.id}')">삭제</button>
+                        </div>
+                    </div>`; 
+            });
+        }
+
+        async function toggleFileStatus(id, newStatus) {
+            if (!confirm(`해당 파일의 상태를 ${newStatus ? '활성화' : '무효화'} 하시겠습니까?`)) return;
+            const res = await window.api.updateAudioStatus(id, newStatus);
+            if (res.success) { toast('상태가 업데이트되었습니다.'); loadData(); setTimeout(() => showDetail(currentTargetId), 500); }
+            else { toast('업데이트 실패: ' + res.message); }
         }
 
         function renderLyricTargets() {

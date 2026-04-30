@@ -225,7 +225,7 @@ window.api.getAllTracks = async function () {
   try {
     const { data, error } = await client
       .from('tracks')
-      .select('*, audio_files(audio_url)')
+      .select('*, audio_files(id, audio_url, audio_url_status, category)')
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
@@ -250,6 +250,25 @@ window.api.updateTrack = async function (id, updateData) {
     return { success: true };
   } catch (err) {
     console.error('트랙 업데이트 에러:', err);
+    return { success: false, message: err.message };
+  }
+};
+
+/**
+ * [관리자용] 음원 파일 상태 업데이트 (audio_url_status)
+ */
+window.api.updateAudioStatus = async function (id, status) {
+  const client = getSupabase();
+  if (!client) return { success: false };
+  try {
+    const { error } = await client
+      .from('audio_files')
+      .update({ audio_url_status: status })
+      .eq('id', id);
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('음원 상태 업데이트 에러:', err);
     return { success: false, message: err.message };
   }
 };

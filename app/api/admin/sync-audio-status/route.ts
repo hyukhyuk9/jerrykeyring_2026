@@ -15,6 +15,13 @@ const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'media';
 
 export async function GET() {
   try {
+    // 0. 클라이언트 연결 확인
+    if (!supabase) {
+      return NextResponse.json({ 
+        error: "Supabase 연결 정보를 찾을 수 없습니다. 환경 변수(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) 설정을 확인해 주세요." 
+      }, { status: 500 });
+    }
+
     // 1. 모든 오디오 파일 레코드 조회
     const { data: allFiles, error: fetchError } = await supabase
       .from('audio_files')

@@ -10,7 +10,15 @@ export async function POST(request: Request) {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
 
   if (!supabaseUrl || !supabaseKey || !apiKey) {
-    return NextResponse.json({ error: '서버 환경 변수 설정이 누락되었습니다.' }, { status: 500 });
+    console.error('[Radio Batch Error] Missing Env Vars:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      hasApiKey: !!apiKey
+    });
+    return NextResponse.json({ 
+      error: '서버 환경 변수 설정이 누락되었습니다.',
+      debug: { hasUrl: !!supabaseUrl, hasKey: !!supabaseKey, hasApiKey: !!apiKey }
+    }, { status: 500 });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);

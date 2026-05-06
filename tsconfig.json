@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
-    "jerrykeyring_legacy"
+    "jerrykeyring_legacy",
+    "scratch"
   ]
 }

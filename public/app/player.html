@@ -2514,6 +2514,43 @@
         window.api.updateMediaSession({ state: 'paused' });
       }
     }
+
+    // iOS 백그라운드 유지를 위한 이벤트 리스너 추가
+    player.addEventListener('play', () => {
+      const track = playingRandomTrack || playlist[currentIdx];
+      if (track) {
+        window.api.updateMediaSession({
+          title: track.name,
+          artist: track.isRandom ? '제리키링 (랜덤)' : '제리키링',
+          state: 'playing'
+        });
+      }
+    });
+
+    player.addEventListener('playing', () => {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+      }
+      // iOS 대응: 오디오 엔진이 멈춰있다면 강제로 깨움
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    });
+
+    // 앱이 백그라운드로 가거나 화면이 꺼질 때 오디오 엔진 유지
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      }
+    });
+
+    // 주기적으로 오디오 엔진 상태 체크 (아이폰 백그라운드 소리 끊김 방지)
+    setInterval(() => {
+      if (!player.paused && audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }, 1000);
+
     function changeTrack(dir) {
       // 랜덤 재생 중이더라도 강제로 이전/다음 곡 탐색 시 랜덤 모드 해제하여 플레이리스트 순회
       playingRandomTrack = null; 

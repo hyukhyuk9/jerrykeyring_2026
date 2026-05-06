@@ -9,8 +9,9 @@
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="제리키링AI">
-  <link rel="apple-touch-icon" href="/app/iphone.png">
+  <meta name="apple-mobile-web-app-title" content="제리키링">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  <link rel="manifest" href="/manifest.json">
 
   <link rel="stylesheet" as="style" crossorigin
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -792,32 +793,81 @@
       text-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
     }
 
-    /* 하단 미니 플레이어 바 스타일 */
+    /* 하단 미니 플레이어 바 스타일 (Floating Glassmorphism) */
     #miniPlayerBar {
       display: none;
       position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 70px;
-      background: rgba(18, 18, 18, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid rgba(255, 145, 77, 0.3);
+      bottom: 25px; /* 하단에서 띄움 */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 450px;
+      height: 65px;
+      background: rgba(255, 145, 77, 0.15); /* 주황색 유리 느낌 */
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 145, 77, 0.3);
+      border-radius: 20px; /* 둥근 모서리 */
       z-index: 6000;
       padding: 0 15px;
       align-items: center;
       justify-content: space-between;
-      animation: miniSlideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-      box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
-      transition: border-color 0.4s ease;
+      animation: miniSlideUp 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(255, 145, 77, 0.1);
+      transition: all 0.4s ease;
+      cursor: pointer;
     }
     #miniPlayerBar.show { display: flex; }
-    #miniPlayerBar.theme-yellow { border-top-color: rgba(255, 235, 59, 0.5); }
     
     @keyframes miniSlideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
+      from { transform: translate(-50%, 100px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    .mini-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      overflow: hidden;
+    }
+    .mini-album-cover {
+      width: 42px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 145, 77, 0.2);
+    }
+    .mini-album-cover img {
+      width: 24px;
+      height: 24px;
+      opacity: 0.8;
+    }
+    .mini-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-right {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .mini-play-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff914d;
+      font-size: 1.4rem;
+      cursor: pointer;
     }
 
     .mini-info-area {
@@ -1238,21 +1288,16 @@
   </div>
 
   <!-- 하단 미니 플레이어 바 -->
-  <div id="miniPlayerBar">
-    <div class="mini-info-area" onclick="restoreFullPlayer()">
-      <div id="miniTitle" class="mini-title">곡 제목</div>
-      <div class="mini-progress-container" onclick="event.stopPropagation(); miniSeek(event)">
-        <div id="miniProgressFill"></div>
+  <div id="miniPlayerBar" onclick="restoreFullPlayer()">
+    <div class="mini-left">
+      <div class="mini-album-cover">
+        <img src="/app/iphone.png" alt="cover">
       </div>
+      <div id="miniTitle" class="mini-title">곡 제목</div>
     </div>
-    <div class="mini-controls">
-      <i class="fa-solid fa-backward mini-btn" onclick="event.stopPropagation(); changeTrack(-1)"></i>
-      <i id="miniPlayPauseIcon" class="fa-solid fa-pause mini-btn play-pause" onclick="event.stopPropagation(); togglePlay()"></i>
-      <i class="fa-solid fa-forward mini-btn" onclick="event.stopPropagation(); changeTrack(1)"></i>
-    </div>
-    <div class="mini-disc-area" onclick="restoreFullPlayer()">
-      <div class="mini-disc">
-        <i class="fa-solid fa-compact-disc"></i>
+    <div class="mini-right">
+      <div class="mini-play-btn" onclick="event.stopPropagation(); togglePlay()">
+        <i id="miniPlayPauseIcon" class="fa-solid fa-pause"></i>
       </div>
     </div>
   </div>
@@ -2357,13 +2402,13 @@
       const miniIcon = document.getElementById('miniPlayPauseIcon');
       if (player.paused) { 
         player.play(); 
-        icon.className = 'fa-solid fa-pause control-btn main-play-btn';
-        miniIcon.className = 'fa-solid fa-pause mini-btn play-pause';
+        if (icon) icon.className = 'fa-solid fa-pause control-btn main-play-btn';
+        if (miniIcon) miniIcon.className = 'fa-solid fa-pause';
       }
       else { 
         player.pause(); 
-        icon.className = 'fa-solid fa-play control-btn main-play-btn';
-        miniIcon.className = 'fa-solid fa-play mini-btn play-pause';
+        if (icon) icon.className = 'fa-solid fa-play control-btn main-play-btn';
+        if (miniIcon) miniIcon.className = 'fa-solid fa-play';
       }
     }
     function changeTrack(dir) {
@@ -2372,7 +2417,8 @@
         return;
       }
       currentIdx = (currentIdx + dir + playlist.length) % playlist.length; loadTrack(currentIdx); player.play();
-      document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
+      if (document.getElementById('playPauseIcon')) document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
+      if (document.getElementById('miniPlayPauseIcon')) document.getElementById('miniPlayPauseIcon').className = 'fa-solid fa-pause';
     }
     
     // onended 핸들러를 변수로 보관 (라디오 fade 복원용)
@@ -2454,24 +2500,11 @@
       // 미니바 노출
       const miniBar = document.getElementById('miniPlayerBar');
       const track = playingRandomTrack || playlist[currentIdx];
-      document.getElementById('miniTitle').innerText = track ? track.name : "재생 중";
+      document.getElementById('miniTitle').innerText = track ? (track.name || track.label || "재생 중") : "재생 중";
       
-      // 타인/랜덤 음원일 경우 노란색 테마 적용
-      if (track && (track.isFriend || track.isRandom)) {
-        miniBar.classList.add('theme-yellow');
-      } else {
-        miniBar.classList.remove('theme-yellow');
-      }
-      
-      // 재생 아이콘 상태 동기화 (이제 아이콘은 숨겨지지만 데이터는 유지)
+      // 재생 아이콘 상태 동기화
       const miniIcon = document.getElementById('miniPlayPauseIcon');
-      if (miniIcon) miniIcon.className = player.paused ? 'fa-solid fa-play mini-btn play-pause' : 'fa-solid fa-pause mini-btn play-pause';
-
-      // 컨트롤 버튼 영역 숨기기 (제목만 보이게)
-      const miniControls = document.querySelector('.mini-controls');
-      if (miniControls) miniControls.style.display = 'none';
-      const miniProgress = document.getElementById('miniProgress');
-      if (miniProgress) miniProgress.style.display = 'none';
+      if (miniIcon) miniIcon.className = player.paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
 
       miniBar.classList.add('show');
       showInterface();

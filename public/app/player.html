@@ -476,19 +476,20 @@
     }
 
     .custom-controls {
-      display: flex;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: 80px 1fr 80px;
       align-items: center;
       width: 100%;
       max-width: 450px;
-      margin: 35px auto 0;
+      margin: 25px auto 0;
+      gap: 10px;
     }
+    
     .side-control-area {
-      width: 80px; /* 고정 너비 확보 */
-      height: 60px; /* 중앙 버튼 높이에 맞춰 확보 */
       display: flex;
       align-items: center;
       justify-content: center;
+      height: 100%; /* 부모 그리드 높이에 맞춤 */
     }
     .center-control-area {
       flex: 1;
@@ -496,6 +497,19 @@
       justify-content: center;
       align-items: center;
       gap: 35px;
+    }
+    
+    .repeat-btn {
+      cursor: pointer;
+      color: #ff914d;
+      transition: all 0.3s ease;
+      opacity: 0.5;
+    }
+    
+    .repeat-btn.active {
+      opacity: 1 !important;
+      color: #ffeb3b !important;
+      text-shadow: 0 0 10px rgba(255, 235, 59, 0.8), 0 0 20px rgba(255, 145, 77, 0.4);
     }
 
     .center-controls {
@@ -1169,17 +1183,17 @@
 
         <div id="playerControls" class="custom-controls" style="display: none;">
           <div class="side-control-area">
-            <i id="repeatBtn" class="fa-solid fa-rotate-right repeat-btn" onclick="toggleRepeat()" title="반복 재생" style="font-size: 1.3rem; opacity: 0.6;"></i>
+            <i id="repeatBtn" class="fa-solid fa-rotate-right repeat-btn" onclick="toggleRepeat()" title="반복 재생" style="font-size: 1.3rem;"></i>
           </div>
           
           <div class="center-control-area" style="font-size: 1.8rem;">
-            <i class="fa-solid fa-backward control-btn" onclick="changeTrack(-1)"></i>
+            <i class="fa-solid fa-chevron-left control-btn" onclick="changeTrack(-1)"></i>
             <i id="playPauseIcon" class="fa-solid fa-pause control-btn main-play-btn" onclick="togglePlay()"></i>
-            <i class="fa-solid fa-forward control-btn" onclick="changeTrack(1)"></i>
+            <i class="fa-solid fa-chevron-right control-btn" onclick="changeTrack(1)"></i>
           </div>
 
           <div class="side-control-area">
-            <div id="saveArea" style="display: flex; align-items: center; gap: 8px; transition: opacity 0.3s; opacity: 0;">
+            <div id="saveArea" style="display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.3s; opacity: 0; width: 100%;">
               <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장" style="font-size: 1.3rem;"></i>
               <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark" style="display:none; font-size: 1.1rem; color: #4db8ff;"></i>
             </div>
@@ -2501,10 +2515,9 @@
       }
     }
     function changeTrack(dir) {
-      if (playingRandomTrack) {
-        playRandomMusic();
-        return;
-      }
+      // 랜덤 재생 중이더라도 강제로 이전/다음 곡 탐색 시 랜덤 모드 해제하여 플레이리스트 순회
+      playingRandomTrack = null; 
+      
       currentIdx = (currentIdx + dir + playlist.length) % playlist.length; 
       loadTrack(currentIdx);
       if (document.getElementById('playPauseIcon')) document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';

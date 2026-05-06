@@ -293,7 +293,7 @@
 
     .next-song-toast.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
     }
 
     /* 저장 버튼 스타일 - 아이콘만 표시 */
@@ -2248,7 +2248,6 @@
       canvas.style.opacity = '0.4';
       if (!animationId) drawVisualizer(0);
       loadTrack(index);
-      player.play().catch(() => { });
       resetIdleTimer();
       
       // 다음 곡 프리로드
@@ -2278,7 +2277,10 @@
       hideNextSongToast();
       const track = playlist[currentIdx];
       console.log(`[🎵 Playing] Index: ${currentIdx}, Name: ${track.name}, Source: ${track.src}`);
+      
       player.src = track.src;
+      player.load(); // 명시적 로드 시작
+      player.play().catch(() => { }); // 즉시 재생 시도
       
       const isRandomOrFriend = track.isRandom || track.isFriend;
       const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ff914d';
@@ -2503,7 +2505,8 @@
         playRandomMusic();
         return;
       }
-      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; loadTrack(currentIdx); player.play();
+      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; 
+      loadTrack(currentIdx);
       if (document.getElementById('playPauseIcon')) document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
       if (document.getElementById('miniPlayPauseIcon')) document.getElementById('miniPlayPauseIcon').className = 'fa-solid fa-pause';
     }

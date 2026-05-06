@@ -1,12 +1,4 @@
-# 기존 Netlify 사이트에 이 파일만 배포하면
-# 모든 NFC 태그 URL이 새 Vercel 사이트로 리다이렉트됩니다.
-#
-# 사용법:
-# 1. Netlify 사이트의 publish 디렉토리에 이 _redirects 파일을 넣기
-# 2. 배포
-#
-# [VERCEL_DOMAIN]을 실제 Vercel 도메인으로 변경하세요
+# 리다이렉트 설정 (Cloudflare Pages)
+# 모든 NFC 태그 관련 요청은 그대로 유지하거나 필요한 경우에만 추가합니다.
 
-/nfc/:id.html    https://jerrykeyring.vercel.app/nfc/:id    301!
-/nfc/:id         https://jerrykeyring.vercel.app/nfc/:id    301!
-/*               https://jerrykeyring.vercel.app/:splat      301!
+# 현재는 모든 정적 파일 서비스가 정상적으로 동작하도록 기본 설정을 유지합니다.

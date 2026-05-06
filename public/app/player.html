@@ -651,7 +651,6 @@
       white-space: nowrap;
     }
 
-    /* 시리얼 표시 전용 스타일 */
     #serialDisplay {
       text-align: center;
       font-size: 8px;
@@ -660,6 +659,30 @@
       opacity: 0.6;
       font-family: 'Courier New', monospace;
       letter-spacing: 1px;
+    }
+
+    /* PWA Install UI Styles */
+    #iosInstallGuide {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .install-card {
+      background: rgba(30, 30, 32, 0.9); border: 1px solid rgba(255,145,77,0.3);
+      padding: 35px 25px; border-radius: 30px; text-align: center; width: 85%; max-width: 320px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .install-card img { width: 70px; margin-bottom: 20px; border-radius: 15px; }
+    .install-card h2 { font-size: 1.4rem; color: #ff914d; font-weight: 800; margin-bottom: 10px; }
+    .install-card p { font-size: 0.9rem; color: #ccc; margin-bottom: 25px; line-height: 1.5; }
+    .install-step { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; font-size: 0.85rem; color: #fff; }
+    .install-step i { color: #ff914d; margin-bottom: 5px; display: block; font-size: 1.2rem; }
+    
+    .install-btn {
+      width: 100%; background: linear-gradient(135deg, #ffb347, #ff914d);
+      color: #000; border: none; padding: 14px; border-radius: 20px;
+      font-weight: 800; font-size: 0.95rem; margin-top: 10px; cursor: pointer;
     }
 
     .lyrics-inner {
@@ -1128,6 +1151,12 @@
           <i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작
         </button>
         <p id="radioStatusText" style="font-size:0.7rem; color:#888; margin-top:8px; text-align:center; display:none;">📻 라디오 ON — 다음곡 10초 전에 DJ가 사연을 읽어줍니다</p>
+      </div>
+      <div class="settings-section">
+        <h6>앱 설치 및 설정</h6>
+        <div class="option-item" style="color: #ffeb3b; font-weight: bold; margin-bottom: 15px;" onclick="triggerInstall()">
+          <i class="fa-solid fa-mobile-screen-button"></i> 홈 화면에 추가하기 (앱으로 쓰기)
+        </div>
       </div>
       <div class="settings-section">
         <h6>계정 및 기기</h6>
@@ -2523,6 +2552,38 @@
     if (isSafari) {
       const fsBtn = document.querySelector('.fullscreen-btn');
       if (fsBtn) fsBtn.style.display = 'none';
+    }
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+    });
+
+    function triggerInstall() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        // 아이폰용 가이드 노출
+        document.getElementById('iosInstallGuide').style.display = 'flex';
+      } else if (deferredPrompt) {
+        // 안드로이드/크롬 설치 팝업 실행
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        // 설치 불가 환경 혹은 이미 설치됨
+        showToastMsg('이미 설치되어 있거나 현재 브라우저에서 지원하지 않습니다.');
+      }
+    }
+
+    function showToastMsg(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 3000);
     }
   </script>
 </body>

@@ -142,11 +142,12 @@
                 <div style="font-size: 0.7rem; font-weight: 900; letter-spacing: 3px; color: var(--primary);">MASTER</div>
             </div>
             <ul class="nav-menu">
-                <li class="nav-item active" onclick="showTab('dashboard', this)"><i class="fa-solid fa-house"></i> 대시보드</li>
+                <li class="nav-item active" onclick="showTab('dashboard', this)"><i class="fa-solid fa-chart-line"></i> 대시보드</li>
+                <li class="nav-item" onclick="showTab('segments', this)"><i class="fa-solid fa-users-viewfinder"></i> 유저 세그먼트</li>
+                <li class="nav-item" onclick="showTab('platforms', this)"><i class="fa-solid fa-link"></i> 플랫폼 허브</li>
                 <li class="nav-item" onclick="showTab('lyrics', this)"><i class="fa-solid fa-clock"></i> 가사 타임라인</li>
-                <li class="nav-item" onclick="showTab('upload', this)"><i class="fa-solid fa-music"></i> 음원 등록</li>
-                <li class="nav-item" onclick="showTab('radio', this)"><i class="fa-solid fa-microphone"></i> AI 라디오 생성</li>
-                <li class="nav-item" onclick="showTab('api', this)"><i class="fa-solid fa-sliders"></i> API 설정</li>
+                <li class="nav-item" onclick="showTab('upload', this)"><i class="fa-solid fa-music"></i> 음원/라디오 관리</li>
+                <li class="nav-item" onclick="showTab('api', this)"><i class="fa-solid fa-sliders"></i> 설정</li>
             </ul>
             <div style="margin-top: auto; padding: 20px; border-top: 1px solid #222;">
                 <div style="font-size: 0.8rem; color: #888; font-weight: bold;">전체 사용자수: <span id="totalUserCountSidebar" style="color:var(--primary)">0</span>명</div>
@@ -155,19 +156,120 @@
         </aside>
 
         <main class="content">
-            <!-- Dashboard List -->
+            <!-- Dashboard Overview -->
             <section id="dashboardList" class="active">
                 <div class="page-header">
-                    <div class="page-title">전체 데이터 목록 <input type="text" id="searchInput" class="search-bar" placeholder="이름/NFC 검색..." oninput="filterTable()"></div>
+                    <div class="page-title">수익 및 퍼널 요약 <span style="font-size: 0.8rem; color: var(--text-dim); font-weight: 400;">(MVP 수익모델 점검)</span></div>
                     <button class="btn btn-primary" id="btnNewReg" onclick="toggleNewRegistration()">
                         <i class="fa-solid fa-plus"></i> <span id="btnNewRegText">신규 등록</span>
                     </button>
                 </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                    <div class="card" style="margin-bottom: 0; padding: 1.5rem; border-left: 4px solid var(--primary);">
+                        <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px;">전체 매출액</div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">₩ 0</div>
+                    </div>
+                    <div class="card" style="margin-bottom: 0; padding: 1.5rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px;">키링 활성화율</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;">0%</div>
+                    </div>
+                    <div class="card" style="margin-bottom: 0; padding: 1.5rem;">
+                        <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px;">추가곡 결제전환</div>
+                        <div style="font-size: 1.5rem; font-weight: 800;">0%</div>
+                    </div>
+                </div>
+
                 <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h4 style="font-weight: 800;">데이터 목록</h4>
+                        <input type="text" id="searchInput" class="search-bar" placeholder="이름/NFC 검색..." oninput="filterTable()" style="width: 250px; padding: 8px 18px;">
+                    </div>
                     <table>
                         <thead><tr><th>NFC ID</th><th>성함</th><th>장르</th><th>음원</th><th>타임라인</th></tr></thead>
                         <tbody id="trackBody"></tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- User Segments -->
+            <section id="tab-segments" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">유저 세그먼트 분석</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2.5rem;">
+                    <div class="card" style="position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--primary); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-key"></i></div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Type A: 키링 활성형</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">키링은 구매했으나 추가 결제는 없는 유저</p>
+                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                    </div>
+                    <div class="card" style="position: relative; overflow: hidden; border: 1px solid var(--primary);">
+                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--primary); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-bolt"></i></div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Type B: 적극 구매형</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">추가 곡/가사/라디오를 적극적으로 구매함</p>
+                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                    </div>
+                    <div class="card" style="position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--primary); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-globe"></i></div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Type C: 웹앱 체험형</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">웹앱만 이용하며 일부 콘텐츠 결제함</p>
+                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                    </div>
+                    <div class="card" style="position: relative; overflow: hidden; opacity: 0.6;">
+                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--text-dim); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-user-slash"></i></div>
+                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type D: 미등록 구매자</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">키링은 구매했으나 아직 사용자 등록 안 함</p>
+                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4 style="margin-bottom: 1rem;">세그먼트별 집중 관리 타겟</h4>
+                    <p style="color: var(--text-dim); font-size: 0.9rem;">데이터 연동 후 타입별 상세 리스트가 이곳에 표기됩니다.</p>
+                </div>
+            </section>
+
+            <!-- Platform Hub -->
+            <section id="tab-platforms" class="tab-content">
+                <div class="page-header">
+                    <h2 class="page-title">플랫폼 허브</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                    <a href="https://supabase.com" target="_blank" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                        <div style="width: 60px; height: 60px; background: #3ecf8e22; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #3ecf8e; font-size: 1.5rem;"><i class="fa-solid fa-database"></i></div>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 4px;">Supabase</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-dim);">데이터베이스 및 사용자 관리</p>
+                        </div>
+                    </a>
+                    <a href="https://cloudflare.com" target="_blank" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                        <div style="width: 60px; height: 60px; background: #f3802022; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f38020; font-size: 1.5rem;"><i class="fa-solid fa-cloud"></i></div>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 4px;">Cloudflare R2</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-dim);">음원 및 이미지 스토리지</p>
+                        </div>
+                    </a>
+                    <a href="https://aistudio.google.com" target="_blank" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                        <div style="width: 60px; height: 60px; background: #4285f422; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #4285f4; font-size: 1.5rem;"><i class="fa-solid fa-brain"></i></div>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 4px;">Google AI Studio</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-dim);">Gemini API (라디오 생성)</p>
+                        </div>
+                    </a>
+                    <a href="https://railway.app" target="_blank" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                        <div style="width: 60px; height: 60px; background: #fff2; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5rem;"><i class="fa-solid fa-server"></i></div>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 4px;">Railway</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-dim);">텔레그램 봇 호스팅</p>
+                        </div>
+                    </a>
+                    <a href="https://web.telegram.org" target="_blank" class="card" style="text-decoration: none; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                        <div style="width: 60px; height: 60px; background: #0088cc22; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0088cc; font-size: 1.5rem;"><i class="fa-brands fa-telegram"></i></div>
+                        <div>
+                            <h4 style="color: #fff; margin-bottom: 4px;">Telegram Bot</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-dim);">마스터 봇 채널 관리</p>
+                        </div>
+                    </a>
                 </div>
             </section>
 
@@ -240,21 +342,28 @@
                 </div>
             </section>
 
-            <!-- Audio Upload -->
+            <!-- Audio/Radio Management -->
             <section id="tab-upload" class="tab-content">
-                <div class="page-header"><h2 class="page-title">음원 등록 (일괄)</h2></div>
-                <div class="card" style="padding:6rem; text-align:center; border:2px dashed #333; cursor:pointer;" onclick="document.getElementById('batchInput').click()">
-                    <i class="fa-solid fa-cloud-upload" style="font-size:4rem; color:var(--primary); margin-bottom:2rem;"></i>
-                    <h3>파일을 선택하거나 이곳에 드래그하세요</h3>
-                    <p style="color:#555; margin-top:10px;">NFC 고유 번호와 파일명이 일치하면 자동 매칭됩니다.</p>
-                    <input type="file" id="batchInput" multiple style="display:none;" onchange="handleBatchFile(event)">
+                <div class="page-header"><h2 class="page-title">음원 및 라디오 관리</h2></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="card" style="padding:4rem; text-align:center; border:2px dashed #333; cursor:pointer;" onclick="document.getElementById('batchInput').click()">
+                        <i class="fa-solid fa-cloud-upload" style="font-size:3rem; color:var(--primary); margin-bottom:1.5rem;"></i>
+                        <h3>음원 일괄 등록</h3>
+                        <p style="color:#555; margin-top:10px; font-size: 0.85rem;">파일명 = NFC 고유번호</p>
+                        <input type="file" id="batchInput" multiple style="display:none;" onchange="handleBatchFile(event)">
+                    </div>
+                    <div class="card" style="padding:4rem; text-align:center; border:2px dashed #333; cursor:pointer;" onclick="showTab('radio_batch')">
+                        <i class="fa-solid fa-microphone" style="font-size:3rem; color:var(--primary); margin-bottom:1.5rem;"></i>
+                        <h3>AI 라디오 생성</h3>
+                        <p style="color:#555; margin-top:10px; font-size: 0.85rem;">대량 스크립트/TTS 생성</p>
+                    </div>
                 </div>
             </section>
 
-            <!-- AI Radio Batch -->
-            <section id="tab-radio" class="tab-content">
+            <!-- AI Radio Batch Sub-tab (Hidden by default, used via script) -->
+            <section id="tab-radio_batch" class="tab-content">
                 <div class="page-header">
-                    <h2 class="page-title">AI 라디오 생성 (일괄)</h2>
+                    <div class="page-title"><button class="btn btn-outline btn-sm" onclick="showTab('upload')"><i class="fa-solid fa-chevron-left"></i> 뒤로</button> AI 라디오 일괄 생성</div>
                     <button class="btn btn-primary" onclick="bulkGenerateRadio()">선택 항목 일괄 생성</button>
                 </div>
                 <div class="card">
@@ -275,11 +384,16 @@
 
             <!-- API -->
             <section id="tab-api" class="tab-content">
-                <div class="page-header"><h2 class="page-title">API 연동 설정</h2><button class="btn btn-primary" onclick="toast('설정 저장됨')">설정 저장</button></div>
+                <div class="page-header"><h2 class="page-title">설정</h2><button class="btn btn-primary" onclick="toast('설정 저장됨')">설정 저장</button></div>
                 <div class="card" style="padding:0;">
-                    <div class="api-row"><div class="api-info"><div><h4>Supabase Database <span class="tag tag-done">필수</span></h4><p>데이터 연동 필수 모듈</p></div><label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label></div></div>
+                    <div class="api-row" style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
+                        <div class="api-info" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div><h4>Supabase Database <span class="tag tag-done">연동됨</span></h4><p style="color: var(--text-dim); font-size: 0.85rem;">데이터 연동 필수 모듈</p></div>
+                        </div>
+                    </div>
                 </div>
             </section>
+
         </main>
     </div>
 
@@ -300,15 +414,49 @@
         async function loadData() {
             allTracks = await window.api.getAllTracks();
             document.getElementById('totalUserCountSidebar').innerText = allTracks.length;
+            
+            // 세그먼트 계산 로직 (MVP 기준)
+            calculateSegments();
+            
             renderTable(); renderLyricTargets(); renderRadioTable();
         }
 
-        function showTab(tab, el) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); if (el) el.classList.add('active');
-            document.querySelectorAll('.tab-content, #dashboardList, #dashboardDetail').forEach(t => t.classList.remove('active'));
-            if (tab === 'dashboard') document.getElementById('dashboardList').classList.add('active');
-            else document.getElementById('tab-' + tab).classList.add('active');
+        function calculateSegments() {
+            // Type A: 키링 구매, 추가 결제 없음 (오디오 파일 1개 이하)
+            const typeA = allTracks.filter(t => t.nfc_id && (!t.audio_files || t.audio_files.length <= 1));
+            // Type B: 추가 곡/콘텐츠 적극 구매 (오디오 파일 2개 이상)
+            const typeB = allTracks.filter(t => t.nfc_id && t.audio_files && t.audio_files.length > 1);
+            // Type C: 웹앱 전용 (NFC ID가 없거나 특정 패턴)
+            const typeC = allTracks.filter(t => !t.nfc_id || t.nfc_id.startsWith('WEB'));
+            // Type D: 키링 구매, 미등록 (NFC ID는 있는데 유저 이름이 '신규 사용자'거나 비어있음)
+            const typeD = allTracks.filter(t => t.nfc_id && (!t.user_name || t.user_name.includes('신규')));
+
+            const segContainer = document.getElementById('tab-segments');
+            if (segContainer) {
+                const countEls = segContainer.querySelectorAll('div[style*="font-size: 2rem"]');
+                if (countEls.length >= 4) {
+                    countEls[0].innerText = `${typeA.length}명`;
+                    countEls[1].innerText = `${typeB.length}명`;
+                    countEls[2].innerText = `${typeC.length}명`;
+                    countEls[3].innerText = `${typeD.length}명`;
+                }
+            }
         }
+
+        function showTab(tab, el) {
+            if (el) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); 
+                el.classList.add('active');
+            }
+            document.querySelectorAll('.tab-content, #dashboardList, #dashboardDetail').forEach(t => t.classList.remove('active'));
+            if (tab === 'dashboard') {
+                document.getElementById('dashboardList').classList.add('active');
+            } else {
+                const target = document.getElementById('tab-' + tab);
+                if (target) target.classList.add('active');
+            }
+        }
+
 
         function renderTable() {
             const query = document.getElementById('searchInput').value.toLowerCase(); const tbody = document.getElementById('trackBody'); tbody.innerHTML = '';

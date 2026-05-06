@@ -311,10 +311,12 @@
       transition: all 0.3s ease;
       vertical-align: middle;
     }
+
     .save-btn.active {
       color: #ffeb3b;
       text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
     }
+
     .save-btn.visible {
       display: inline-flex;
     }
@@ -335,10 +337,12 @@
       position: relative;
       vertical-align: middle;
     }
+
     .repeat-btn.active {
       color: #ffeb3b;
       text-shadow: 0 0 8px rgba(255, 235, 59, 0.4);
     }
+
     /* 1곡 반복일 때 숫자 1 표시 */
     .repeat-btn.single-mode::after {
       content: '1';
@@ -377,6 +381,7 @@
       justify-self: end;
       text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
     }
+
     .verified-mark.visible {
       display: inline-flex;
     }
@@ -385,9 +390,11 @@
     #saveConfirmPopup {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
       z-index: 3000;
       align-items: center;
       justify-content: center;
@@ -395,10 +402,22 @@
 
     /* 라디오 활성화 버튼 애니메이션 */
     @keyframes radioGlow {
-      0% { box-shadow: 0 0 5px rgba(255, 145, 77, 0.4), inset 0 0 5px rgba(255, 145, 77, 0.2); border-color: #ff914d; }
-      50% { box-shadow: 0 0 20px rgba(255, 145, 77, 0.8), inset 0 0 10px rgba(255, 145, 77, 0.4); border-color: #ffeb3b; }
-      100% { box-shadow: 0 0 5px rgba(255, 145, 77, 0.4), inset 0 0 5px rgba(255, 145, 77, 0.2); border-color: #ff914d; }
+      0% {
+        box-shadow: 0 0 5px rgba(255, 145, 77, 0.4), inset 0 0 5px rgba(255, 145, 77, 0.2);
+        border-color: #ff914d;
+      }
+
+      50% {
+        box-shadow: 0 0 20px rgba(255, 145, 77, 0.8), inset 0 0 10px rgba(255, 145, 77, 0.4);
+        border-color: #ffeb3b;
+      }
+
+      100% {
+        box-shadow: 0 0 5px rgba(255, 145, 77, 0.4), inset 0 0 5px rgba(255, 145, 77, 0.2);
+        border-color: #ff914d;
+      }
     }
+
     .radio-active {
       animation: radioGlow 2s infinite ease-in-out !important;
       background: rgba(255, 145, 77, 0.1) !important;
@@ -484,13 +503,15 @@
       margin: 25px auto 0;
       gap: 10px;
     }
-    
+
     .side-control-area {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100%; /* 부모 그리드 높이에 맞춤 */
+      height: 100%;
+      /* 부모 그리드 높이에 맞춤 */
     }
+
     .center-control-area {
       flex: 1;
       display: flex;
@@ -498,14 +519,14 @@
       align-items: center;
       gap: 35px;
     }
-    
+
     .repeat-btn {
       cursor: pointer;
       color: #ff914d;
       transition: all 0.3s ease;
       opacity: 0.5;
     }
-    
+
     .repeat-btn.active {
       opacity: 1 !important;
       color: #ffeb3b !important;
@@ -678,26 +699,77 @@
 
     /* PWA Install UI Styles */
     #iosInstallGuide {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85); z-index: 9999;
-      display: none; align-items: center; justify-content: center;
-      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
+
     .install-card {
-      background: rgba(30, 30, 32, 0.9); border: 1px solid rgba(255,145,77,0.3);
-      padding: 35px 25px; border-radius: 30px; text-align: center; width: 85%; max-width: 320px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      background: rgba(30, 30, 32, 0.9);
+      border: 1px solid rgba(255, 145, 77, 0.3);
+      padding: 35px 25px;
+      border-radius: 30px;
+      text-align: center;
+      width: 85%;
+      max-width: 320px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     }
-    .install-card img { width: 70px; margin-bottom: 20px; border-radius: 15px; }
-    .install-card h2 { font-size: 1.4rem; color: #ff914d; font-weight: 800; margin-bottom: 10px; }
-    .install-card p { font-size: 0.9rem; color: #ccc; margin-bottom: 25px; line-height: 1.5; }
-    .install-step { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; font-size: 0.85rem; color: #fff; }
-    .install-step i { color: #ff914d; margin-bottom: 5px; display: block; font-size: 1.2rem; }
-    
+
+    .install-card img {
+      width: 70px;
+      margin-bottom: 20px;
+      border-radius: 15px;
+    }
+
+    .install-card h2 {
+      font-size: 1.4rem;
+      color: #ff914d;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .install-card p {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .install-step {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .install-step i {
+      color: #ff914d;
+      margin-bottom: 5px;
+      display: block;
+      font-size: 1.2rem;
+    }
+
     .install-btn {
-      width: 100%; background: linear-gradient(135deg, #ffb347, #ff914d);
-      color: #000; border: none; padding: 14px; border-radius: 20px;
-      font-weight: 800; font-size: 0.95rem; margin-top: 10px; cursor: pointer;
+      width: 100%;
+      background: linear-gradient(135deg, #ffb347, #ff914d);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin-top: 10px;
+      cursor: pointer;
     }
 
     .lyrics-inner {
@@ -752,8 +824,10 @@
     #fullLyricsOverlay {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(15px);
       -webkit-backdrop-filter: blur(15px);
@@ -769,7 +843,8 @@
       height: 75vh;
       overflow-y: auto;
       text-align: center;
-      padding: 30vh 0; /* 위아래 여백을 넉넉히 줘서 맨 처음/마지막 줄도 중간에 올 수 있게 */
+      padding: 30vh 0;
+      /* 위아래 여백을 넉넉히 줘서 맨 처음/마지막 줄도 중간에 올 수 있게 */
       box-sizing: border-box;
       mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
       -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
@@ -777,6 +852,7 @@
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
+
     #fullLyricsScrollArea::-webkit-scrollbar {
       display: none;
     }
@@ -801,7 +877,7 @@
       text-shadow: 0 0 10px rgba(255, 145, 77, 0.6);
       transform: scale(1.1);
     }
-    
+
     #fullLyricsOverlay.lyric-friend .full-lyric-line.active {
       color: #ffeb3b;
       text-shadow: 0 0 10px rgba(255, 235, 59, 0.8);
@@ -811,28 +887,34 @@
     #miniPlayerBar {
       display: none;
       position: fixed;
-      bottom: 25px; /* 하단에서 띄움 */
+      bottom: 25px;
+      /* 하단에서 띄움 */
       left: 50%;
       transform: translateX(-50%);
       width: 92%;
       max-width: 450px;
       height: 65px;
-      background: rgba(255, 145, 77, 0.15); /* 주황색 유리 느낌 */
+      background: rgba(255, 145, 77, 0.15);
+      /* 주황색 유리 느낌 */
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 145, 77, 0.3);
-      border-radius: 20px; /* 둥근 모서리 */
+      border-radius: 20px;
+      /* 둥근 모서리 */
       z-index: 6000;
       padding: 0 15px;
       align-items: center;
       justify-content: space-between;
       animation: miniSlideUp 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(255, 145, 77, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 145, 77, 0.1);
       transition: all 0.4s ease;
       cursor: pointer;
     }
-    #miniPlayerBar.show { display: flex; }
-    
+
+    #miniPlayerBar.show {
+      display: flex;
+    }
+
     /* 미니 플레이어 상단 얇은 진행 바 */
     .mini-progress-container {
       position: absolute;
@@ -844,16 +926,24 @@
       border-radius: 20px 20px 0 0;
       overflow: hidden;
     }
+
     .mini-progress-fill {
       width: 0%;
       height: 100%;
       background: #ff914d;
       transition: width 0.3s linear;
     }
-    
+
     @keyframes miniSlideUp {
-      from { transform: translate(-50%, 100px); opacity: 0; }
-      to { transform: translate(-50%, 0); opacity: 1; }
+      from {
+        transform: translate(-50%, 100px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
     }
 
     .mini-left {
@@ -863,6 +953,7 @@
       flex: 1;
       overflow: hidden;
     }
+
     .mini-album-cover {
       width: 42px;
       height: 42px;
@@ -873,11 +964,13 @@
       justify-content: center;
       border: 1px solid rgba(255, 145, 77, 0.2);
     }
+
     .mini-album-cover img {
       width: 24px;
       height: 24px;
       opacity: 0.8;
     }
+
     .mini-title {
       font-size: 0.9rem;
       font-weight: 700;
@@ -886,11 +979,13 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
     .mini-right {
       display: flex;
       align-items: center;
       gap: 5px;
     }
+
     .mini-play-btn {
       width: 40px;
       height: 40px;
@@ -912,28 +1007,35 @@
       overflow: hidden;
       cursor: pointer;
     }
+
     .mini-title {
       font-size: 0.9rem;
       font-weight: 700;
-      color: #ff914d; /* 기본값 오렌지색으로 복구 */
+      color: #ff914d;
+      /* 기본값 오렌지색으로 복구 */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       transition: color 0.4s ease;
     }
-    #miniPlayerBar.theme-yellow .mini-title { color: #ffeb3b; }
+
+    #miniPlayerBar.theme-yellow .mini-title {
+      color: #ffeb3b;
+    }
 
     .mini-progress-container {
       display: none !important;
     }
-    #miniPlayerBar.theme-yellow #miniProgressFill { 
-      background: #ffeb3b; 
-      box-shadow: 0 0 10px rgba(255, 235, 59, 0.6); 
+
+    #miniPlayerBar.theme-yellow #miniProgressFill {
+      background: #ffeb3b;
+      box-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
     }
 
     .mini-controls {
       display: none !important;
     }
+
     .mini-btn {
       color: #ff914d;
       font-size: 1.1rem;
@@ -941,25 +1043,44 @@
       transition: all 0.2s ease;
       opacity: 0.8;
     }
-    #miniPlayerBar.theme-yellow .mini-btn { color: #ffeb3b; }
-    .mini-btn:active { transform: scale(0.9); opacity: 1; }
-    .mini-btn.play-pause { font-size: 1.4rem; }
+
+    #miniPlayerBar.theme-yellow .mini-btn {
+      color: #ffeb3b;
+    }
+
+    .mini-btn:active {
+      transform: scale(0.9);
+      opacity: 1;
+    }
+
+    .mini-btn.play-pause {
+      font-size: 1.4rem;
+    }
 
     .mini-disc-area {
       margin-left: 10px;
       cursor: pointer;
     }
+
     .mini-disc {
       font-size: 1.3rem;
       color: #ff914d;
       animation: discRotate 3s linear infinite;
       transition: color 0.4s ease;
     }
-    #miniPlayerBar.theme-yellow .mini-disc { color: #ffeb3b; }
+
+    #miniPlayerBar.theme-yellow .mini-disc {
+      color: #ffeb3b;
+    }
 
     @keyframes discRotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     @media (max-width: 768px) {
@@ -1066,8 +1187,11 @@
       pointer-events: none;
       transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease !important;
     }
-    
-    #playerControls, #navBar, #trackDisplay, .exit-container {
+
+    #playerControls,
+    #navBar,
+    #trackDisplay,
+    .exit-container {
       transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
     }
 
@@ -1124,7 +1248,8 @@
       display: flex;
       flex-direction: column;
       width: 100%;
-      overflow: hidden; /* 헤더 고정 */
+      overflow: hidden;
+      /* 헤더 고정 */
       margin-top: 10px;
     }
 
@@ -1137,7 +1262,10 @@
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
-    #buttonList::-webkit-scrollbar { display: none; }
+
+    #buttonList::-webkit-scrollbar {
+      display: none;
+    }
 
     #serialDisplay {
       margin-top: auto;
@@ -1172,7 +1300,7 @@
 
   <main class="container">
     <div class="player-container">
-      <audio id="audioPlayer" crossorigin="anonymous"></audio>
+      <audio id="audioPlayer" preload="auto" crossorigin="anonymous"></audio>
       <div id="trackDisplay" class="track-info" style="display: none;">[ STANDBY_MODE ]</div>
 
       <div id="ui-controls">
@@ -1183,9 +1311,10 @@
 
         <div id="playerControls" class="custom-controls" style="display: none;">
           <div class="side-control-area">
-            <i id="repeatBtn" class="fa-solid fa-rotate-right repeat-btn" onclick="toggleRepeat()" title="반복 재생" style="font-size: 1.3rem;"></i>
+            <i id="repeatBtn" class="fa-solid fa-rotate-right repeat-btn" onclick="toggleRepeat()" title="반복 재생"
+              style="font-size: 1.3rem;"></i>
           </div>
-          
+
           <div class="center-control-area" style="font-size: 1.8rem;">
             <i class="fa-solid fa-chevron-left control-btn" onclick="changeTrack(-1)"></i>
             <i id="playPauseIcon" class="fa-solid fa-pause control-btn main-play-btn" onclick="togglePlay()"></i>
@@ -1193,9 +1322,12 @@
           </div>
 
           <div class="side-control-area">
-            <div id="saveArea" style="display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.3s; opacity: 0; width: 100%;">
-              <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()" title="메인화면에 저장" style="font-size: 1.3rem;"></i>
-              <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark" style="display:none; font-size: 1.1rem; color: #4db8ff;"></i>
+            <div id="saveArea"
+              style="display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.3s; opacity: 0; width: 100%;">
+              <i id="saveRandomBtn" class="fa-regular fa-bookmark save-btn" onclick="toggleSaveRandom()"
+                title="메인화면에 저장" style="font-size: 1.3rem;"></i>
+              <i id="verifiedMark" class="fa-solid fa-circle-check verified-mark"
+                style="display:none; font-size: 1.1rem; color: #4db8ff;"></i>
             </div>
           </div>
         </div>
@@ -1218,7 +1350,8 @@
         <h6>감상 모드 : 타임스탬프 외형</h6>
         <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('large')"> 크게 중앙 (하얀색
           가사 작게)</label>
-        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('small')" checked> 작게 하단 (중앙에 가사
+        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('small')" checked> 작게 하단 (중앙에
+          가사
           위주)</label>
         <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('off')"> 시계 완전히 끄기</label>
       </div>
@@ -1237,18 +1370,22 @@
       </div>
       <div class="settings-section">
         <h6>초보자 가이드</h6>
-        <label class="option-item"><input type="checkbox" id="nextSongGuideOpt" onchange="toggleNextSongGuide(this.checked)" checked> 다음곡 안내 말풍선</label>
+        <label class="option-item"><input type="checkbox" id="nextSongGuideOpt"
+            onchange="toggleNextSongGuide(this.checked)" checked> 다음곡 안내 말풍선</label>
       </div>
       <div class="settings-section">
         <h6>실험실 (LAB)</h6>
-        <button id="radioToggleBtn" class="track-button" style="width:100%; border-color:#ff914d; color:#ff914d; margin:0;" onclick="toggleAIRadio()">
+        <button id="radioToggleBtn" class="track-button"
+          style="width:100%; border-color:#ff914d; color:#ff914d; margin:0;" onclick="toggleAIRadio()">
           <i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작
         </button>
-        <p id="radioStatusText" style="font-size:0.7rem; color:#888; margin-top:8px; text-align:center; display:none;">📻 라디오 ON — 다음곡 10초 전에 DJ가 사연을 읽어줍니다</p>
+        <p id="radioStatusText" style="font-size:0.7rem; color:#888; margin-top:8px; text-align:center; display:none;">
+          📻 라디오 ON — 다음곡 사연을 소개합니다</p>
       </div>
       <div class="settings-section">
         <h6>앱 설치 및 설정</h6>
-        <div class="option-item" style="color: #ffeb3b; font-weight: bold; margin-bottom: 15px;" onclick="triggerInstall()">
+        <div class="option-item" style="color: #ffeb3b; font-weight: bold; margin-bottom: 15px;"
+          onclick="triggerInstall()">
           <i class="fa-solid fa-mobile-screen-button"></i> 홈 화면에 추가하기 (앱으로 쓰기)
         </div>
       </div>
@@ -1264,27 +1401,38 @@
   <!-- iOS 홈 화면 추가 안내 모달 -->
   <div id="iosInstallGuide" onclick="this.style.display='none'">
     <div class="install-card" onclick="event.stopPropagation()">
-      <img src="/app/iphone.png" alt="App Icon" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
+      <img src="/app/iphone.png" alt="App Icon"
+        style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
       <h2>제리키링AI 앱 설치</h2>
       <p style="margin-bottom:20px; font-size: 0.85rem;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
-      
-      <div class="install-step" style="line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; text-align: left;">
+
+      <div class="install-step"
+        style="line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; text-align: left;">
         <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
-          <span style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">1</span>
-          <span>우측 하단의 <strong>더보기(...)</strong> 버튼을 누릅니다.</span>
+          <span
+            style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">1</span>
+          <span>우측 하단의 <strong>[더보기(...)]</strong> 선택</span>
         </div>
-        
+
         <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
-          <span style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">2</span>
-          <span>메뉴에서 <strong>[공유 <i class="fa-solid fa-share-nodes"></i>]</strong> 버튼을 누릅니다.</span>
+          <span
+            style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">2</span>
+          <span><strong>[공유]</strong> 선택</span>
         </div>
 
         <div style="display: flex; align-items: flex-start; gap: 10px;">
-          <span style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">3</span>
-          <span>목록에서 <strong>[홈 화면에 추가]</strong>를 찾아 누릅니다.</span>
+          <span
+            style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">3</span>
+          <span><strong>[더보기(v)]</strong> 선택</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <span
+            style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">3</span>
+          <span>목록에서 <strong>[+ 홈 화면에 추가]</strong>선택 시 완료</span>
         </div>
 
-        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-size: 0.75rem; color: #ffeb3b; text-align: center;">
+        <div
+          style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-size: 0.75rem; color: #ffeb3b; text-align: center;">
           <i class="fa-solid fa-circle-info"></i> 설치 후 앱을 처음 실행할 때<br><strong>딱 한 번 다시 인증</strong>이 필요합니다.
         </div>
       </div>
@@ -1325,13 +1473,16 @@
 
   <!-- 저장 확인 팝업 -->
   <div id="saveConfirmPopup" onclick="closeSavePopup()">
-    <div class="settings-modal" style="text-align:center; width:85%; max-width:300px;" onclick="event.stopPropagation()">
+    <div class="settings-modal" style="text-align:center; width:85%; max-width:300px;"
+      onclick="event.stopPropagation()">
       <h6 style="color:#fff; font-size:1rem; margin-bottom:8px; border:none; padding:0;">메인화면에 등록</h6>
       <p id="saveTrackName" style="font-size:0.85rem; color:#ff914d; margin-bottom:20px; font-weight:bold;"></p>
       <p style="font-size:0.75rem; color:#aaa; margin-bottom:20px;">이 음원을 메인화면 버튼에 추가하시겠습니까?</p>
       <div style="display:flex; gap:10px; justify-content:center;">
-        <button class="track-button" style="margin:5px; width:100%; border-color:#ff914d; color:#ff914d;" onclick="confirmSaveRandom()">등록하기</button>
-        <button class="track-button" style="margin:5px; width:100%; border-color:#555; color:#aaa;" onclick="closeSavePopup()">취소</button>
+        <button class="track-button" style="margin:5px; width:100%; border-color:#ff914d; color:#ff914d;"
+          onclick="confirmSaveRandom()">등록하기</button>
+        <button class="track-button" style="margin:5px; width:100%; border-color:#555; color:#aaa;"
+          onclick="closeSavePopup()">취소</button>
       </div>
     </div>
   </div>
@@ -1392,19 +1543,21 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- 구매 유도 팝업 (샘플 사용자 전용) -->
   <div id="purchasePopup" class="popup-overlay" style="display:none; background: rgba(0,0,0,0.95); z-index: 10000;">
-    <div class="popup-content" style="background: #111; border: 2px solid #ff914d; text-align: center; padding: 40px 20px; border-radius: 20px; max-width: 300px;">
+    <div class="popup-content"
+      style="background: #111; border: 2px solid #ff914d; text-align: center; padding: 40px 20px; border-radius: 20px; max-width: 300px;">
       <h4 style="color: #ff914d; margin-bottom: 20px; font-weight: 800;">재밌게 들으셨나요?</h4>
       <p style="color: #fff; font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px;">
         나만의 음악과 가사를 담은<br>
         <strong>제리키링</strong>을 구매하여<br>
         더 많은 기능을 즐겨보세요!
       </p>
-      <button class="track-button" style="width: 100%; border-radius: 30px; background: #ff914d; color: #000; font-weight: bold; padding: 15px;" 
-              onclick="window.open('https://smartstore.naver.com/jerrykeyring', '_blank')">
+      <button class="track-button"
+        style="width: 100%; border-radius: 30px; background: #ff914d; color: #000; font-weight: bold; padding: 15px;"
+        onclick="window.open('https://smartstore.naver.com/jerrykeyring', '_blank')">
         제리키링 구매하기
       </button>
-      <button class="track-button" style="width: 100%; margin-top: 10px; border: none; color: #999; font-size: 0.8rem;" 
-              onclick="document.getElementById('purchasePopup').style.display='none'">
+      <button class="track-button" style="width: 100%; margin-top: 10px; border: none; color: #999; font-size: 0.8rem;"
+        onclick="document.getElementById('purchasePopup').style.display='none'">
         나중에 할게요
       </button>
     </div>
@@ -1414,7 +1567,7 @@
   <script>
     // 안전 장치: window.api가 정의되지 않았을 경우를 대비
     window.api = window.api || {};
-    if (!window.api.updateMediaSession) window.api.updateMediaSession = function() {};
+    if (!window.api.updateMediaSession) window.api.updateMediaSession = function () { };
 
     const player = document.getElementById('audioPlayer');
     const body = document.body;
@@ -1461,9 +1614,9 @@
 
     function toggleModal(show) { document.getElementById('modalOverlay').style.display = show ? 'flex' : 'none'; }
     function toggleFriendModal(show) { document.getElementById('friendModalOverlay').style.display = show ? 'flex' : 'none'; }
-    
-    function setRepeat(mode) { 
-      repeatMode = mode; 
+
+    function setRepeat(mode) {
+      repeatMode = mode;
       const btn = document.getElementById('repeatBtn');
       if (mode === 'all') {
         btn.classList.add('active');
@@ -1479,11 +1632,11 @@
         btn.title = "반복 안함";
       }
     }
-    
-    function toggleFullLyrics(show) { 
+
+    function toggleFullLyrics(show) {
       const overlay = document.getElementById('fullLyricsOverlay');
-      overlay.style.display = show ? 'flex' : 'none'; 
-      
+      overlay.style.display = show ? 'flex' : 'none';
+
       if (playlist[currentIdx] && playlist[currentIdx].isFriend) {
         overlay.classList.add('lyric-friend');
       } else {
@@ -1522,8 +1675,8 @@
       body.classList.remove('ts-style-large', 'ts-style-small', 'ts-style-off');
       body.classList.add('ts-style-' + val);
     }
-    function setRepeat(mode) { 
-      repeatMode = mode; 
+    function setRepeat(mode) {
+      repeatMode = mode;
       const btn = document.getElementById('repeatBtn');
       if (mode === 'single') {
         // 한곡 반복 아이콘으로 완전 교체
@@ -1567,8 +1720,8 @@
       buttonList.innerHTML = '';
       playlist.forEach((track, index) => {
         if (track.isRandom) return;
-        const btn = document.createElement('button'); 
-        btn.className = 'track-button'; 
+        const btn = document.createElement('button');
+        btn.className = 'track-button';
         btn.innerHTML = `<span> ${track.name} </span>`;
         if (track.isLoading) { btn.style.pointerEvents = 'none'; }
         else { btn.onclick = (e) => { e.stopPropagation(); initPlayer(index); }; }
@@ -1814,7 +1967,7 @@
         document.getElementById('purchasePopup').style.display = 'flex';
         return;
       }
-      
+
       try {
         const randomData = await window.api.getRandomTrack();
         if (!randomData) {
@@ -1824,7 +1977,7 @@
 
         const audioUrl = randomData.audio_url;
         const trackInfo = randomData.tracks || {};
-        
+
         const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
         let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
 
@@ -1837,24 +1990,34 @@
           trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
         }
 
-        playingRandomTrack = nextRandomTrack || { 
-          src: audioUrl, 
-          name: `${trackName}`, 
-          lyricsText: finalLyrics || '제리키링AI', 
-          isRandom: true 
+        playingRandomTrack = nextRandomTrack || {
+          src: audioUrl,
+          name: `${trackName}`,
+          lyricsText: finalLyrics || '제리키링AI',
+          isRandom: true
         };
         nextRandomTrack = null; // 사용 후 초기화
-        
+
         // 다음 랜덤 곡 미리 준비 (안내 말풍선용)
         prepareNextRandomTrack();
 
         /* 화면 및 플레이어 UI 전환 (독립 플레이어) */
         document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
         document.getElementById('mainUI').style.display = 'none';
-        document.getElementById('playerControls').style.display = 'flex';
-        document.getElementById('navBar').style.display = 'block';
-        trackDisplay.style.display = 'block';
-        document.getElementById('exitContainer').style.display = 'block';
+        
+        const playerUIEls = [
+          document.getElementById('playerControls'),
+          document.getElementById('navBar'),
+          trackDisplay,
+          document.getElementById('exitContainer')
+        ];
+
+        playerUIEls.forEach(el => {
+          if (el) {
+            el.style.display = el.id === 'playerControls' ? 'grid' : 'block';
+            el.classList.remove('ui-slide-down'); // 투명화 클래스 제거
+          }
+        });
         if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
 
         if (!isVisualizerSetup) {
@@ -1876,23 +2039,23 @@
         player.src = playingRandomTrack.src;
         trackDisplay.innerHTML = `[ > ${playingRandomTrack.name} ]${getRadioIconHtml()}`;
         obsTrackTitle.innerHTML = playingRandomTrack.name;
-        
+
         // 타인/랜덤 음원은 가사를 노란색으로 강조
         document.getElementById('lyricsBox').classList.add('lyric-friend');
         document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
-        
+
         parseLyrics(playingRandomTrack.lyricsText);
         updateSaveBtn();
         player.play().catch(() => { });
         resetIdleTimer();
-        
+
         // 미디어 세션 업데이트 (잠금 화면)
         window.api.updateMediaSession({
           title: playingRandomTrack.name,
           artist: '제리키링 (랜덤)',
           state: 'playing'
         });
-        
+
         // 가사 화면으로 전환된 후 닫기 버튼 서서히 등장
         setTimeout(() => {
           document.getElementById('exitContainer').style.display = 'block';
@@ -1949,7 +2112,7 @@
       const saveBtn = document.getElementById('saveRandomBtn');
       const verifiedMark = document.getElementById('verifiedMark');
       const track = playingRandomTrack || playlist[currentIdx];
-      
+
       if (!track) return;
 
       if (track.isRandom) {
@@ -1957,17 +2120,17 @@
         saveArea.style.pointerEvents = 'auto';
         saveBtn.style.display = 'block';
         verifiedMark.style.display = 'none';
-        
+
         const isSaved = savedRandomTracks.some(s => s.src === track.src);
         saveBtn.className = isSaved
           ? 'fa-solid fa-bookmark save-btn active'
           : 'fa-regular fa-bookmark save-btn';
-        if(isSaved) saveBtn.style.color = '#ffb3ba';
+        if (isSaved) saveBtn.style.color = '#ffb3ba';
         else saveBtn.style.color = '#ff914d';
       } else {
         saveArea.style.opacity = '0';
         saveArea.style.pointerEvents = 'none';
-        
+
         if (track.isVerified) {
           saveArea.style.opacity = '1';
           saveBtn.style.display = 'none';
@@ -2041,10 +2204,10 @@
           const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
           let finalLyrics = data.sync_lyrics || (isValid(data.status) ? data.status : data.lyrics) || "가사가 등록되지 않았습니다.";
           if (finalLyrics === "수정없음") finalLyrics = "가사가 등록되지 않았습니다.";
-          
+
           // 2. 실제 음원 파일 목록 로드 (audio_files 테이블 - R2 주소 포함)
           const audioFiles = await window.api.getAudioFiles(targetId);
-          
+
           if (audioFiles && audioFiles.length > 0) {
             const musicFiles = audioFiles.filter(f => f.category !== 'radio_tts');
             const radioFiles = audioFiles.filter(f => f.category === 'radio_tts');
@@ -2111,7 +2274,7 @@
                 const fName = linkedFriends.find(f => String(f.nfc) === String(fNfc))?.name || "친구";
                 const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
                 const fLyr = (uData.sync_lyrics && uData.sync_lyrics !== '') ? uData.sync_lyrics : (isValid(uData.status) ? uData.status : uData.lyrics);
-                
+
                 const fMusicFiles = uFiles.filter(f => f.category !== 'radio_tts');
                 const fRadioFiles = uFiles.filter(f => f.category === 'radio_tts');
                 const fRadioTts = fRadioFiles.length > 0 ? fRadioFiles[0] : null;
@@ -2120,7 +2283,7 @@
                   fMusicFiles.forEach((file, i) => {
                     playlist.push({
                       src: file.audio_url,
-                      name: `[${fName}] ${uData.genre}${fMusicFiles.length > 1 ? ` (${i+1})` : ''}`,
+                      name: `[${fName}] ${uData.genre}${fMusicFiles.length > 1 ? ` (${i + 1})` : ''}`,
                       lyricsText: fLyr,
                       isFriend: true,
                       story: uData.story,
@@ -2203,17 +2366,17 @@
       const lyricsInner = document.getElementById('lyricsInner');
       lyricsInner.innerHTML = '<div class="lyrics-line active" style="color:#ff914d;">📻 제리 DJ가 사연을 읽어주는 중...</div>';
       lyricsBox.classList.add('lyrics-on');
-      
+
       try {
         const tts = new Audio(track.radioAudioUrl);
-        tts.onended = () => { 
+        tts.onended = () => {
           initPlayer(index); // 라디오 종료 후 본 음원 재생
         };
-        
+
         // TTS 시작 시 가사창에 대본 표시
         const scriptHtml = track.radioScript ? `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${track.radioScript}</div>` : '';
         lyricsInner.innerHTML = scriptHtml;
-        
+
         // 미디어 세션 업데이트 (라디오 중)
         window.api.updateMediaSession({
           title: `팟캐스트: ${track.userName || '누군가'}님의 사연`,
@@ -2242,10 +2405,20 @@
       playingRandomTrack = null;
       document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
       document.getElementById('mainUI').style.display = 'none';
-      document.getElementById('playerControls').style.display = 'flex';
-      document.getElementById('navBar').style.display = 'block';
-      trackDisplay.style.display = 'block';
-      document.getElementById('exitContainer').style.display = 'block';
+      
+      const playerUIEls = [
+        document.getElementById('playerControls'),
+        document.getElementById('navBar'),
+        trackDisplay,
+        document.getElementById('exitContainer')
+      ];
+
+      playerUIEls.forEach(el => {
+        if (el) {
+          el.style.display = el.id === 'playerControls' ? 'grid' : 'block';
+          el.classList.remove('ui-slide-down'); // 투명화 클래스 제거
+        }
+      });
       if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
 
       if (!isVisualizerSetup) {
@@ -2263,7 +2436,7 @@
       if (!animationId) drawVisualizer(0);
       loadTrack(index);
       resetIdleTimer();
-      
+
       // 다음 곡 프리로드
       preloadNextTrack(index);
     }
@@ -2274,7 +2447,7 @@
 
     function preloadNextTrack(currentIndex) {
       if (playingRandomTrack) return; // 랜덤 재생 중에는 별도 처리
-      
+
       const nextIdx = (currentIndex + 1) % playlist.length;
       const nextTrack = playlist[nextIdx];
       if (nextTrack && nextTrack.src) {
@@ -2291,14 +2464,14 @@
       hideNextSongToast();
       const track = playlist[currentIdx];
       console.log(`[🎵 Playing] Index: ${currentIdx}, Name: ${track.name}, Source: ${track.src}`);
-      
+
       player.src = track.src;
       player.load(); // 명시적 로드 시작
       player.play().catch(() => { }); // 즉시 재생 시도
-      
+
       const isRandomOrFriend = track.isRandom || track.isFriend;
       const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ff914d';
-      
+
       trackDisplay.innerHTML = `<span style="color: ${titleColor}">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
       obsTrackTitle.innerHTML = `<span style="color: ${titleColor}">< ${track.name} ></span>`;
       obsTrackTitle.style.color = titleColor;
@@ -2433,7 +2606,7 @@
             const nextIdx = (currentIdx + 1) % playlist.length;
             nextTitle = playlist[nextIdx] ? playlist[nextIdx].name : "다음 곡";
           }
-          
+
           document.getElementById('nextSongToast').innerHTML = `다음 곡 <b style="color:#ff914d;">[ ${nextTitle} ]</b> 재생 예정`;
           document.getElementById('nextSongToast').classList.add('show');
           nextSongToastShown = true;
@@ -2476,7 +2649,7 @@
         // 폴백도 실패했거나 이미 폴백된 경우 -> 다음 곡으로 자동 스킵
         console.warn(`[⏭ Skip] 음원이 존재하지 않아 다음 곡으로 이동합니다.`);
         showToast("❌ 음원 파일이 없어 다음 곡으로 이동합니다.");
-        
+
         // 무한 루프 방지를 위해 약간의 지연 후 이동
         setTimeout(() => {
           changeTrack(1);
@@ -2499,15 +2672,15 @@
     function togglePlay() {
       const icon = document.getElementById('playPauseIcon');
       const miniIcon = document.getElementById('miniPlayPauseIcon');
-      if (player.paused) { 
-        player.play(); 
+      if (player.paused) {
+        player.play();
         if (icon) icon.className = 'fa-solid fa-pause control-btn main-play-btn';
         if (miniIcon) miniIcon.className = 'fa-solid fa-pause';
         // 미디어 세션 상태 업데이트 (재생 중으로 명시)
         window.api.updateMediaSession({ state: 'playing' });
       }
-      else { 
-        player.pause(); 
+      else {
+        player.pause();
         if (icon) icon.className = 'fa-solid fa-play control-btn main-play-btn';
         if (miniIcon) miniIcon.className = 'fa-solid fa-play';
         // 미디어 세션 상태 업데이트
@@ -2533,36 +2706,36 @@
       }
       // iOS 대응: 오디오 엔진이 멈춰있다면 강제로 깨움
       if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
+        audioCtx.resume().then(() => console.log('[🔊 Audio] Context resumed on playing'));
       }
     });
 
     // 앱이 백그라운드로 가거나 화면이 꺼질 때 오디오 엔진 유지
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     });
 
     // 주기적으로 오디오 엔진 상태 체크 (아이폰 백그라운드 소리 끊김 방지)
     setInterval(() => {
-      if (!player.paused && audioCtx && audioCtx.state === 'suspended') {
+      if (player && !player.paused && audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
-    }, 1000);
+    }, 500); // 0.5초마다 더 공격적으로 체크
 
     function changeTrack(dir) {
       // 랜덤 재생 중이더라도 강제로 이전/다음 곡 탐색 시 랜덤 모드 해제하여 플레이리스트 순회
-      playingRandomTrack = null; 
-      
-      currentIdx = (currentIdx + dir + playlist.length) % playlist.length; 
+      playingRandomTrack = null;
+
+      currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
       loadTrack(currentIdx);
       if (document.getElementById('playPauseIcon')) document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
       if (document.getElementById('miniPlayPauseIcon')) document.getElementById('miniPlayPauseIcon').className = 'fa-solid fa-pause';
     }
-    
+
     // onended 핸들러를 변수로 보관 (라디오 fade 복원용)
-    const originalOnEnded = () => { 
+    const originalOnEnded = () => {
       if (playingRandomTrack) {
         if (repeatMode === 'all') playRandomMusic(); else { player.currentTime = 0; player.play(); }
         return;
@@ -2581,25 +2754,25 @@
       // 기본 동작
       if (repeatMode === 'all') {
         initPlayer((currentIdx + 1) % playlist.length);
-      } else { 
-        player.currentTime = 0; 
-        player.play(); 
-      } 
+      } else {
+        player.currentTime = 0;
+        player.play();
+      }
     };
     player.onended = originalOnEnded;
 
     function resetIdleTimer() { showInterface(); clearTimeout(idleTimer); if (!player.paused) idleTimer = setTimeout(hideInterface, 5000); }
-    function hideInterface() { 
-      body.classList.add('obs-mode'); 
-      canvas.style.opacity = '1.0'; 
+    function hideInterface() {
+      body.classList.add('obs-mode');
+      canvas.style.opacity = '1.0';
       // 최소화(메인화면) 상태에서 대기 시 가사가 보이도록 처리
       if (document.getElementById('mainUI').style.display === 'block' && showLyrics) {
         document.getElementById('lyricsBox').classList.add('lyrics-on');
       }
     }
-    function showInterface() { 
-      body.classList.remove('obs-mode'); 
-      if (!player.paused) canvas.style.opacity = '0.4'; 
+    function showInterface() {
+      body.classList.remove('obs-mode');
+      if (!player.paused) canvas.style.opacity = '0.4';
       // 메인화면으로 돌아왔을 때는 다시 가사 숨김 (기본 최소화 UI 유지)
       if (document.getElementById('mainUI').style.display === 'block') {
         document.getElementById('lyricsBox').classList.remove('lyrics-on');
@@ -2644,16 +2817,16 @@
       setTimeout(() => {
         document.getElementById('mainUI').style.display = 'block';
         document.getElementById('lyricsBox').classList.remove('lyrics-on');
-        
+
         [playerControls, navBar, exitContainer, trackDisplay].forEach(el => {
           if (el) el.style.display = 'none';
         });
-        
+
         // 미니바 노출
         const miniBar = document.getElementById('miniPlayerBar');
         const track = playingRandomTrack || playlist[currentIdx];
         document.getElementById('miniTitle').innerText = track ? (track.name || track.label || "재생 중") : "재생 중";
-        
+
         // 재생 아이콘 상태 동기화
         const miniIcon = document.getElementById('miniPlayPauseIcon');
         if (miniIcon) miniIcon.className = player.paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
@@ -2672,9 +2845,9 @@
     function restoreFullPlayer() {
       // 미니바 숨기고 플레이어 복구
       document.getElementById('miniPlayerBar').classList.remove('show');
-      
+
       document.getElementById('mainUI').style.display = 'none';
-      
+
       const els = ['playerControls', 'navBar', 'trackDisplay', 'exitContainer'];
       els.forEach(id => {
         const el = document.getElementById(id);
@@ -2702,12 +2875,12 @@
         if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
         document.getElementById('mainUI').style.display = 'block';
         document.getElementById('lyricsBox').classList.remove('lyrics-on');
-        
+
         els.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.style.display = 'none';
         });
-        
+
         document.getElementById('miniPlayerBar').classList.remove('show');
       }, 300);
     }
@@ -2733,7 +2906,7 @@
       aiRadioEnabled = !aiRadioEnabled;
       const btn = document.getElementById('radioToggleBtn');
       const statusText = document.getElementById('radioStatusText');
-      
+
       if (aiRadioEnabled) {
         setRepeat('all');
         btn.classList.add('radio-active');
@@ -2748,7 +2921,7 @@
       }
       updateRadioIcon();
     }
-    
+
     // 초기 설정 동기화
     setRepeat(repeatMode);
 
@@ -2792,4 +2965,5 @@
     }
   </script>
 </body>
+
 </html>

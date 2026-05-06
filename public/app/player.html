@@ -774,9 +774,19 @@
 
     /* 우측 하단 가리키는 화살표 애니메이션 */
     @keyframes bounceArrow {
-      0%, 100% { transform: translateY(0) rotate(45deg); opacity: 0.8; }
-      50% { transform: translateY(10px) rotate(45deg); opacity: 1; }
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(45deg);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: translateY(10px) rotate(45deg);
+        opacity: 1;
+      }
     }
+
     .guide-pointer {
       position: fixed;
       bottom: 40px;
@@ -1619,15 +1629,11 @@
     let playingRandomTrack = null;
     let nextRandomTrack = null;
     let randomHistory = []; // 랜덤 재생 히스토리 기록용
-
-    // AI 라디오 상태 관리
+    
+    // 비주얼라이저 모드 상태 ('random' 또는 'realtime')
+    let vizMode = localStorage.getItem('vizMode') || 'random';
     let aiRadioEnabled = false;
     let radioTriggered = false; // 현재 곡에서 라디오가 이미 트리거되었는지
-
-    // [백그라운드 소리 해결] 순수 HTML5 오디오 전용 플레이어 추가
-    const bgPlayer = new Audio();
-    bgPlayer.preload = "auto";
-    bgPlayer.crossOrigin = "anonymous";
 
     let lyricsData = [];
     let showLyrics = true;
@@ -1730,6 +1736,25 @@
         updateRadioIcon();
       }
       setRepeat(newMode);
+    }
+
+    // 비주얼라이저 모드 설정
+    function setVizMode(mode) {
+      if (mode === 'realtime') {
+        const confirmRealtime = confirm("⚠️ 실시간 모드로 전환하시겠습니까?\n\n이 모드에서는 음악 박자에 맞춰 움직이지만,\n아이폰 등 일부 기기에서 '백그라운드 재생'이 불가능할 수 있습니다.");
+        if (!confirmRealtime) {
+          document.getElementById('vizRandom').checked = true;
+          return;
+        }
+      }
+      vizMode = mode;
+      localStorage.setItem('vizMode', mode);
+      showToast(mode === 'realtime' ? '🎵 실시간 비주얼라이저 활성화' : '🎲 랜덤 비주얼라이저 (백그라운드 최적화)');
+      
+      // 실시간 모드로 바꿨는데 아직 엔진 설정 전이라면 엔진 시작 유도
+      if (mode === 'realtime' && !isVisualizerSetup && !player.paused) {
+        setupAudioEngine();
+      }
     }
 
     // 라디오 아이콘 표시 헬퍼
@@ -2019,12 +2044,6 @@
           trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
         }
 
-        // 현재 곡이 있다면 히스토리에 추가 (중복 방지 체크)
-        if (playingRandomTrack) {
-          randomHistory.push(JSON.parse(JSON.stringify(playingRandomTrack)));
-          if (randomHistory.length > 50) randomHistory.shift(); // 최대 50곡까지 기억
-        }
-
         playingRandomTrack = nextRandomTrack || {
           src: audioUrl,
           name: `${trackName}`,
@@ -2039,7 +2058,7 @@
         /* 화면 및 플레이어 UI 전환 (독립 플레이어) */
         document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
         document.getElementById('mainUI').style.display = 'none';
-        
+
         const playerUIEls = [
           document.getElementById('playerControls'),
           document.getElementById('navBar'),
@@ -2055,17 +2074,11 @@
         });
         if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
 
-        if (!isVisualizerSetup) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          audioCtx = new AudioContext(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
-          const source = audioCtx.createMediaElementSource(player);
-          source.connect(analyser); analyser.connect(audioCtx.destination);
-          dataArray = new Uint8Array(analyser.frequencyBinCount);
-          smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
-          targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
-          isVisualizerSetup = true;
+        // 실시간 모드일 때만 엔진 설정 시도
+        if (vizMode === 'realtime') {
+          setupAudioEngine();
         }
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
         canvas.style.opacity = '0.4';
         if (!animationId) drawVisualizer(0);
 
@@ -2105,39 +2118,6 @@
         console.error('랜덤 재생 에러:', err);
         showToast('❌ 랜덤 음원을 불러오지 못했습니다.');
       }
-    }
-
-    // 히스토리에서 곡을 꺼내 재생하는 내부 함수
-    function playFromHistory(track) {
-      playingRandomTrack = track;
-      document.getElementById('miniPlayerBar').classList.remove('show');
-      document.getElementById('mainUI').style.display = 'none';
-      
-      const playerUIEls = [
-        document.getElementById('playerControls'),
-        document.getElementById('navBar'),
-        trackDisplay,
-        document.getElementById('exitContainer')
-      ];
-      playerUIEls.forEach(el => {
-        if (el) {
-          el.style.display = el.id === 'playerControls' ? 'grid' : 'block';
-          el.classList.remove('ui-slide-down');
-        }
-      });
-
-      player.src = track.src;
-      trackDisplay.innerHTML = `[ > ${track.name} ]${getRadioIconHtml()}`;
-      obsTrackTitle.innerHTML = track.name;
-      parseLyrics(track.lyricsText);
-      updateSaveBtn();
-      player.play().catch(() => {});
-      
-      window.api.updateMediaSession({
-        title: track.name,
-        artist: '제리키링 (랜덤)',
-        state: 'playing'
-      });
     }
 
     /* 저장 버튼 토글 (랜덤 트랙 저장/해제) */
@@ -2387,6 +2367,10 @@
       }
 
       updateLiveTime();
+      
+      // 비주얼라이저 초기 라디오 버튼 체크
+      if (vizMode === 'realtime') document.getElementById('vizRealtime').checked = true;
+      else document.getElementById('vizRandom').checked = true;
     };
     /* AI 라디오: 곡 종료 10초 전에 볼륨 페이드아웃 + 라디오 재생 */
     async function fadeOutAndPlayRadio(nextIndex) {
@@ -2473,7 +2457,7 @@
       playingRandomTrack = null;
       document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
       document.getElementById('mainUI').style.display = 'none';
-      
+
       const playerUIEls = [
         document.getElementById('playerControls'),
         document.getElementById('navBar'),
@@ -2490,27 +2474,14 @@
       if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
 
       if (!isVisualizerSetup) {
-        try {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          audioCtx = new AudioContext(); 
-          analyser = audioCtx.createAnalyser(); 
-          analyser.fftSize = 128;
-          
-          const source = audioCtx.createMediaElementSource(player);
-          
-          // [핵심] 소리를 엔진에 가두지 않고, 스피커로 바로 나가게 연결 (connect to destination)
-          // 동시에 분석기(analyser)에도 연결
-          source.connect(analyser);
-          analyser.connect(audioCtx.destination);
-          
-          dataArray = new Uint8Array(analyser.frequencyBinCount);
-          smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
-          targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
-          isVisualizerSetup = true;
-          console.log('[🎵 Audio] Engine setup complete (Passive Mode)');
-        } catch (e) {
-          console.warn('[⚠️ Audio] Engine failed, falling back to simple playback:', e);
-        }
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
+        const source = audioCtx.createMediaElementSource(player);
+        source.connect(analyser); analyser.connect(audioCtx.destination);
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
+        targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
+        isVisualizerSetup = true;
       }
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       canvas.style.opacity = '0.4';
@@ -2753,13 +2724,6 @@
     function togglePlay() {
       const icon = document.getElementById('playPauseIcon');
       const miniIcon = document.getElementById('miniPlayPauseIcon');
-      
-      // [아이폰 해결] 처음 재생 시 bgPlayer도 함께 '예방 접종' (잠금 해제)
-      if (bgPlayer.paused && !bgPlayer.src) {
-        bgPlayer.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="; // 아주 짧은 무음
-        bgPlayer.play().then(() => bgPlayer.pause()).catch(() => {});
-      }
-
       if (player.paused) {
         player.play();
         if (icon) icon.className = 'fa-solid fa-pause control-btn main-play-btn';
@@ -2798,54 +2762,24 @@
       }
     });
 
-    // [핵심] 미디어 세션 핸들러에서 오디오 엔진 깨우기 추가
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => { 
-        player.play(); 
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      });
-      navigator.mediaSession.setActionHandler('pause', () => { player.pause(); });
-      navigator.mediaSession.setActionHandler('previoustrack', () => { changeTrack(-1); });
-      navigator.mediaSession.setActionHandler('nexttrack', () => { changeTrack(1); });
-    }
-
-    // [최종] 아이폰 백그라운드 유지 로직 단순화 (엔진은 계속 resume만 시도)
+    // 앱이 백그라운드로 가거나 화면이 꺼질 때 오디오 엔진 유지
     document.addEventListener('visibilitychange', () => {
       if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
     });
 
-    // 주기적으로 오디오 엔진 상태 체크 (보조)
+    // 주기적으로 오디오 엔진 상태 체크 (아이폰 백그라운드 소리 끊김 방지)
     setInterval(() => {
       if (player && !player.paused && audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
-    }, 1000);
+    }, 500); // 0.5초마다 더 공격적으로 체크
 
     function changeTrack(dir) {
-      // 랜덤 재생 중일 때
-      if (playingRandomTrack) {
-        if (dir > 0) {
-          // 다음 곡: 새로운 랜덤 곡
-          playRandomMusic();
-        } else {
-          // 이전 곡: 히스토리 확인
-          if (randomHistory.length > 0) {
-            const prevTrack = randomHistory.pop();
-            playFromHistory(prevTrack);
-          } else {
-            // 히스토리가 없으면 일반 플레이리스트로 복귀
-            playingRandomTrack = null;
-            currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
-            loadTrack(currentIdx);
-          }
-        }
-        return;
-      }
-
-      // 일반 재생 중일 때
+      // 랜덤 재생 중이더라도 강제로 이전/다음 곡 탐색 시 랜덤 모드 해제하여 플레이리스트 순회
       playingRandomTrack = null;
+
       currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
       loadTrack(currentIdx);
       if (document.getElementById('playPauseIcon')) document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';
@@ -3006,17 +2940,61 @@
     function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
     window.addEventListener('resize', resizeCanvas);
 
+    function setupAudioEngine() {
+      if (isVisualizerSetup) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 128;
+
+        const source = audioCtx.createMediaElementSource(player);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
+        targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
+        isVisualizerSetup = true;
+        console.log('[🎵 Audio] Engine setup complete (Real-time Mode)');
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (e) {
+        console.warn('[⚠️ Audio] Engine failed:', e);
+      }
+    }
+
     function drawVisualizer(timestamp) {
       animationId = requestAnimationFrame(drawVisualizer);
       if (timestamp - lastDrawTime < (1000 / fpsLimit)) return;
       lastDrawTime = timestamp;
-      if (!analyser) return;
-      analyser.getByteFrequencyData(dataArray);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      for (let i = 0; i < dataArray.length; i++) {
-        const barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
-        const barWidth = canvas.width / dataArray.length;
-        ctx.fillStyle = 'rgba(255, 145, 77, 0.3)'; ctx.beginPath(); ctx.ellipse(i * barWidth + barWidth / 2, canvas.height, barWidth, barHeight, 0, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (vizMode === 'realtime' && analyser) {
+        // 실시간 분석 모드
+        analyser.getByteFrequencyData(dataArray);
+        for (let i = 0; i < dataArray.length; i++) {
+          const barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
+          const barWidth = canvas.width / dataArray.length;
+          ctx.fillStyle = 'rgba(255, 145, 77, 0.3)';
+          ctx.beginPath();
+          ctx.ellipse(i * barWidth + barWidth / 2, canvas.height, barWidth, barHeight, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        // 랜덤/가상 이퀄라이저 모드 (백그라운드용)
+        const barCount = 64;
+        const barWidth = canvas.width / barCount;
+        for (let i = 0; i < barCount; i++) {
+          // 노래가 재생 중일 때만 랜덤하게 움직임
+          let randomVal = player.paused ? 0.05 : (Math.random() * 0.4 + 0.1);
+          const barHeight = randomVal * canvas.height * 0.6;
+          ctx.fillStyle = 'rgba(255, 145, 77, 0.2)';
+          ctx.beginPath();
+          ctx.ellipse(i * barWidth + barWidth / 2, canvas.height, barWidth, barHeight, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
 

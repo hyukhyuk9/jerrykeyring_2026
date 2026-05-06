@@ -6,6 +6,7 @@ import MusicPlayer from '@/components/MusicPlayer';
 import SamplePlayer from '@/components/SamplePlayer';
 import MbtiTestModal from '@/components/MbtiTestModal';
 import AiRadioPlayer from '@/components/AiRadioPlayer';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 interface NfcPageClientProps {
   nfcId: string;
@@ -91,6 +92,9 @@ export default function NfcPageClient({
             음악 취향 테스트
           </button>
         )}
+
+        {/* 홈 화면 추가 버튼 */}
+        {introEnded && <PWAInstallPrompt />}
       </main>
 
       {/* MBTI 모달 */}

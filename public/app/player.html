@@ -772,6 +772,26 @@
       cursor: pointer;
     }
 
+    /* 우측 하단 가리키는 화살표 애니메이션 */
+    @keyframes bounceArrow {
+      0%, 100% { transform: translateY(0) rotate(45deg); opacity: 0.8; }
+      50% { transform: translateY(10px) rotate(45deg); opacity: 1; }
+    }
+    .guide-pointer {
+      position: fixed;
+      bottom: 40px;
+      right: 30px;
+      width: 40px;
+      height: 40px;
+      border-right: 5px solid #ff914d;
+      border-bottom: 5px solid #ff914d;
+      transform: rotate(45deg);
+      z-index: 10000;
+      animation: bounceArrow 1.2s infinite;
+      pointer-events: none;
+      display: none;
+    }
+
     .lyrics-inner {
       position: absolute;
       top: 30px;
@@ -1406,29 +1426,29 @@
       <h2>제리키링AI 앱 설치</h2>
       <p style="margin-bottom:20px; font-size: 0.85rem;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
 
-      <div class="install-step"
-        style="line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; text-align: left;">
+      <div id="installStepContainer" class="install-step"
+        style="line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; text-align: left; max-height: 250px; overflow-y: auto;">
         <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
           <span
             style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">1</span>
-          <span>우측 하단의 <strong>[더보기(...)]</strong> 선택</span>
+          <span><strong>[더보기(...)]</strong> 버튼을 선택합니다.</span>
         </div>
 
         <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
           <span
             style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">2</span>
-          <span><strong>[공유]</strong> 선택</span>
+          <span>메뉴에서 <strong>[공유]</strong> 아이콘을 선택합니다.</span>
         </div>
 
-        <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
           <span
             style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">3</span>
-          <span><strong>[더보기(v)]</strong> 선택</span>
+          <span>목록에서 아래로 스크롤하여 <strong>[더보기(v)]</strong>를 선택합니다.</span>
         </div>
         <div style="display: flex; align-items: flex-start; gap: 10px;">
           <span
-            style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">3</span>
-          <span>목록에서 <strong>[+ 홈 화면에 추가]</strong>선택 시 완료</span>
+            style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">4</span>
+          <span>목록에서 <strong>[+ 홈 화면에 추가]</strong>를 선택하면 완료!</span>
         </div>
 
         <div
@@ -1439,9 +1459,12 @@
 
       <button class="track-button"
         style="margin-top:20px; width:100%; border-color:#ff914d; color:#ff914d; background:rgba(255,145,77,0.1); font-weight: bold;"
-        onclick="document.getElementById('iosInstallGuide').style.display='none'">확인했습니다</button>
+        onclick="closeInstallGuide()">확인했습니다</button>
     </div>
   </div>
+
+  <!-- 우측 하단 조작 가이드 화살표 (추가) -->
+  <div id="guidePointer" class="guide-pointer"></div>
 
   <!-- 전체 가사 오버레이 -->
   <div id="fullLyricsOverlay" onclick="toggleFullLyrics(false)">
@@ -2942,6 +2965,14 @@
       if (isIOS) {
         // 아이폰용 가이드 노출
         document.getElementById('iosInstallGuide').style.display = 'flex';
+        const pointer = document.getElementById('guidePointer');
+        if (pointer) pointer.style.display = 'block';
+
+        // 스크롤을 가이드 시작 부분으로 이동
+        setTimeout(() => {
+          const container = document.getElementById('installStepContainer');
+          if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
       } else if (deferredPrompt) {
         // 안드로이드/크롬 설치 팝업 실행
         deferredPrompt.prompt();
@@ -2955,6 +2986,12 @@
         // 설치 불가 환경 혹은 이미 설치됨
         showToastMsg('이미 설치되어 있거나 현재 브라우저에서 지원하지 않습니다.');
       }
+    }
+
+    function closeInstallGuide() {
+      document.getElementById('iosInstallGuide').style.display = 'none';
+      const pointer = document.getElementById('guidePointer');
+      if (pointer) pointer.style.display = 'none';
     }
 
     function showToastMsg(msg) {

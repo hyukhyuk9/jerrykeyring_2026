@@ -413,7 +413,7 @@ window.api.updateMediaSession = function(metadata = {}) {
     // 이미지 주소를 절대 경로로 변환 (iOS 인식률 향상)
     const artworkUrl = metadata.artwork 
       ? (metadata.artwork.startsWith('http') ? metadata.artwork : window.location.origin + metadata.artwork)
-      : window.location.origin + '/app/iphone.png';
+      : window.location.origin + '/icons/icon-512x512.png';
 
     navigator.mediaSession.metadata = new MediaMetadata({
       title: metadata.title || '곡 제목',
@@ -437,8 +437,8 @@ window.api.updateMediaSession = function(metadata = {}) {
       ['pause', () => window.togglePlay && window.togglePlay()],
       ['previoustrack', () => window.changeTrack && window.changeTrack(-1)],
       ['nexttrack', () => window.changeTrack && window.changeTrack(1)],
-      ['seekbackward', (details) => { if(window.player) window.player.currentTime = Math.max(0, window.player.currentTime - (details.seekOffset || 10)); }],
-      ['seekforward', (details) => { if(window.player) window.player.currentTime = Math.min(window.player.duration, window.player.currentTime + (details.seekOffset || 10)); }]
+      ['seekbackward', (details) => { if(window.audioPlayer) window.audioPlayer.currentTime = Math.max(0, window.audioPlayer.currentTime - (details.seekOffset || 10)); }],
+      ['seekforward', (details) => { if(window.audioPlayer) window.audioPlayer.currentTime = Math.min(window.audioPlayer.duration, window.audioPlayer.currentTime + (details.seekOffset || 10)); }]
     ];
 
     actions.forEach(([action, handler]) => {

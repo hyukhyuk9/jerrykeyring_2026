@@ -2692,7 +2692,7 @@
       // 미디어 세션 업데이트 (잠금 화면)
       window.api.updateMediaSession({
         title: track.name,
-        artist: '제리키링',
+        artist: track.userName ? `${track.userName} (제리키링)` : '제리키링',
         state: 'playing'
       });
     }
@@ -2903,7 +2903,7 @@
       if (track) {
         window.api.updateMediaSession({
           title: track.name,
-          artist: track.isRandom ? '제리키링 (랜덤)' : '제리키링',
+          artist: track.isRandom ? '제리키링 (랜덤)' : (track.userName ? `${track.userName} (제리키링)` : '제리키링'),
           state: 'playing'
         });
       }

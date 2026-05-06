@@ -1802,7 +1802,7 @@
         btn.className = 'track-button';
         btn.innerHTML = `<span> ${track.name} </span>`;
         if (track.isLoading) { btn.style.pointerEvents = 'none'; }
-        else { btn.onclick = (e) => { e.stopPropagation(); initPlayer(index); }; }
+        else { btn.onclick = (e) => { e.stopPropagation(); initPlayer(index, true); }; }
         buttonList.appendChild(btn);
       });
 
@@ -1817,7 +1817,7 @@
         btn.className = 'track-button';
         btn.style.borderColor = '#ff914d'; btn.style.color = '#ff914d';
         btn.innerHTML = `<span><i class="fa-solid fa-bookmark" style="margin-right:5px;"></i>${st.name}</span>`;
-        btn.onclick = (e) => { e.stopPropagation(); initPlayer(realIdx); };
+        btn.onclick = (e) => { e.stopPropagation(); initPlayer(realIdx, true); };
         buttonList.appendChild(btn);
       });
 
@@ -2095,7 +2095,7 @@
       }
     }
 
-    async function playRandomMusic() {
+    async function playRandomMusic(forceUI = false) {
       // 샘플 계정인 경우 1곡 제한
       const isSampleUser = (localStorage.getItem('auth_nfc_number') === '000000');
       if (isSampleUser && sampleRandomPlayCount >= 1) {
@@ -2137,40 +2137,28 @@
 
         playingRandomTrack = trackToPlay;
 
-        /* 화면 및 플레이어 UI 전환 (독립 플레이어) */
-        document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
-        document.getElementById('mainUI').style.display = 'none';
-
-        const playerUIEls = [
-          document.getElementById('playerControls'),
-          document.getElementById('navBar'),
-          trackDisplay,
-          document.getElementById('exitContainer')
-        ];
-
-        playerUIEls.forEach(el => {
-          if (el) {
-            el.style.display = el.id === 'playerControls' ? 'grid' : 'block';
-            el.classList.remove('ui-slide-down'); // 투명화 클래스 제거
-          }
-        });
-        if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
+        // 메인 화면일 때 자동으로 화면 넘어가는 것 방지
+        const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
+        if (forceUI || !isMainVisible) {
+          switchToPlayerUI();
+        } else {
+          // 메인 화면 유지 시 미니바 표시
+          document.getElementById('miniPlayerBar').classList.add('show');
+        }
 
         // 실시간 모드일 때만 엔진 설정 시도
         if (vizMode === 'realtime') {
           setupAudioEngine();
         }
-
         canvas.style.opacity = '0.4';
         if (!animationId) drawVisualizer(0);
 
         nextSongToastShown = false;
         hideNextSongToast();
         player.src = playingRandomTrack.src;
-        trackDisplay.innerHTML = `[ > ${playingRandomTrack.name} ]${getRadioIconHtml()}`;
-        obsTrackTitle.innerHTML = playingRandomTrack.name;
+        trackDisplay.innerHTML = `<span style="color: #ffeb3b">[ > ${playingRandomTrack.name} ]</span>${getRadioIconHtml()}`;
+        obsTrackTitle.innerHTML = `<span style="color: #ffeb3b">< ${playingRandomTrack.name} ></span>`;
 
-        // 타인/랜덤 음원은 가사를 노란색으로 강조
         document.getElementById('lyricsBox').classList.add('lyric-friend');
         document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
 
@@ -2179,7 +2167,6 @@
         player.play().catch(() => { });
         resetIdleTimer();
 
-        // 미디어 세션 업데이트 (잠금 화면)
         window.api.updateMediaSession({
           title: playingRandomTrack.name,
           artist: '제리키링 (랜덤)',
@@ -2191,7 +2178,6 @@
           document.getElementById('exitContainer').style.display = 'block';
         }, 1500);
 
-        // 샘플 계정 카운트 증가
         if (isSampleUser) {
           sampleRandomPlayCount++;
         }
@@ -2202,41 +2188,27 @@
       }
     }
 
-    async function playPreviousRandomMusic() {
+    async function playPreviousRandomMusic(forceUI = false) {
       if (randomHistory.length === 0) {
         showToast('첫 번째 랜덤 곡입니다.');
         return;
       }
 
       try {
-        // 현재 곡은 미래 바구니(큐)의 맨 앞으로 다시 돌려보냄 (다시 '다음' 누를 때 이 곡이 나오게)
         if (playingRandomTrack) {
           randomQueue.unshift(JSON.parse(JSON.stringify(playingRandomTrack)));
           if (randomQueue.length > 10) randomQueue.pop(); // 10개 유지
         }
 
-        // 히스토리 바구니에서 마지막 곡 꺼내기
         const prevTrack = randomHistory.pop();
         playingRandomTrack = prevTrack;
 
-        // UI 업데이트 및 재생
-        document.getElementById('miniPlayerBar').classList.remove('show');
-        document.getElementById('mainUI').style.display = 'none';
-
-        const playerUIEls = [
-          document.getElementById('playerControls'),
-          document.getElementById('navBar'),
-          trackDisplay,
-          document.getElementById('exitContainer')
-        ];
-
-        playerUIEls.forEach(el => {
-          if (el) {
-            el.style.display = el.id === 'playerControls' ? 'grid' : 'block';
-            el.classList.remove('ui-slide-down');
-          }
-        });
-        if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
+        const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
+        if (forceUI || !isMainVisible) {
+          switchToPlayerUI();
+        } else {
+          document.getElementById('miniPlayerBar').classList.add('show');
+        }
 
         if (vizMode === 'realtime') {
           setupAudioEngine();
@@ -2247,8 +2219,8 @@
         nextSongToastShown = false;
         hideNextSongToast();
         player.src = playingRandomTrack.src;
-        trackDisplay.innerHTML = `[ > ${playingRandomTrack.name} ]${getRadioIconHtml()}`;
-        obsTrackTitle.innerHTML = playingRandomTrack.name;
+        trackDisplay.innerHTML = `<span style="color: #ffeb3b">[ > ${playingRandomTrack.name} ]</span>${getRadioIconHtml()}`;
+        obsTrackTitle.innerHTML = `<span style="color: #ffeb3b">< ${playingRandomTrack.name} ></span>`;
 
         document.getElementById('lyricsBox').classList.add('lyric-friend');
         document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
@@ -2610,9 +2582,9 @@
     }
 
 
-    function initPlayer(index) {
-      playingRandomTrack = null;
-      document.getElementById('miniPlayerBar').classList.remove('show'); // 미니바 숨김
+    function switchToPlayerUI() {
+      // 미니바 숨기고 플레이어 UI 노출
+      document.getElementById('miniPlayerBar').classList.remove('show');
       document.getElementById('mainUI').style.display = 'none';
 
       const playerUIEls = [
@@ -2629,6 +2601,19 @@
         }
       });
       if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
+    }
+
+    function initPlayer(index, forceUI = false) {
+      playingRandomTrack = null;
+
+      // 메인 화면일 때 자동으로 화면 넘어가는 것 방지
+      const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
+      if (forceUI || !isMainVisible) {
+        switchToPlayerUI();
+      } else {
+        // 메인 화면 유지 시 미니바 표시
+        document.getElementById('miniPlayerBar').classList.add('show');
+      }
 
       if (!isVisualizerSetup) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -3083,22 +3068,7 @@
     }
 
     function restoreFullPlayer() {
-      // 미니바 숨기고 플레이어 복구
-      document.getElementById('miniPlayerBar').classList.remove('show');
-
-      document.getElementById('mainUI').style.display = 'none';
-
-      const els = ['playerControls', 'navBar', 'trackDisplay', 'exitContainer'];
-      els.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.style.display = id === 'playerControls' ? 'flex' : (id === 'navBar' ? 'block' : 'block');
-          // 애니메이션 클래스 제거하여 제자리로 복구
-          setTimeout(() => el.classList.remove('ui-slide-down'), 10);
-        }
-      });
-
-      if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
+      switchToPlayerUI();
       resetIdleTimer();
     }
 

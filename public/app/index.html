@@ -520,8 +520,8 @@
     }
 
     window.onload = function() {
-      // 1. 이미 완성형 인터랙티브를 본 V2 유저라면 바로 신규 플레이어로 보냅니다.
-      if (localStorage.getItem('seen_interactive_v2') && localStorage.getItem('auth_nfc_number')) {
+      // 1. 이미 인증 정보(NFC 번호)가 있다면 바로 신규 플레이어로 보냅니다.
+      if (localStorage.getItem('auth_nfc_number')) {
          window.location.replace(`player.html?id=${localStorage.getItem('auth_nfc_number')}`);
       }
 

@@ -1221,15 +1221,17 @@
   <div id="iosInstallGuide" onclick="this.style.display='none'">
     <div class="install-card" onclick="event.stopPropagation()">
       <img src="/app/iphone.png" alt="App Icon">
-      <h2>제리키링AI</h2>
-      <p>홈화면에 추가하시겠어요?<br>추가하면 전체화면으로 볼 수 있어요.<br><br><strong>"업무 시작할 때 틀어보세요"</strong></p>
-      <div class="install-step">
-        <i class="fa-solid fa-share-from-square"></i> [공유] 버튼을 누른 뒤<br>
-        [홈 화면에 추가]를 눌러주세요!
+      <h2>제리키링AI 앱 설치</h2>
+      <p style="margin-bottom:15px;">홈 화면에 추가하면 <strong>전체화면</strong>으로<br>몰입감 있게 감상할 수 있을 뿐더러,<br><strong>백그라운드 재생</strong>도 끊김 없이 가능합니다!</p>
+      
+      <div class="install-step" style="line-height: 1.6; padding: 15px;">
+        <i class="fa-solid fa-share-from-square"></i> 1. 하단 <strong>[공유]</strong> 버튼을 누른 뒤<br>
+        <i class="fa-solid fa-plus-square"></i> 2. <strong>[홈 화면에 추가]</strong>를 눌러주세요!
       </div>
+
       <button class="track-button"
-        style="margin-top:20px; width:100%; border-color:#ff914d; color:#ff914d; background:transparent;"
-        onclick="document.getElementById('iosInstallGuide').style.display='none'">닫기</button>
+        style="margin-top:20px; width:100%; border-color:#ff914d; color:#ff914d; background:rgba(255,145,77,0.1); font-weight: 800;"
+        onclick="document.getElementById('iosInstallGuide').style.display='none'">확인 및 추가하기</button>
     </div>
   </div>
 
@@ -1817,6 +1819,13 @@
         player.play().catch(() => { });
         resetIdleTimer();
         
+        // 미디어 세션 업데이트 (잠금 화면)
+        window.api.updateMediaSession({
+          title: playingRandomTrack.name,
+          artist: '제리키링 (랜덤)',
+          state: 'playing'
+        });
+        
         // 가사 화면으로 전환된 후 닫기 버튼 서서히 등장
         setTimeout(() => {
           document.getElementById('exitContainer').style.display = 'block';
@@ -1981,6 +1990,7 @@
                 lyricsText: finalLyrics,
                 isLoading: false,
                 story: data.story,
+                userName: data.user_name || '유저',
                 radioAudioUrl: radioTts ? radioTts.audio_url : null,
                 radioScript: radioTts ? radioTts.radio_script : null
               }));
@@ -1994,6 +2004,7 @@
                 lyricsText: finalLyrics,
                 isLoading: false,
                 story: data.story,
+                userName: data.user_name || '유저',
                 radioAudioUrl: radioTts ? radioTts.audio_url : null,
                 radioScript: radioTts ? radioTts.radio_script : null
               }));
@@ -2046,6 +2057,7 @@
                       lyricsText: fLyr,
                       isFriend: true,
                       story: uData.story,
+                      userName: fName,
                       radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
                       radioScript: fRadioTts ? fRadioTts.radio_script : null
                     });
@@ -2060,6 +2072,7 @@
                       lyricsText: fLyr,
                       isFriend: true,
                       story: uData.story,
+                      userName: fName,
                       radioAudioUrl: fRadioTts ? fRadioTts.audio_url : null,
                       radioScript: fRadioTts ? fRadioTts.radio_script : null
                     });
@@ -2134,6 +2147,13 @@
         const scriptHtml = track.radioScript ? `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${track.radioScript}</div>` : '';
         lyricsInner.innerHTML = scriptHtml;
         
+        // 미디어 세션 업데이트 (라디오 중)
+        window.api.updateMediaSession({
+          title: `팟캐스트: ${track.userName || '누군가'}님의 사연`,
+          artist: '제리 DJ',
+          state: 'playing'
+        });
+
         await tts.play().catch(() => initPlayer(index));
       } catch (err) {
         console.error("Radio playback error:", err);
@@ -2217,6 +2237,13 @@
       else document.getElementById('lyricsBox').classList.remove('lyric-friend');
       parseLyrics(playlist[currentIdx].lyricsText);
       updateSaveBtn();
+
+      // 미디어 세션 업데이트 (잠금 화면)
+      window.api.updateMediaSession({
+        title: track.name,
+        artist: '제리키링',
+        state: 'playing'
+      });
     }
 
     // 가사 필터링 (구조 태그 제거)
@@ -2409,6 +2436,8 @@
         player.pause(); 
         if (icon) icon.className = 'fa-solid fa-play control-btn main-play-btn';
         if (miniIcon) miniIcon.className = 'fa-solid fa-play';
+        // 미디어 세션 상태 업데이트
+        window.api.updateMediaSession({ state: 'paused' });
       }
     }
     function changeTrack(dir) {

@@ -405,3 +405,37 @@ window.api.generateBatchRadio = async function (nfc_id, story) {
     return { success: false, message: err.message };
   }
 };
+/**
+ * [추가] 미디어 세션 업데이트 (잠금 화면 & 제어 센터 연동)
+ */
+window.api.updateMediaSession = function(metadata = {}) {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: metadata.title || '곡 제목',
+      artist: metadata.artist || '제리키링',
+      album: '제리키링 컬렉션',
+      artwork: [
+        { src: metadata.artwork || '/app/iphone.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+
+    // 잠금 화면 제어 버튼 연동
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (window.togglePlay) window.togglePlay();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      if (window.togglePlay) window.togglePlay();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      if (window.changeTrack) window.changeTrack(-1);
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      if (window.changeTrack) window.changeTrack(1);
+    });
+    
+    // 재생 상태 업데이트
+    if (metadata.state) {
+      navigator.mediaSession.playbackState = metadata.state; // 'playing' or 'paused'
+    }
+  }
+};

@@ -1618,6 +1618,7 @@
     let lyricsLoadTimer = null;
     let playingRandomTrack = null;
     let nextRandomTrack = null;
+    let randomHistory = []; // 랜덤 재생 히스토리 기록용
 
     // AI 라디오 상태 관리
     let aiRadioEnabled = false;
@@ -2018,6 +2019,12 @@
           trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
         }
 
+        // 현재 곡이 있다면 히스토리에 추가 (중복 방지 체크)
+        if (playingRandomTrack) {
+          randomHistory.push(JSON.parse(JSON.stringify(playingRandomTrack)));
+          if (randomHistory.length > 50) randomHistory.shift(); // 최대 50곡까지 기억
+        }
+
         playingRandomTrack = nextRandomTrack || {
           src: audioUrl,
           name: `${trackName}`,
@@ -2098,6 +2105,39 @@
         console.error('랜덤 재생 에러:', err);
         showToast('❌ 랜덤 음원을 불러오지 못했습니다.');
       }
+    }
+
+    // 히스토리에서 곡을 꺼내 재생하는 내부 함수
+    function playFromHistory(track) {
+      playingRandomTrack = track;
+      document.getElementById('miniPlayerBar').classList.remove('show');
+      document.getElementById('mainUI').style.display = 'none';
+      
+      const playerUIEls = [
+        document.getElementById('playerControls'),
+        document.getElementById('navBar'),
+        trackDisplay,
+        document.getElementById('exitContainer')
+      ];
+      playerUIEls.forEach(el => {
+        if (el) {
+          el.style.display = el.id === 'playerControls' ? 'grid' : 'block';
+          el.classList.remove('ui-slide-down');
+        }
+      });
+
+      player.src = track.src;
+      trackDisplay.innerHTML = `[ > ${track.name} ]${getRadioIconHtml()}`;
+      obsTrackTitle.innerHTML = track.name;
+      parseLyrics(track.lyricsText);
+      updateSaveBtn();
+      player.play().catch(() => {});
+      
+      window.api.updateMediaSession({
+        title: track.name,
+        artist: '제리키링 (랜덤)',
+        state: 'playing'
+      });
     }
 
     /* 저장 버튼 토글 (랜덤 트랙 저장/해제) */
@@ -2784,9 +2824,28 @@
     }, 1000);
 
     function changeTrack(dir) {
-      // 랜덤 재생 중이더라도 강제로 이전/다음 곡 탐색 시 랜덤 모드 해제하여 플레이리스트 순회
-      playingRandomTrack = null;
+      // 랜덤 재생 중일 때
+      if (playingRandomTrack) {
+        if (dir > 0) {
+          // 다음 곡: 새로운 랜덤 곡
+          playRandomMusic();
+        } else {
+          // 이전 곡: 히스토리 확인
+          if (randomHistory.length > 0) {
+            const prevTrack = randomHistory.pop();
+            playFromHistory(prevTrack);
+          } else {
+            // 히스토리가 없으면 일반 플레이리스트로 복귀
+            playingRandomTrack = null;
+            currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
+            loadTrack(currentIdx);
+          }
+        }
+        return;
+      }
 
+      // 일반 재생 중일 때
+      playingRandomTrack = null;
       currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
       loadTrack(currentIdx);
       if (document.getElementById('playPauseIcon')) document.getElementById('playPauseIcon').className = 'fa-solid fa-pause control-btn main-play-btn';

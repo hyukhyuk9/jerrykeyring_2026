@@ -519,7 +519,27 @@
       }
     }
 
+    async function prefetchRandomTracks() {
+      try {
+        console.log('[🚀 Prefetch] Starting pre-fetch of 2 tracks...');
+        const tracks = [];
+        for (let i = 0; i < 2; i++) {
+          const track = await window.api.getRandomTrack();
+          if (track) tracks.push(track);
+        }
+        if (tracks.length > 0) {
+          localStorage.setItem('prefetched_random_tracks', JSON.stringify(tracks));
+          console.log(`[✅ Prefetch] Stored ${tracks.length} tracks in localStorage.`);
+        }
+      } catch (err) {
+        console.error('[❌ Prefetch] Failed:', err);
+      }
+    }
+
     window.onload = function() {
+      // 초기 프리로드 시작
+      prefetchRandomTracks();
+
       // 1. 이미 인증 정보(NFC 번호)가 있다면 바로 신규 플레이어로 보냅니다.
       if (localStorage.getItem('auth_nfc_number')) {
          window.location.replace(`player.html?id=${localStorage.getItem('auth_nfc_number')}`);

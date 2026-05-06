@@ -1636,8 +1636,9 @@
     let showNextSongGuide = localStorage.getItem('nextSongGuide') !== 'false';
     let lyricsLoadTimer = null;
     let playingRandomTrack = null;
-    let nextRandomTrack = null;
-    let randomHistory = []; // 랜덤 재생 히스토리 기록용
+    let randomQueue = [];   // 미래 바구니 (다음 곡들)
+    let randomHistory = []; // 과거 바구니 (이전 곡들)
+    let isFillingQueue = false; // 큐 보충 중복 방지 플래그
     
     // 비주얼라이저 모드 상태 ('random' 또는 'realtime')
     let vizMode = localStorage.getItem('vizMode') || 'random';
@@ -1993,33 +1994,67 @@
       }
     }
 
-    /* 제리키링 랜덤음원듣기 */
-    let sampleRandomPlayCount = 0;
-
-    // 다음 랜덤 곡 미리 가져오기
-    async function prepareNextRandomTrack() {
+    // 랜덤 곡 바구니 채우기 (항상 10개 유지)
+    async function fillRandomQueue() {
+      if (isFillingQueue || randomQueue.length >= 10) return;
+      isFillingQueue = true;
+      
       try {
-        const randomData = await window.api.getRandomTrack();
-        if (!randomData) return;
+        // 1. 프리로드된 곡이 있다면 먼저 바구니에 담기
+        const prefetched = localStorage.getItem('prefetched_random_tracks');
+        if (prefetched) {
+          const tracks = JSON.parse(prefetched);
+          tracks.forEach(trackData => {
+            if (randomQueue.length < 10) {
+              const trackInfo = trackData.tracks || {};
+              const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+              let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
+              const lyricLines = finalLyrics.split('\n').filter(l => l.trim() !== "");
+              let trackName = "랜덤 음원";
+              if (lyricLines.length > 1) trackName = lyricLines[1].replace(/\[.*?\]/g, '').trim();
+              else if (lyricLines.length > 0) trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
 
-        const trackInfo = randomData.tracks || {};
-        const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
-        let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
+              randomQueue.push({
+                src: trackData.audio_url,
+                name: trackName,
+                lyricsText: finalLyrics,
+                isRandom: true
+              });
+            }
+          });
+          localStorage.removeItem('prefetched_random_tracks');
+          console.log(`[🎲 Queue] Consumed prefetched tracks. Current: ${randomQueue.length}/10`);
+        }
 
-        const lyricLines = finalLyrics.split('\n').filter(l => l.trim() !== "");
-        let trackName = "랜덤 음원";
-        if (lyricLines.length > 1) trackName = lyricLines[1].replace(/\[.*?\]/g, '').trim();
-        else if (lyricLines.length > 0) trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
+        // 2. 모자란 만큼 서버에서 더 가져오기
+        while (randomQueue.length < 10) {
+          const randomData = await window.api.getRandomTrack();
+          if (!randomData) break;
 
-        nextRandomTrack = {
-          src: randomData.audio_url,
-          name: trackName,
-          lyricsText: finalLyrics,
-          isRandom: true
-        };
-        console.log(`[🎲 Next Ready] ${nextRandomTrack.name}`);
+          const trackInfo = randomData.tracks || {};
+          const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
+          let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
+
+          const lyricLines = finalLyrics.split('\n').filter(l => l.trim() !== "");
+          let trackName = "랜덤 음원";
+          if (lyricLines.length > 1) trackName = lyricLines[1].replace(/\[.*?\]/g, '').trim();
+          else if (lyricLines.length > 0) trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
+
+          randomQueue.push({
+            src: randomData.audio_url,
+            name: trackName,
+            lyricsText: finalLyrics,
+            isRandom: true
+          });
+          console.log(`[🎲 Queue] Filled: ${randomQueue.length}/10`);
+          
+          // API 부하 방지를 위해 아주 짧은 지연
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       } catch (e) {
-        console.error("Next random track preparation failed:", e);
+        console.error("Queue filling failed:", e);
+      } finally {
+        isFillingQueue = false;
       }
     }
 
@@ -2032,37 +2067,35 @@
       }
 
       try {
-        // [핵심] 미리 로드된 곡이 있다면 즉시 사용 (백그라운드 끊김 방지)
+        // 현재 곡이 있다면 히스토리에 추가
+        if (playingRandomTrack) {
+          randomHistory.push(JSON.parse(JSON.stringify(playingRandomTrack)));
+          if (randomHistory.length > 10) randomHistory.shift(); // 과거 바구니 10개 제한
+        }
+
         let trackToPlay = null;
-        if (nextRandomTrack) {
-          trackToPlay = nextRandomTrack;
-          nextRandomTrack = null;
-          // 다음 곡 또 미리 준비
-          prepareNextRandomTrack();
+        
+        // 바구니에서 한 곡 꺼냄
+        if (randomQueue.length > 0) {
+          trackToPlay = randomQueue.shift();
+          fillRandomQueue(); // 꺼낸 즉시 보충 시작
         } else {
-          // 로드된 게 없으면 새로 가져옴
+          // 바구니가 비어있으면 즉시 한 곡 가져옴
           const randomData = await window.api.getRandomTrack();
           if (!randomData) {
             showToast('❌ 재생 가능한 랜덤 음원이 없습니다.');
             return;
           }
-          const audioUrl = randomData.audio_url;
           const trackInfo = randomData.tracks || {};
           const isValid = (txt) => txt && txt.trim() !== '' && txt !== '수정없음';
           let finalLyrics = trackInfo.sync_lyrics || (isValid(trackInfo.status) ? trackInfo.status : trackInfo.lyrics) || '제리키링AI';
-          
           const lyricLines = finalLyrics.split('\n').filter(l => l.trim() !== "");
           let trackName = "랜덤 음원";
           if (lyricLines.length > 1) trackName = lyricLines[1].replace(/\[.*?\]/g, '').trim();
           else if (lyricLines.length > 0) trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
 
-          trackToPlay = {
-            src: audioUrl,
-            name: trackName,
-            lyricsText: finalLyrics,
-            isRandom: true
-          };
-          prepareNextRandomTrack();
+          trackToPlay = { src: randomData.audio_url, name: trackName, lyricsText: finalLyrics, isRandom: true };
+          fillRandomQueue();
         }
 
         playingRandomTrack = trackToPlay;
@@ -2129,6 +2162,74 @@
       } catch (err) {
         console.error('랜덤 재생 에러:', err);
         showToast('❌ 랜덤 음원을 불러오지 못했습니다.');
+      }
+    }
+
+    async function playPreviousRandomMusic() {
+      if (randomHistory.length === 0) {
+        showToast('첫 번째 랜덤 곡입니다.');
+        return;
+      }
+
+      try {
+        // 현재 곡은 미래 바구니(큐)의 맨 앞으로 다시 돌려보냄 (다시 '다음' 누를 때 이 곡이 나오게)
+        if (playingRandomTrack) {
+          randomQueue.unshift(JSON.parse(JSON.stringify(playingRandomTrack)));
+          if (randomQueue.length > 10) randomQueue.pop(); // 10개 유지
+        }
+
+        // 히스토리 바구니에서 마지막 곡 꺼내기
+        const prevTrack = randomHistory.pop();
+        playingRandomTrack = prevTrack;
+
+        // UI 업데이트 및 재생
+        document.getElementById('miniPlayerBar').classList.remove('show');
+        document.getElementById('mainUI').style.display = 'none';
+
+        const playerUIEls = [
+          document.getElementById('playerControls'),
+          document.getElementById('navBar'),
+          trackDisplay,
+          document.getElementById('exitContainer')
+        ];
+
+        playerUIEls.forEach(el => {
+          if (el) {
+            el.style.display = el.id === 'playerControls' ? 'grid' : 'block';
+            el.classList.remove('ui-slide-down');
+          }
+        });
+        if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
+
+        if (vizMode === 'realtime') {
+          setupAudioEngine();
+        }
+        canvas.style.opacity = '0.4';
+        if (!animationId) drawVisualizer(0);
+
+        nextSongToastShown = false;
+        hideNextSongToast();
+        player.src = playingRandomTrack.src;
+        trackDisplay.innerHTML = `[ > ${playingRandomTrack.name} ]${getRadioIconHtml()}`;
+        obsTrackTitle.innerHTML = playingRandomTrack.name;
+
+        document.getElementById('lyricsBox').classList.add('lyric-friend');
+        document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
+
+        parseLyrics(playingRandomTrack.lyricsText);
+        updateSaveBtn();
+        player.play().catch(() => { });
+        resetIdleTimer();
+
+        window.api.updateMediaSession({
+          title: playingRandomTrack.name,
+          artist: '제리키링 (랜덤)',
+          state: 'playing'
+        });
+
+        console.log(`[🎲 History] Back to: ${prevTrack.name}`);
+      } catch (err) {
+        console.error('이전 랜덤 곡 재생 에러:', err);
       }
     }
 
@@ -2383,6 +2484,9 @@
       // 비주얼라이저 초기 라디오 버튼 체크
       if (vizMode === 'realtime') document.getElementById('vizRealtime').checked = true;
       else document.getElementById('vizRandom').checked = true;
+
+      // [추가] 초기 랜덤 곡 프리로드 시작 (2곡 이상 보충되도록 호출)
+      fillRandomQueue();
     };
     /* AI 라디오: 곡 종료 10초 전에 볼륨 페이드아웃 + 라디오 재생 */
     async function fadeOutAndPlayRadio(nextIndex) {
@@ -2817,8 +2921,11 @@
     }, 500); // 0.5초마다 더 공격적으로 체크
 
     function changeTrack(dir) {
-      // 랜덤 재생 중이더라도 강제로 이전/다음 곡 탐색 시 랜덤 모드 해제하여 플레이리스트 순회
-      playingRandomTrack = null;
+      if (playingRandomTrack) {
+        if (dir > 0) playRandomMusic();
+        else playPreviousRandomMusic();
+        return;
+      }
 
       currentIdx = (currentIdx + dir + playlist.length) % playlist.length;
       loadTrack(currentIdx);

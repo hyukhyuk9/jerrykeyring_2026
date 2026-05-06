@@ -819,6 +819,24 @@
     }
     #miniPlayerBar.show { display: flex; }
     
+    /* 미니 플레이어 상단 얇은 진행 바 */
+    .mini-progress-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px 20px 0 0;
+      overflow: hidden;
+    }
+    .mini-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: #ff914d;
+      transition: width 0.3s linear;
+    }
+    
     @keyframes miniSlideUp {
       from { transform: translate(-50%, 100px); opacity: 0; }
       to { transform: translate(-50%, 0); opacity: 1; }
@@ -1234,22 +1252,26 @@
     <div class="install-card" onclick="event.stopPropagation()">
       <img src="/app/iphone.png" alt="App Icon" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
       <h2>제리키링AI 앱 설치</h2>
-      <p style="margin-bottom:20px; font-size: 0.9rem;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
+      <p style="margin-bottom:20px; font-size: 0.85rem;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
       
-      <div class="install-step" style="line-height: 1.8; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px;">
-        <div style="margin-bottom: 15px;">
-          <span style="background: #ff914d; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-right: 5px;">1</span>
-          브라우저 하단 중앙의<br>
-          <i class="fa-solid fa-share-from-square" style="font-size: 1.5rem; color: #ff914d; margin: 10px 0; display: block;"></i>
-          <strong>[공유]</strong> 버튼을 직접 눌러주세요.
+      <div class="install-step" style="line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px; text-align: left;">
+        <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+          <span style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">1</span>
+          <span>우측 하단의 <strong>더보기(...)</strong> 버튼을 누릅니다.</span>
         </div>
         
-        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+        <div style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+          <span style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">2</span>
+          <span>메뉴에서 <strong>[공유 <i class="fa-solid fa-share-nodes"></i>]</strong> 버튼을 누릅니다.</span>
+        </div>
 
-        <div>
-          <span style="background: #ff914d; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-right: 5px;">2</span>
-          목록에서 아래로 내려서<br>
-          <strong>[홈 화면에 추가]</strong>를 눌러주세요!
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <span style="background: #ff914d; color: #000; padding: 0 6px; border-radius: 5px; font-weight: bold; font-size: 0.8rem;">3</span>
+          <span>목록에서 <strong>[홈 화면에 추가]</strong>를 찾아 누릅니다.</span>
+        </div>
+
+        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; font-size: 0.75rem; color: #ffeb3b; text-align: center;">
+          <i class="fa-solid fa-circle-info"></i> 설치 후 앱을 처음 실행할 때<br><strong>딱 한 번 다시 인증</strong>이 필요합니다.
         </div>
       </div>
 
@@ -1315,6 +1337,9 @@
 
   <!-- 하단 미니 플레이어 바 -->
   <div id="miniPlayerBar" onclick="restoreFullPlayer()">
+    <div class="mini-progress-container">
+      <div id="miniProgressFill" class="mini-progress-fill"></div>
+    </div>
     <div class="mini-left">
       <div class="mini-album-cover">
         <img src="/app/iphone.png" alt="cover">
@@ -2373,11 +2398,13 @@
       const progressPercent = (cur / dur) * 100;
 
       document.getElementById('progressBar').value = cur;
-      document.getElementById('miniProgressFill').style.width = progressPercent + '%';
+      const miniFill = document.getElementById('miniProgressFill');
+      if (miniFill) miniFill.style.width = progressPercent + '%';
 
       updateLyricsDisplay(cur);
       const m = Math.floor(cur / 60), s = Math.floor(cur % 60);
-      document.getElementById('currentTime').innerText = `${m}:${String(s).padStart(2, '0')}`;
+      const timeDisplay = document.getElementById('currentTime');
+      if (timeDisplay) timeDisplay.innerText = `${m}:${String(s).padStart(2, '0')}`;
 
       /* 다음곡 안내 말풍선: 종료 30초 전, 3초간만 표시 */
       if (showNextSongGuide && dur && !nextSongToastShown) {

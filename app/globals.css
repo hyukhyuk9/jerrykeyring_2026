@@ -721,3 +721,85 @@ body.light-mode .app-header {
 .toast.show {
   transform: translateX(-50%) translateY(0);
 }
+
+/* --- AI Radio Module --- */
+.radio-container {
+  width: 100%;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 145, 77, 0.2);
+  border-radius: 24px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: fadeSlideIn 0.8s ease-out;
+}
+
+.radio-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--primary);
+  color: #000;
+  border-radius: 50px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.radio-visualizer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 60px;
+  margin-bottom: 1.5rem;
+}
+
+.visual-bar {
+  width: 4px;
+  height: 20%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: height 0.1s ease;
+}
+
+.visual-bar.active {
+  animation: radioWave 1.2s ease-in-out infinite;
+}
+
+.radio-script-box {
+  min-height: 80px;
+}
+
+.radio-script-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-dark);
+  font-weight: 400;
+  word-break: keep-all;
+}
+
+.radio-skip-btn {
+  margin-top: 1.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.radio-skip-btn:hover {
+  color: var(--primary);
+}
+
+@keyframes radioWave {
+  0%, 100% { height: 20%; opacity: 0.5; }
+  50% { height: 100%; opacity: 1; }
+}

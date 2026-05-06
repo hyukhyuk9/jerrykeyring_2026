@@ -21,17 +21,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function NfcPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  // 1. Supabase에서 해당 NFC ID 데이터 조회 (기존의 getTrackByNfc 대체)
+  // 1. Supabase에서 트랙 기본 정보 및 AI 라디오 정보 동시 조회
   const { data: trackData } = await supabase
     .from('tracks')
     .select('*')
     .eq('nfc_id', id)
     .maybeSingle();
 
+  const { data: audioData } = await supabase
+    .from('audio_files')
+    .select('radio_url, radio_script')
+    .eq('nfc_id', id)
+    .maybeSingle();
+
   const track = trackData as TrackRecord | null;
 
-  // 2. 커스텀 트랙 구성 로직 복구
-  // 실제 R2 파일이 있으면 R2 파일을 사용하고, 없으면 기존처럼 장르 기반 샘플 음원 매핑
+  // 2. 커스텀 트랙 구성 로직
   const audioUrls = await getTrackFiles(id);
   let hasMusic = audioUrls.length > 0;
   let tracks: { label: string; url: string }[] = [];
@@ -42,7 +47,6 @@ export default async function NfcPage({ params }: { params: Promise<{ id: string
       url: url,
     }));
   } else if (track) {
-    // 음원 파일은 없지만 트랙 정보는 있는 경우 -> 기존의 샘플 매핑 로직 복구
     const genreToSample: Record<string, string> = {
       '인디팝': '/audio/sample-indiepop.mp3',
       '시티팝': '/audio/sample-citypop.mp3',
@@ -57,11 +61,8 @@ export default async function NfcPage({ params }: { params: Promise<{ id: string
     const genre = track.genre || '음원';
     const sampleUrl = genreToSample[genre] || '/audio/sample-indiepop.mp3';
     
-    tracks = [{
-      label: genre,
-      url: sampleUrl,
-    }];
-    hasMusic = true; // 샘플이라도 재생 가능하게 설정
+    tracks = [{ label: genre, url: sampleUrl }];
+    hasMusic = true;
   }
 
   return (
@@ -71,6 +72,8 @@ export default async function NfcPage({ params }: { params: Promise<{ id: string
       tracks={tracks}
       lyrics={track?.lyrics || '가사가 등록되지 않았습니다.'}
       genre={track?.genre || '음원'}
+      radioUrl={audioData?.radio_url || null}
+      radioScript={audioData?.radio_script || null}
     />
   );
 }

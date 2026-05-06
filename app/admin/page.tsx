@@ -126,6 +126,30 @@ export default function AdminPage() {
     setUploadFiles(prev => [...prev, ...files]);
   }
 
+  // --- AI 라디오 일괄 생성 ---
+  async function handleBatchRadio() {
+    if (!confirm('사연이 있는 모든 트랙의 AI 라디오를 일괄 생성하시겠습니까?\n(이미 생성된 항목은 건너뜁니다.)')) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/radio/batch', {
+        method: 'POST',
+        body: JSON.stringify({ limit: 50, force: false })
+      });
+      const result = await response.json();
+      
+      if (result.error) {
+        alert(`오류 발생: ${result.error}`);
+      } else {
+        alert(`일괄 생성 완료!\n성공: ${result.success}건\n건너뜀: ${result.skipped}건\n실패: ${result.failed}건`);
+        loadTracks();
+      }
+    } catch (err) {
+      alert('서버 통신 오류가 발생했습니다.');
+    }
+    setLoading(false);
+  }
+
   const filteredTracks = tracks.filter(t =>
     (t.nfc_id || '').includes(searchQuery) ||
     (t.user_name || '').includes(searchQuery) ||
@@ -146,8 +170,14 @@ export default function AdminPage() {
         />
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button 
+            onClick={handleBatchRadio}
+            style={{ padding: '0.8rem 1.2rem', background: 'rgba(255, 145, 77, 0.1)', border: '1px solid #ff914d', color: '#ff914d', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            🎙️ AI 라디오 일괄 생성
+          </button>
+          <button 
             onClick={openNewRecordModal}
-            style={{ padding: '0.8rem 1.2rem', background: 'transparent', border: '1px solid #ff914d', color: '#ff914d', borderRadius: '8px', cursor: 'pointer' }}
+            style={{ padding: '0.8rem 1.2rem', background: 'transparent', border: '1px solid #444', color: '#ccc', borderRadius: '8px', cursor: 'pointer' }}
           >
             + 데이터 수동 등록
           </button>

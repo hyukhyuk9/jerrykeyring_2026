@@ -1,0 +1,21 @@
+{
+  "name": "제리키링 (JerryKeyring)",
+  "short_name": "제리키링",
+  "description": "세상에 하나뿐인 나만의 NFC 음악 키링",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ff914d",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

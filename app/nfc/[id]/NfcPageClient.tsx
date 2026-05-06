@@ -5,6 +5,7 @@ import IntroVideo from '@/components/IntroVideo';
 import MusicPlayer from '@/components/MusicPlayer';
 import SamplePlayer from '@/components/SamplePlayer';
 import MbtiTestModal from '@/components/MbtiTestModal';
+import AiRadioPlayer from '@/components/AiRadioPlayer';
 
 interface NfcPageClientProps {
   nfcId: string;
@@ -12,12 +13,19 @@ interface NfcPageClientProps {
   tracks: { label: string; url: string }[];
   lyrics: string;
   genre: string;
+  radioUrl?: string | null;
+  radioScript?: string | null;
 }
 
-export default function NfcPageClient({ nfcId, hasMusic, tracks, lyrics, genre }: NfcPageClientProps) {
-  const [introEnded, setIntroEnded] = useState(!hasMusic); // 샘플이면 인트로 스킵
+export default function NfcPageClient({ 
+  nfcId, hasMusic, tracks, lyrics, genre, radioUrl, radioScript 
+}: NfcPageClientProps) {
+  const [introEnded, setIntroEnded] = useState(!hasMusic);
+  const [radioFinished, setRadioFinished] = useState(false);
   const [showMbti, setShowMbti] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
+
+  const shouldShowRadio = radioUrl && !radioFinished && introEnded;
 
   function toggleMode() {
     setIsLightMode(!isLightMode);
@@ -39,33 +47,43 @@ export default function NfcPageClient({ nfcId, hasMusic, tracks, lyrics, genre }
       <main className="app-main">
         {hasMusic ? (
           <>
-            {/* 커스텀 음원 페이지 */}
+            {/* 1. 인트로 영상 (최초 진입 시) */}
             {!introEnded && (
               <IntroVideo onVideoEnd={() => setIntroEnded(true)} />
             )}
 
-            {introEnded && (
-              <>
-                <MusicPlayer
-                  tracks={tracks}
-                  lyrics={lyrics}
-                />
+            {/* 2. AI 라디오 (인트로 종료 후, 라디오 URL이 있을 때만) */}
+            {shouldShowRadio ? (
+              <AiRadioPlayer 
+                url={radioUrl!} 
+                script={radioScript || ""} 
+                onEnded={() => setRadioFinished(true)} 
+              />
+            ) : (
+              /* 3. 메인 음악 플레이어 (인트로 및 라디오 종료 후) */
+              introEnded && (
+                <>
+                  <MusicPlayer
+                    tracks={tracks}
+                    lyrics={lyrics}
+                  />
 
-                <p className="info-text visible" style={{ marginTop: '1.5rem' }}>
-                  *제리키링AI | 나만의 NFC 음악앨범키링
-                </p>
-              </>
+                  <p className="info-text visible" style={{ marginTop: '1.5rem' }}>
+                    *제리키링AI | 나만의 NFC 음악앨범키링
+                  </p>
+                </>
+              )
             )}
           </>
         ) : (
           <>
-            {/* 샘플 페이지 (음원 미등록) */}
+            {/* 샘플 페이지 (음원 미등록 시) */}
             <SamplePlayer />
           </>
         )}
 
-        {/* MBTI 테스트 버튼 - 항상 표시 */}
-        {introEnded && (
+        {/* MBTI 테스트 버튼 (모든 재생 시퀀스 종료 후 표시) */}
+        {introEnded && (radioFinished || !radioUrl) && (
           <button
             className="mbti-trigger"
             onClick={() => setShowMbti(true)}

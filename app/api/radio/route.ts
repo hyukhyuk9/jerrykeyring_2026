@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { uploadToR2 } from '@/lib/r2';
 
-// 빌드 시 에러 방지를 위한 다이내믹 렌더링 설정
 export const dynamic = 'force-dynamic';
 
-// 수파베이스 초기화 방어 로직
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// URL과 Key가 있을 때만 클라이언트 생성
 const supabase = (supabaseUrl && supabaseKey) 
   ? createClient(supabaseUrl, supabaseKey) 
   : null;
@@ -19,27 +17,29 @@ export async function POST(request: Request) {
     const apiKey = process.env.GOOGLE_AI_API_KEY;
 
     if (!apiKey) {
-      return NextResponse.json({ error: 'Gemini API Key is missing' }, { status: 500 });
+      return NextResponse.json({ error: 'Gemini/TTS API Key is missing' }, { status: 500 });
+    }
+
+    if (!supabase) {
+      return NextResponse.json({ error: 'Supabase client is not initialized' }, { status: 500 });
     }
 
     // 1. 기존에 생성된 라디오가 있는지 DB 조회
-    if (supabase) {
-      const { data: existingData } = await supabase
-        .from('audio_files')
-        .select('radio_script, radio_audio')
-        .eq('nfc_id', nfc_id)
-        .maybeSingle();
+    const { data: existingData } = await supabase
+      .from('audio_files')
+      .select('radio_url, radio_script')
+      .eq('nfc_id', nfc_id)
+      .maybeSingle();
 
-      if (existingData && existingData.radio_script && existingData.radio_audio) {
-        return NextResponse.json({ 
-            script: existingData.radio_script, 
-            audioContent: existingData.radio_audio, 
-            message: 'Loaded from cache'
-        });
-      }
+    if (existingData?.radio_url) {
+      return NextResponse.json({ 
+          script: existingData.radio_script, 
+          url: existingData.radio_url, 
+          message: 'Loaded from existing record'
+      });
     }
 
-    // 2. 데이터가 없으면 Gemini를 통해 라디오 대본 생성
+    // 2. Gemini를 통해 라디오 대본 생성
     const gptResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     const gptData = await gptResponse.json();
     const script = gptData.candidates[0].content.parts[0].text;
 
-    // 3. Google Cloud TTS를 통해 고품질 음성 생성 (ko-KR-Neural2-B)
+    // 3. Google Cloud TTS를 통해 음성 생성
     const ttsResponse = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -66,38 +66,45 @@ export async function POST(request: Request) {
           name: 'ko-KR-Neural2-B',
           ssmlGender: 'MALE'
         },
-        audioConfig: {
-          audioEncoding: 'MP3',
-        }
+        audioConfig: { audioEncoding: 'MP3' }
       }),
     });
 
     const ttsData = await ttsResponse.json();
-    const audioContent = ttsData.audioContent;
+    const audioContent = ttsData.audioContent; // base64 string
 
-    if (audioContent) {
-      // 4. 생성된 데이터를 DB에 업데이트 또는 삽입
-      if (supabase) {
-        try {
-          const { error: dbError } = await supabase
-            .from('audio_files')
-            .update({
-              radio_script: script,
-              radio_audio: audioContent
-            })
-            .eq('nfc_id', nfc_id);
-          
-          if (dbError) console.warn('Database update warning:', dbError.message);
-        } catch (dbErr) {
-          console.error('Database connection error:', dbErr);
-        }
-      }
+    if (!audioContent) {
+      return NextResponse.json({ error: 'Failed to generate TTS audio' }, { status: 500 });
+    }
+
+    // 4. Cloudflare R2 업로드 (media/radio/[nfc_id]_tts.mp3)
+    const audioBuffer = Buffer.from(audioContent, 'base64');
+    const filename = `radio/${nfc_id}_tts.mp3`;
+    const publicUrl = await uploadToR2(filename, audioBuffer);
+
+    if (!publicUrl) {
+      return NextResponse.json({ error: 'Failed to upload to R2' }, { status: 500 });
+    }
+
+    // 5. DB 업데이트 (radio_url, radio_url_status)
+    const { error: dbError } = await supabase
+      .from('audio_files')
+      .upsert({
+        nfc_id: nfc_id,
+        radio_script: script,
+        radio_url: publicUrl,
+        radio_url_status: true,
+        category: 'radio_tts'
+      }, { onConflict: 'nfc_id' });
+
+    if (dbError) {
+      console.error('Database update error:', dbError);
     }
 
     return NextResponse.json({ 
         script, 
-        audioContent, 
-        message: 'Generated and Saved'
+        url: publicUrl, 
+        message: 'Generated and Saved to R2'
     });
 
   } catch (error) {

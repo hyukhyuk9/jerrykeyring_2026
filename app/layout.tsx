@@ -4,13 +4,20 @@ import './globals.css';
 export const metadata: Metadata = {
   title: '제리키링 | 나만의 AI 미니앨범키링',
   description: '제리키링에서 만든 나만의 AI 음원을 들어보세요 🎧',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: '제리키링',
+  },
   icons: {
-    icon: '/images/iphone.png',
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/icon-192x192.png',
   },
   openGraph: {
     title: '제리키링 | 나만의 AI 미니앨범키링',
     description: '제리키링에서 만든 나만의 AI 음원을 들어보세요 🎧',
-    images: ['/images/iphone.png'],
+    images: ['/icons/icon-512x512.png'],
     type: 'website',
   },
 };

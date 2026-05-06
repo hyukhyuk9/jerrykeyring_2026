@@ -1,123 +1,127 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { uploadToR2 } from '@/lib/r2';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
-  // 모든 설정과 클라이언트 생성을 함수 내부로 이동
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const r2Endpoint = process.env.R2_ENDPOINT;
-  const r2AccessKey = process.env.R2_ACCESS_KEY_ID;
-  const r2SecretKey = process.env.R2_SECRET_ACCESS_KEY;
-  const r2Bucket = process.env.R2_BUCKET_NAME;
-  const r2PublicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://pub-5c6a6735682b4c08a8c7ee71c2d15cf7.r2.dev';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
   const apiKey = process.env.GOOGLE_AI_API_KEY;
 
+  if (!supabaseUrl || !supabaseKey || !apiKey) {
+    return NextResponse.json({ error: '서버 환경 변수 설정이 누락되었습니다.' }, { status: 500 });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
   try {
-    if (!supabaseUrl || !supabaseKey || !r2Endpoint || !r2AccessKey || !r2SecretKey || !r2Bucket || !apiKey) {
-      return NextResponse.json({ error: '서버 환경 변수 설정이 누락되었습니다.' }, { status: 500 });
+    const { force = false, limit = 10 } = await request.json().catch(() => ({}));
+
+    // 1. tracks 테이블에서 사연(story)이 있는 모든 유저 조회
+    const { data: tracks, error: fetchError } = await supabase
+      .from('tracks')
+      .select('nfc_id, story')
+      .not('story', 'is', null)
+      .neq('story', '')
+      .limit(limit); // 서버리스 타임아웃 방지를 위해 기본 10개씩 처리
+
+    if (fetchError) throw fetchError;
+    if (!tracks || tracks.length === 0) {
+      return NextResponse.json({ message: '처리할 사연이 없습니다.' });
     }
 
-    const { story, nfc_id } = await request.json();
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    const s3Client = new S3Client({
-      region: "auto",
-      endpoint: r2Endpoint,
-      credentials: {
-        accessKeyId: r2AccessKey,
-        secretAccessKey: r2SecretKey,
-      },
-    });
+    const results = {
+      total: tracks.length,
+      success: 0,
+      skipped: 0,
+      failed: 0,
+      details: [] as any[]
+    };
 
-    console.log(`[Radio Batch] Start: nfc_id=${nfc_id}`);
-    const safeStory = story || '사연 없음';
+    for (const track of tracks) {
+      const { nfc_id, story } = track;
 
-    // 1. Gemini를 통해 라디오 대본 생성
-    const gptResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `사연: "${safeStory}"\n\n위 사연을 다정한 라디오 진행자 제리(남성)의 말투로 각색해줘. 전체 길이는 30초 내외로 해주고, [인트로] - [사연 읽기] - [공감] - [청취자에게 인상깊은 한마디] 순서로 구성해서 부가적인 설명 없이 대본 내용만 깔끔하게 작성해줘.`
-          }]
-        }]
-      }),
-    });
+      // 2. 이미 라디오가 있는지 확인 (force 옵션이 없으면 건너뜀)
+      if (!force) {
+        const { data: existing } = await supabase
+          .from('audio_files')
+          .select('radio_url')
+          .eq('nfc_id', nfc_id)
+          .maybeSingle();
 
-    const gptData = await gptResponse.json();
-    const script = gptData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (existing?.radio_url) {
+          results.skipped++;
+          continue;
+        }
+      }
 
-    if (!script) return NextResponse.json({ error: '대본 생성 실패' }, { status: 500 });
+      try {
+        console.log(`[Batch] Processing NFC: ${nfc_id}`);
 
-    // 2. Google Cloud TTS를 통해 고품질 음성 생성
-    const ttsResponse = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        input: { text: script },
-        voice: {
-          languageCode: 'ko-KR',
-          name: 'ko-KR-Neural2-B',
-          ssmlGender: 'MALE'
-        },
-        audioConfig: { audioEncoding: 'MP3' }
-      }),
-    });
-
-    const ttsData = await ttsResponse.json();
-    const audioContentBase64 = ttsData.audioContent;
-    if (!audioContentBase64) return NextResponse.json({ error: 'TTS 생성 실패' }, { status: 500 });
-
-    // 3. Cloudflare R2 업로드
-    const audioBuffer = Buffer.from(audioContentBase64, 'base64');
-    const fileName = `audio/${nfc_id}-TTS.mp3`;
-
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: r2Bucket,
-        Key: fileName,
-        Body: audioBuffer,
-        ContentType: 'audio/mpeg',
-      })
-    );
-
-    const audioUrl = `${r2PublicDomain}/${fileName}`;
-
-    // 4. Supabase DB 기록
-    const { data: existing } = await supabase
-      .from('audio_files')
-      .select('id')
-      .eq('nfc_id', nfc_id)
-      .eq('category', 'radio_tts')
-      .maybeSingle();
-
-    if (existing) {
-      await supabase
-        .from('audio_files')
-        .update({
-          audio_url: audioUrl,
-          radio_script: script,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existing.id);
-    } else {
-      await supabase
-        .from('audio_files')
-        .insert({
-          nfc_id: nfc_id,
-          audio_url: audioUrl,
-          category: 'radio_tts',
-          radio_script: script
+        // 3. Gemini 대본 생성
+        const gptResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `사연: "${story}"\n\n위 사연을 다정한 라디오 진행자 제리(남성)의 말투로 각색해줘. 전체 길이는 30초 내외로 해주고, 대본만 깔끔하게 작성해줘.`
+              }]
+            }]
+          }),
         });
+        const gptData = await gptResponse.json();
+        const script = gptData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!script) throw new Error('대본 생성 실패');
+
+        // 4. TTS 생성
+        const ttsResponse = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: { text: script },
+            voice: { languageCode: 'ko-KR', name: 'ko-KR-Neural2-B', ssmlGender: 'MALE' },
+            audioConfig: { audioEncoding: 'MP3' }
+          }),
+        });
+        const ttsData = await ttsResponse.json();
+        const audioContent = ttsData.audioContent;
+        if (!audioContent) throw new Error('TTS 생성 실패');
+
+        // 5. R2 업로드 (media/radio/[nfc_id]_tts.mp3)
+        const audioBuffer = Buffer.from(audioContent, 'base64');
+        const filename = `radio/${nfc_id}_tts.mp3`;
+        const publicUrl = await uploadToR2(filename, audioBuffer);
+        if (!publicUrl) throw new Error('R2 업로드 실패');
+
+        // 6. DB 업데이트 (upsert 사용)
+        const { error: dbError } = await supabase
+          .from('audio_files')
+          .upsert({
+            nfc_id: nfc_id,
+            radio_script: script,
+            radio_url: publicUrl,
+            radio_url_status: true,
+            category: 'radio_tts'
+          }, { onConflict: 'nfc_id' });
+
+        if (dbError) throw dbError;
+
+        results.success++;
+        results.details.push({ nfc_id, status: 'success' });
+
+      } catch (err: any) {
+        console.error(`[Batch Error] NFC ${nfc_id}:`, err.message);
+        results.failed++;
+        results.details.push({ nfc_id, status: 'failed', error: err.message });
+      }
     }
 
-    return NextResponse.json({ success: true, script, audioUrl });
+    return NextResponse.json(results);
 
   } catch (error: any) {
-    console.error('Radio Batch API Error:', error);
-    return NextResponse.json({ error: error.message || '서버 오류' }, { status: 500 });
+    console.error('Batch Process Fatal Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -1623,6 +1623,11 @@
     let aiRadioEnabled = false;
     let radioTriggered = false; // 현재 곡에서 라디오가 이미 트리거되었는지
 
+    // [백그라운드 소리 해결] 순수 HTML5 오디오 전용 플레이어 추가
+    const bgPlayer = new Audio();
+    bgPlayer.preload = "auto";
+    bgPlayer.crossOrigin = "anonymous";
+
     let lyricsData = [];
     let showLyrics = true;
     let currentLyricIndex = -1;
@@ -2733,19 +2738,46 @@
       }
     });
 
-    // 앱이 백그라운드로 가거나 화면이 꺼질 때 오디오 엔진 유지
+    // [핵심] 아이폰 백그라운드/잠금화면 소리 끊김 해결을 위한 자동 모드 전환
     document.addEventListener('visibilitychange', () => {
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
+      if (document.visibilityState === 'hidden') {
+        // 화면이 꺼질 때: 오디오 엔진이 없는 bgPlayer로 바통 터치
+        if (!player.paused) {
+          const currentTime = player.currentTime;
+          const currentSrc = player.src;
+          
+          player.pause();
+          bgPlayer.src = currentSrc;
+          bgPlayer.currentTime = currentTime;
+          
+          // 이벤트 리스너 복제 (재생 종료 등)
+          bgPlayer.onended = player.onended;
+          
+          bgPlayer.play().catch(e => console.log('[bgPlayer] Play failed:', e));
+          console.log('[🔄 Mode] Switched to Direct Mode (Background)');
+        }
+      } else {
+        // 화면이 다시 켜질 때: 비주얼라이저가 있는 메인 플레이어로 복구
+        if (!bgPlayer.paused) {
+          const currentTime = bgPlayer.currentTime;
+          bgPlayer.pause();
+          
+          player.currentTime = currentTime;
+          player.play().then(() => {
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+          }).catch(e => console.log('[MainPlayer] Resume failed:', e));
+          
+          console.log('[🔄 Mode] Switched to Engine Mode (Foreground)');
+        }
       }
     });
 
-    // 주기적으로 오디오 엔진 상태 체크 (아이폰 백그라운드 소리 끊김 방지)
+    // 주기적으로 오디오 엔진 상태 체크 (보조)
     setInterval(() => {
       if (player && !player.paused && audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
-    }, 500); // 0.5초마다 더 공격적으로 체크
+    }, 1000);
 
     function changeTrack(dir) {
       // 랜덤 재생 중이더라도 강제로 이전/다음 곡 탐색 시 랜덤 모드 해제하여 플레이리스트 순회

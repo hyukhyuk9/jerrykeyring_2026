@@ -1650,6 +1650,8 @@
     let showNextSongGuide = localStorage.getItem('nextSongGuide') !== 'false';
     let lyricsLoadTimer = null;
     let playingRandomTrack = null;
+    let currentLyricsText = "";
+    let currentLyricsLrc = false;
     let randomQueue = [];   // 미래 바구니 (다음 곡들)
     let randomHistory = []; // 과거 바구니 (이전 곡들)
     let isFillingQueue = false; // 큐 보충 중복 방지 플래그
@@ -2096,7 +2098,6 @@
     }
 
     async function playRandomMusic(forceUI = false) {
-      // 샘플 계정인 경우 1곡 제한
       const isSampleUser = (localStorage.getItem('auth_nfc_number') === '000000');
       if (isSampleUser && sampleRandomPlayCount >= 1) {
         document.getElementById('purchasePopup').style.display = 'flex';
@@ -2104,20 +2105,16 @@
       }
 
       try {
-        // 현재 곡이 있다면 히스토리에 추가
         if (playingRandomTrack) {
           randomHistory.push(JSON.parse(JSON.stringify(playingRandomTrack)));
-          if (randomHistory.length > 10) randomHistory.shift(); // 과거 바구니 10개 제한
+          if (randomHistory.length > 10) randomHistory.shift();
         }
 
         let trackToPlay = null;
-        
-        // 바구니에서 한 곡 꺼냄
         if (randomQueue.length > 0) {
           trackToPlay = randomQueue.shift();
-          fillRandomQueue(); // 꺼낸 즉시 보충 시작
+          fillRandomQueue();
         } else {
-          // 바구니가 비어있으면 즉시 한 곡 가져옴
           const randomData = await window.api.getRandomTrack();
           if (!randomData) {
             showToast('❌ 재생 가능한 랜덤 음원이 없습니다.');
@@ -2131,49 +2128,36 @@
           if (lyricLines.length > 1) trackName = lyricLines[1].replace(/\[.*?\]/g, '').trim();
           else if (lyricLines.length > 0) trackName = lyricLines[0].replace(/\[.*?\]/g, '').trim();
 
-          trackToPlay = { src: randomData.audio_url, name: trackName, lyricsText: finalLyrics, isRandom: true };
+          trackToPlay = { 
+            src: randomData.audio_url, 
+            name: trackName, 
+            lyricsText: finalLyrics, 
+            isRandom: true,
+            userName: trackInfo.user_name || '제리키링'
+          };
           fillRandomQueue();
         }
 
         playingRandomTrack = trackToPlay;
 
-        // 미니 플레이어가 보이고 있다면(메인 화면 메뉴 서핑 중) 자동 전환 방지
         const isMiniVisible = document.getElementById('miniPlayerBar').classList.contains('show');
         if (forceUI || !isMiniVisible) {
           switchToPlayerUI();
         } else {
-          // 메인 화면 유지 시 미니바 상태 업데이트 (혹시 몰라 다시 show)
           document.getElementById('miniPlayerBar').classList.add('show');
         }
 
-        // 실시간 모드일 때만 엔진 설정 시도
         if (vizMode === 'realtime') {
           setupAudioEngine();
         }
         canvas.style.opacity = '0.4';
         if (!animationId) drawVisualizer(0);
 
-        nextSongToastShown = false;
-        hideNextSongToast();
         player.src = playingRandomTrack.src;
-        trackDisplay.innerHTML = `<span style="color: #ffeb3b">[ > ${playingRandomTrack.name} ]</span>${getRadioIconHtml()}`;
-        obsTrackTitle.innerHTML = `<span style="color: #ffeb3b">< ${playingRandomTrack.name} ></span>`;
-
-        document.getElementById('lyricsBox').classList.add('lyric-friend');
-        document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
-
-        parseLyrics(playingRandomTrack.lyricsText);
-        updateSaveBtn();
+        updatePlayerUI(playingRandomTrack);
         player.play().catch(() => { });
         resetIdleTimer();
 
-        window.api.updateMediaSession({
-          title: playingRandomTrack.name,
-          artist: '제리키링 (랜덤)',
-          state: 'playing'
-        });
-
-        // 가사 화면으로 전환된 후 닫기 버튼 서서히 등장
         setTimeout(() => {
           document.getElementById('exitContainer').style.display = 'block';
         }, 1500);
@@ -2197,7 +2181,7 @@
       try {
         if (playingRandomTrack) {
           randomQueue.unshift(JSON.parse(JSON.stringify(playingRandomTrack)));
-          if (randomQueue.length > 10) randomQueue.pop(); // 10개 유지
+          if (randomQueue.length > 10) randomQueue.pop();
         }
 
         const prevTrack = randomHistory.pop();
@@ -2216,25 +2200,10 @@
         canvas.style.opacity = '0.4';
         if (!animationId) drawVisualizer(0);
 
-        nextSongToastShown = false;
-        hideNextSongToast();
         player.src = playingRandomTrack.src;
-        trackDisplay.innerHTML = `<span style="color: #ffeb3b">[ > ${playingRandomTrack.name} ]</span>${getRadioIconHtml()}`;
-        obsTrackTitle.innerHTML = `<span style="color: #ffeb3b">< ${playingRandomTrack.name} ></span>`;
-
-        document.getElementById('lyricsBox').classList.add('lyric-friend');
-        document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
-
-        parseLyrics(playingRandomTrack.lyricsText);
-        updateSaveBtn();
+        updatePlayerUI(playingRandomTrack);
         player.play().catch(() => { });
         resetIdleTimer();
-
-        window.api.updateMediaSession({
-          title: playingRandomTrack.name,
-          artist: '제리키링 (랜덤)',
-          state: 'playing'
-        });
 
         console.log(`[🎲 History] Back to: ${prevTrack.name}`);
       } catch (err) {
@@ -2603,10 +2572,47 @@
       if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
     }
 
+    function updatePlayerUI(track) {
+      if (!track) return;
+      
+      const isRandomOrFriend = track.isRandom || track.isFriend;
+      const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ff914d';
+
+      // 1. 플레이어 화면 & OBS 화면 곡 정보 업데이트
+      trackDisplay.innerHTML = `<span style="color: ${titleColor}">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
+      obsTrackTitle.innerHTML = `<span style="color: ${titleColor}">< ${track.name} ></span>`;
+      obsTrackTitle.style.color = titleColor;
+
+      // 2. 미니 플레이어 바 정보 업데이트
+      const miniTitle = document.getElementById('miniTitle');
+      const miniArtist = document.getElementById('miniArtist');
+      if (miniTitle) miniTitle.innerText = track.name;
+      if (miniArtist) miniArtist.innerText = track.userName || (track.isRandom ? '제리키링 (랜덤)' : '제리키링');
+
+      // 3. 가사 스타일 및 파싱
+      if (track.isFriend || track.isRandom) {
+        document.getElementById('lyricsBox').classList.add('lyric-friend');
+        document.getElementById('fullLyricsOverlay').classList.add('lyric-friend');
+      } else {
+        document.getElementById('lyricsBox').classList.remove('lyric-friend');
+        document.getElementById('fullLyricsOverlay').classList.remove('lyric-friend');
+      }
+
+      currentLyricsText = track.lyricsText; 
+      parseLyrics(track.lyricsText);
+      updateSaveBtn();
+
+      // 4. 미디어 세션 (잠금 화면) 정보 업데이트
+      window.api.updateMediaSession({
+        title: track.name,
+        artist: track.userName || (track.isRandom ? '제리키링 (랜덤)' : '제리키링'),
+        state: 'playing'
+      });
+    }
+
     function initPlayer(index, forceUI = false) {
       playingRandomTrack = null;
 
-      // 미니 플레이어가 보이고 있다면(메인 화면 메뉴 서핑 중) 자동 전환 방지
       const isMiniVisible = document.getElementById('miniPlayerBar').classList.contains('show');
       if (forceUI || !isMiniVisible) {
         switchToPlayerUI();
@@ -2659,26 +2665,9 @@
       console.log(`[🎵 Playing] Index: ${currentIdx}, Name: ${track.name}, Source: ${track.src}`);
 
       player.src = track.src;
-      player.load(); // 명시적 로드 시작
-      player.play().catch(() => { }); // 즉시 재생 시도
-
-      const isRandomOrFriend = track.isRandom || track.isFriend;
-      const titleColor = isRandomOrFriend ? '#ffeb3b' : '#ff914d';
-
-      trackDisplay.innerHTML = `<span style="color: ${titleColor}">[ > ${track.name} ]</span>${getRadioIconHtml()}`;
-      obsTrackTitle.innerHTML = `<span style="color: ${titleColor}">< ${track.name} ></span>`;
-      obsTrackTitle.style.color = titleColor;
-      if (track.isFriend) document.getElementById('lyricsBox').classList.add('lyric-friend');
-      else document.getElementById('lyricsBox').classList.remove('lyric-friend');
-      parseLyrics(playlist[currentIdx].lyricsText);
-      updateSaveBtn();
-
-      // 미디어 세션 업데이트 (잠금 화면)
-      window.api.updateMediaSession({
-        title: track.name,
-        artist: track.userName ? `${track.userName} (제리키링)` : '제리키링',
-        state: 'playing'
-      });
+      player.load();
+      updatePlayerUI(track);
+      player.play().catch(() => { });
     }
 
     // 가사 필터링 (구조 태그 제거)
@@ -2693,21 +2682,26 @@
     }
 
     function parseLyrics(text) {
+      if (!text) return;
       const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      const timeRegex = /\[(\d{2}):(\d{2}\.\d{2})\]/;
+      const timeRegex = /\[(\d{2}):(\d{2}(?:\.\d+)?)\]/; // mm:ss.xx 또는 mm:ss 형식 지원
       lyricsData = [];
+      
       if (rawLines.some(line => timeRegex.test(line))) {
+        currentLyricsLrc = true;
         rawLines.forEach(line => {
           const match = line.match(timeRegex);
           const txt = match ? line.replace(timeRegex, '').trim() : line;
           if (txt && !isUnwantedLine(txt)) {
-            lyricsData.push({ time: match ? (parseInt(match[1]) * 60) + parseFloat(match[2]) : 0, text: txt });
+            lyricsData.push({ time: match ? (parseInt(match[1]) * 60) + parseFloat(match[2]) : 0, text: txt, isLrc: true });
           }
         });
       } else {
+        currentLyricsLrc = false;
         const filteredLines = rawLines.filter(l => !isUnwantedLine(l));
-        const chunkTime = (player.duration || 180) / (filteredLines.length || 1);
-        lyricsData = filteredLines.map((txt, i) => ({ time: i * chunkTime, text: txt }));
+        const duration = player.duration || 180;
+        const chunkTime = duration / (filteredLines.length || 1);
+        lyricsData = filteredLines.map((txt, i) => ({ time: i * chunkTime, text: txt, isLrc: false }));
       }
       renderLyrics();
     }
@@ -2773,6 +2767,17 @@
       if (state && document.getElementById('playerControls').style.display !== 'none') box.classList.add('lyrics-on');
       else box.classList.remove('lyrics-on');
     }
+
+    player.addEventListener('loadedmetadata', () => {
+      document.getElementById('progressBar').max = player.duration;
+      const m = Math.floor(player.duration / 60), s = Math.floor(player.duration % 60);
+      document.getElementById('durationTime').innerText = `${m}:${String(s).padStart(2, '0')}`;
+      
+      // 가사가 일반 텍스트 모드라면 곡 길이에 맞춰 타임라인 재계산
+      if (currentLyricsText && !currentLyricsLrc) {
+        parseLyrics(currentLyricsText);
+      }
+    });
 
     player.addEventListener('timeupdate', () => {
       const cur = player.currentTime;

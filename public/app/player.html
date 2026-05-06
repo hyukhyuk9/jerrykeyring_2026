@@ -1027,6 +1027,18 @@
       }
     }
 
+    /* 플레이어 퇴장/입장 애니메이션 (하단 슬라이드) */
+    .ui-slide-down {
+      transform: translateY(50px) !important;
+      opacity: 0 !important;
+      pointer-events: none;
+      transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease !important;
+    }
+    
+    #playerControls, #navBar, #trackDisplay, .exit-container {
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+    }
+
     /* iOS 설치 안내 모달 스타일 */
     #iosInstallGuide {
       display: none;
@@ -1222,18 +1234,45 @@
     <div class="install-card" onclick="event.stopPropagation()">
       <img src="/app/iphone.png" alt="App Icon">
       <h2>제리키링AI 앱 설치</h2>
-      <p style="margin-bottom:15px;">홈 화면에 추가하면 <strong>전체화면</strong>으로<br>몰입감 있게 감상할 수 있을 뿐더러,<br><strong>백그라운드 재생</strong>도 끊김 없이 가능합니다!</p>
+      <p style="margin-bottom:15px;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
       
-      <div class="install-step" style="line-height: 1.6; padding: 15px;">
-        <i class="fa-solid fa-share-from-square"></i> 1. 하단 <strong>[공유]</strong> 버튼을 누른 뒤<br>
-        <i class="fa-solid fa-plus-square"></i> 2. <strong>[홈 화면에 추가]</strong>를 눌러주세요!
+      <div class="install-step" style="line-height: 1.6; padding: 15px; margin-bottom: 15px;">
+        <div style="margin-bottom: 10px;">
+          <strong>1단계</strong>: 아래 버튼을 눌러 공유창을 엽니다.
+        </div>
+        <button class="track-button" 
+          style="width: 100%; margin: 5px 0 15px 0; background: #ff914d; color: #000; border: none; font-weight: bold;"
+          onclick="triggerIosShare()">1단계: 공유창 열기</button>
+        
+        <div>
+          <strong>2단계</strong>: 목록에서 <strong>[홈 화면에 추가]</strong>를<br>찾아 눌러주세요!
+        </div>
       </div>
 
       <button class="track-button"
-        style="margin-top:20px; width:100%; border-color:#ff914d; color:#ff914d; background:rgba(255,145,77,0.1); font-weight: 800;"
-        onclick="document.getElementById('iosInstallGuide').style.display='none'">확인 및 추가하기</button>
+        style="width:100%; border-color:#555; color:#888; background:transparent; font-size: 0.8rem;"
+        onclick="document.getElementById('iosInstallGuide').style.display='none'">닫기</button>
     </div>
   </div>
+
+  <script>
+    // iOS 시스템 공유창 열기 함수
+    async function triggerIosShare() {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: '제리키링AI',
+            text: '나만의 음악과 가사, 제리키링 플레이어',
+            url: window.location.href
+          });
+        } catch (err) {
+          console.log('공유 취소 또는 에러:', err);
+        }
+      } else {
+        alert('이 브라우저에서는 공유 기능을 지원하지 않습니다. 사파리 브라우저를 이용해 주세요.');
+      }
+    }
+  </script>
 
   <!-- 전체 가사 오버레이 -->
   <div id="fullLyricsOverlay" onclick="toggleFullLyrics(false)">
@@ -1349,6 +1388,10 @@
 
   <script src="/app/js/api.js"></script>
   <script>
+    // 안전 장치: window.api가 정의되지 않았을 경우를 대비
+    window.api = window.api || {};
+    if (!window.api.updateMediaSession) window.api.updateMediaSession = function() {};
+
     const player = document.getElementById('audioPlayer');
     const body = document.body;
     const canvas = document.getElementById('flameCanvas');
@@ -2519,24 +2562,37 @@
 
     function minimizePlayer() {
       // 음악 정지 없이 UI만 전환
-      document.getElementById('mainUI').style.display = 'block';
-      document.getElementById('lyricsBox').classList.remove('lyrics-on');
-      document.getElementById('playerControls').style.display = 'none'; 
-      document.getElementById('navBar').style.display = 'none';
-      trackDisplay.style.display = 'none'; 
-      document.getElementById('exitContainer').style.display = 'none';
-      
-      // 미니바 노출
-      const miniBar = document.getElementById('miniPlayerBar');
-      const track = playingRandomTrack || playlist[currentIdx];
-      document.getElementById('miniTitle').innerText = track ? (track.name || track.label || "재생 중") : "재생 중";
-      
-      // 재생 아이콘 상태 동기화
-      const miniIcon = document.getElementById('miniPlayPauseIcon');
-      if (miniIcon) miniIcon.className = player.paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+      const playerControls = document.getElementById('playerControls');
+      const navBar = document.getElementById('navBar');
+      const exitContainer = document.getElementById('exitContainer');
+      const trackDisplay = document.getElementById('trackDisplay');
 
-      miniBar.classList.add('show');
-      showInterface();
+      // 하단 슬라이드 퇴장 애니메이션 클래스 추가
+      [playerControls, navBar, exitContainer, trackDisplay].forEach(el => {
+        if (el) el.classList.add('ui-slide-down');
+      });
+
+      // 애니메이션 후 실제 display 변경 (약간의 지연)
+      setTimeout(() => {
+        document.getElementById('mainUI').style.display = 'block';
+        document.getElementById('lyricsBox').classList.remove('lyrics-on');
+        
+        [playerControls, navBar, exitContainer, trackDisplay].forEach(el => {
+          if (el) el.style.display = 'none';
+        });
+        
+        // 미니바 노출
+        const miniBar = document.getElementById('miniPlayerBar');
+        const track = playingRandomTrack || playlist[currentIdx];
+        document.getElementById('miniTitle').innerText = track ? (track.name || track.label || "재생 중") : "재생 중";
+        
+        // 재생 아이콘 상태 동기화
+        const miniIcon = document.getElementById('miniPlayPauseIcon');
+        if (miniIcon) miniIcon.className = player.paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+
+        miniBar.classList.add('show');
+        showInterface();
+      }, 300); // 0.3초간 애니메이션
     }
 
     function miniSeek(e) {
@@ -2550,23 +2606,42 @@
       document.getElementById('miniPlayerBar').classList.remove('show');
       
       document.getElementById('mainUI').style.display = 'none';
-      document.getElementById('playerControls').style.display = 'flex';
-      document.getElementById('navBar').style.display = 'block';
-      trackDisplay.style.display = 'block';
-      document.getElementById('exitContainer').style.display = 'block';
-      if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
       
+      const els = ['playerControls', 'navBar', 'trackDisplay', 'exitContainer'];
+      els.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.style.display = id === 'playerControls' ? 'flex' : (id === 'navBar' ? 'block' : 'block');
+          // 애니메이션 클래스 제거하여 제자리로 복구
+          setTimeout(() => el.classList.remove('ui-slide-down'), 10);
+        }
+      });
+
+      if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
       resetIdleTimer();
     }
 
     function goBack() {
-      player.pause(); showInterface(); clearTimeout(idleTimer); canvas.style.opacity = '0';
-      if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
-      document.getElementById('mainUI').style.display = 'block';
-      document.getElementById('lyricsBox').classList.remove('lyrics-on');
-      document.getElementById('playerControls').style.display = 'none'; document.getElementById('navBar').style.display = 'none';
-      trackDisplay.style.display = 'none'; document.getElementById('exitContainer').style.display = 'none';
-      document.getElementById('miniPlayerBar').classList.remove('show');
+      // 애니메이션 클래스 추가
+      const els = ['playerControls', 'navBar', 'trackDisplay', 'exitContainer'];
+      els.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('ui-slide-down');
+      });
+
+      setTimeout(() => {
+        player.pause(); showInterface(); clearTimeout(idleTimer); canvas.style.opacity = '0';
+        if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+        document.getElementById('mainUI').style.display = 'block';
+        document.getElementById('lyricsBox').classList.remove('lyrics-on');
+        
+        els.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+        
+        document.getElementById('miniPlayerBar').classList.remove('show');
+      }, 300);
     }
 
     function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }

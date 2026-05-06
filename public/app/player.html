@@ -2450,14 +2450,27 @@
       if (showLyrics) document.getElementById('lyricsBox').classList.add('lyrics-on');
 
       if (!isVisualizerSetup) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContext(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
-        const source = audioCtx.createMediaElementSource(player);
-        source.connect(analyser); analyser.connect(audioCtx.destination);
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
-        targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
-        isVisualizerSetup = true;
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContext(); 
+          analyser = audioCtx.createAnalyser(); 
+          analyser.fftSize = 128;
+          
+          const source = audioCtx.createMediaElementSource(player);
+          
+          // [핵심] 소리를 엔진에 가두지 않고, 스피커로 바로 나가게 연결 (connect to destination)
+          // 동시에 분석기(analyser)에도 연결
+          source.connect(analyser);
+          analyser.connect(audioCtx.destination);
+          
+          dataArray = new Uint8Array(analyser.frequencyBinCount);
+          smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
+          targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
+          isVisualizerSetup = true;
+          console.log('[🎵 Audio] Engine setup complete (Passive Mode)');
+        } catch (e) {
+          console.warn('[⚠️ Audio] Engine failed, falling back to simple playback:', e);
+        }
       }
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       canvas.style.opacity = '0.4';
@@ -2700,6 +2713,13 @@
     function togglePlay() {
       const icon = document.getElementById('playPauseIcon');
       const miniIcon = document.getElementById('miniPlayPauseIcon');
+      
+      // [아이폰 해결] 처음 재생 시 bgPlayer도 함께 '예방 접종' (잠금 해제)
+      if (bgPlayer.paused && !bgPlayer.src) {
+        bgPlayer.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA="; // 아주 짧은 무음
+        bgPlayer.play().then(() => bgPlayer.pause()).catch(() => {});
+      }
+
       if (player.paused) {
         player.play();
         if (icon) icon.className = 'fa-solid fa-pause control-btn main-play-btn';
@@ -2738,37 +2758,21 @@
       }
     });
 
-    // [핵심] 아이폰 백그라운드/잠금화면 소리 끊김 해결을 위한 자동 모드 전환
+    // [핵심] 미디어 세션 핸들러에서 오디오 엔진 깨우기 추가
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => { 
+        player.play(); 
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      });
+      navigator.mediaSession.setActionHandler('pause', () => { player.pause(); });
+      navigator.mediaSession.setActionHandler('previoustrack', () => { changeTrack(-1); });
+      navigator.mediaSession.setActionHandler('nexttrack', () => { changeTrack(1); });
+    }
+
+    // [최종] 아이폰 백그라운드 유지 로직 단순화 (엔진은 계속 resume만 시도)
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        // 화면이 꺼질 때: 오디오 엔진이 없는 bgPlayer로 바통 터치
-        if (!player.paused) {
-          const currentTime = player.currentTime;
-          const currentSrc = player.src;
-          
-          player.pause();
-          bgPlayer.src = currentSrc;
-          bgPlayer.currentTime = currentTime;
-          
-          // 이벤트 리스너 복제 (재생 종료 등)
-          bgPlayer.onended = player.onended;
-          
-          bgPlayer.play().catch(e => console.log('[bgPlayer] Play failed:', e));
-          console.log('[🔄 Mode] Switched to Direct Mode (Background)');
-        }
-      } else {
-        // 화면이 다시 켜질 때: 비주얼라이저가 있는 메인 플레이어로 복구
-        if (!bgPlayer.paused) {
-          const currentTime = bgPlayer.currentTime;
-          bgPlayer.pause();
-          
-          player.currentTime = currentTime;
-          player.play().then(() => {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-          }).catch(e => console.log('[MainPlayer] Resume failed:', e));
-          
-          console.log('[🔄 Mode] Switched to Engine Mode (Foreground)');
-        }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     });
 

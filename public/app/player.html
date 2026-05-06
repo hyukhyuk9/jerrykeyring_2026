@@ -2140,8 +2140,8 @@
 
         playingRandomTrack = trackToPlay;
 
-        const isMiniVisible = document.getElementById('miniPlayerBar').classList.contains('show');
-        if (forceUI || !isMiniVisible) {
+        const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
+        if (forceUI || !isMainVisible) {
           switchToPlayerUI();
         } else {
           document.getElementById('miniPlayerBar').classList.add('show');
@@ -2187,8 +2187,8 @@
         const prevTrack = randomHistory.pop();
         playingRandomTrack = prevTrack;
 
-        const isMiniVisible = document.getElementById('miniPlayerBar').classList.contains('show');
-        if (forceUI || !isMiniVisible) {
+        const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
+        if (forceUI || !isMainVisible) {
           switchToPlayerUI();
         } else {
           document.getElementById('miniPlayerBar').classList.add('show');
@@ -2613,8 +2613,8 @@
     function initPlayer(index, forceUI = false) {
       playingRandomTrack = null;
 
-      const isMiniVisible = document.getElementById('miniPlayerBar').classList.contains('show');
-      if (forceUI || !isMiniVisible) {
+      const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
+      if (forceUI || !isMainVisible) {
         switchToPlayerUI();
       } else {
         document.getElementById('miniPlayerBar').classList.add('show');

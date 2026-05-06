@@ -2771,6 +2771,24 @@
       }
     });
 
+    // [복구 및 추가] 미디어 세션 컨트롤 핸들러
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => { 
+        player.play(); 
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      });
+      navigator.mediaSession.setActionHandler('pause', () => { player.pause(); });
+      navigator.mediaSession.setActionHandler('previoustrack', () => { changeTrack(-1); });
+      navigator.mediaSession.setActionHandler('nexttrack', () => { changeTrack(1); });
+      
+      // 잠금화면 시간 이동(Seek) 기능
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && player) {
+          player.currentTime = details.seekTime;
+        }
+      });
+    }
+
     // 앱이 백그라운드로 가거나 화면이 꺼질 때 오디오 엔진 유지
     document.addEventListener('visibilitychange', () => {
       if (audioCtx && audioCtx.state === 'suspended') {
@@ -2992,13 +3010,28 @@
           ctx.fill();
         }
       } else {
-        // 랜덤/가상 이퀄라이저 모드 (백그라운드용)
+        // 랜덤/가상 이퀄라이저 모드 (부드럽게 개선)
         const barCount = 64;
         const barWidth = canvas.width / barCount;
+
+        // 0.4초마다 새로운 목표 높이 설정
+        if (timestamp - lastUpdateTimestamp > 400) {
+          for (let i = 0; i < barCount; i++) {
+            // 노래가 재생 중일 때만 더 역동적으로 변화
+            targetHeights[i] = player.paused ? 0.05 : (Math.random() * 0.5 + 0.1);
+          }
+          lastUpdateTimestamp = timestamp;
+        }
+
+        // 각 막대가 목표 높이로 부드럽게 다가감 (보간법)
         for (let i = 0; i < barCount; i++) {
-          // 노래가 재생 중일 때만 랜덤하게 움직임
-          let randomVal = player.paused ? 0.05 : (Math.random() * 0.4 + 0.1);
-          const barHeight = randomVal * canvas.height * 0.6;
+          if (!smoothedHeights[i]) smoothedHeights[i] = 0.05;
+          if (!targetHeights[i]) targetHeights[i] = 0.05;
+
+          // 현재 값과 목표 값의 차이를 서서히 좁힘 (0.1은 부드러움의 강도)
+          smoothedHeights[i] += (targetHeights[i] - smoothedHeights[i]) * 0.08;
+          
+          const barHeight = smoothedHeights[i] * canvas.height * 0.6;
           ctx.fillStyle = 'rgba(255, 145, 77, 0.2)';
           ctx.beginPath();
           ctx.ellipse(i * barWidth + barWidth / 2, canvas.height, barWidth, barHeight, 0, 0, Math.PI * 2);

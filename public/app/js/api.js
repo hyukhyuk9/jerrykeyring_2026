@@ -410,32 +410,39 @@ window.api.generateBatchRadio = async function (nfc_id, story) {
  */
 window.api.updateMediaSession = function(metadata = {}) {
   if ('mediaSession' in navigator) {
+    // 이미지 주소를 절대 경로로 변환 (iOS 인식률 향상)
+    const artworkUrl = metadata.artwork 
+      ? (metadata.artwork.startsWith('http') ? metadata.artwork : window.location.origin + metadata.artwork)
+      : window.location.origin + '/app/iphone.png';
+
     navigator.mediaSession.metadata = new MediaMetadata({
       title: metadata.title || '곡 제목',
       artist: metadata.artist || '제리키링',
       album: '제리키링 컬렉션',
       artwork: [
-        { src: metadata.artwork || '/app/iphone.png', sizes: '512x512', type: 'image/png' }
+        { src: artworkUrl, sizes: '512x512', type: 'image/png' }
       ]
     });
 
-    // 잠금 화면 제어 버튼 연동
-    navigator.mediaSession.setActionHandler('play', () => {
-      if (window.togglePlay) window.togglePlay();
-    });
-    navigator.mediaSession.setActionHandler('pause', () => {
-      if (window.togglePlay) window.togglePlay();
-    });
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      if (window.changeTrack) window.changeTrack(-1);
-    });
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-      if (window.changeTrack) window.changeTrack(1);
-    });
-    
-    // 재생 상태 업데이트
+    // 재생 상태 업데이트 (상태가 명확해야 잠금 화면에 나타남)
     if (metadata.state) {
       navigator.mediaSession.playbackState = metadata.state; // 'playing' or 'paused'
+    } else if (window.player && !window.player.paused) {
+      navigator.mediaSession.playbackState = 'playing';
     }
+
+    // 잠금 화면 제어 버튼 연동 (중복 등록 방지를 위해 한 번만)
+    const actions = [
+      ['play', () => window.togglePlay && window.togglePlay()],
+      ['pause', () => window.togglePlay && window.togglePlay()],
+      ['previoustrack', () => window.changeTrack && window.changeTrack(-1)],
+      ['nexttrack', () => window.changeTrack && window.changeTrack(1)],
+      ['seekbackward', (details) => { if(window.player) window.player.currentTime = Math.max(0, window.player.currentTime - (details.seekOffset || 10)); }],
+      ['seekforward', (details) => { if(window.player) window.player.currentTime = Math.min(window.player.duration, window.player.currentTime + (details.seekOffset || 10)); }]
+    ];
+
+    actions.forEach(([action, handler]) => {
+      try { navigator.mediaSession.setActionHandler(action, handler); } catch (e) {}
+    });
   }
 };

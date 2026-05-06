@@ -2487,6 +2487,8 @@
         player.play(); 
         if (icon) icon.className = 'fa-solid fa-pause control-btn main-play-btn';
         if (miniIcon) miniIcon.className = 'fa-solid fa-pause';
+        // 미디어 세션 상태 업데이트 (재생 중으로 명시)
+        window.api.updateMediaSession({ state: 'playing' });
       }
       else { 
         player.pause(); 

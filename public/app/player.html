@@ -1232,47 +1232,32 @@
   <!-- iOS 홈 화면 추가 안내 모달 -->
   <div id="iosInstallGuide" onclick="this.style.display='none'">
     <div class="install-card" onclick="event.stopPropagation()">
-      <img src="/app/iphone.png" alt="App Icon">
+      <img src="/app/iphone.png" alt="App Icon" style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
       <h2>제리키링AI 앱 설치</h2>
-      <p style="margin-bottom:15px;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
+      <p style="margin-bottom:20px; font-size: 0.9rem;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
       
-      <div class="install-step" style="line-height: 1.6; padding: 15px; margin-bottom: 15px;">
-        <div style="margin-bottom: 10px;">
-          <strong>1단계</strong>: 아래 버튼을 눌러 공유창을 엽니다.
+      <div class="install-step" style="line-height: 1.8; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px;">
+        <div style="margin-bottom: 15px;">
+          <span style="background: #ff914d; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-right: 5px;">1</span>
+          브라우저 하단 중앙의<br>
+          <i class="fa-solid fa-share-from-square" style="font-size: 1.5rem; color: #ff914d; margin: 10px 0; display: block;"></i>
+          <strong>[공유]</strong> 버튼을 직접 눌러주세요.
         </div>
-        <button class="track-button" 
-          style="width: 100%; margin: 5px 0 15px 0; background: #ff914d; color: #000; border: none; font-weight: bold;"
-          onclick="triggerIosShare()">1단계: 공유창 열기</button>
         
+        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+
         <div>
-          <strong>2단계</strong>: 목록에서 <strong>[홈 화면에 추가]</strong>를<br>찾아 눌러주세요!
+          <span style="background: #ff914d; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-right: 5px;">2</span>
+          목록에서 아래로 내려서<br>
+          <strong>[홈 화면에 추가]</strong>를 눌러주세요!
         </div>
       </div>
 
       <button class="track-button"
-        style="width:100%; border-color:#555; color:#888; background:transparent; font-size: 0.8rem;"
-        onclick="document.getElementById('iosInstallGuide').style.display='none'">닫기</button>
+        style="margin-top:20px; width:100%; border-color:#ff914d; color:#ff914d; background:rgba(255,145,77,0.1); font-weight: bold;"
+        onclick="document.getElementById('iosInstallGuide').style.display='none'">확인했습니다</button>
     </div>
   </div>
-
-  <script>
-    // iOS 시스템 공유창 열기 함수
-    async function triggerIosShare() {
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: '제리키링AI',
-            text: '나만의 음악과 가사, 제리키링 플레이어',
-            url: window.location.href
-          });
-        } catch (err) {
-          console.log('공유 취소 또는 에러:', err);
-        }
-      } else {
-        alert('이 브라우저에서는 공유 기능을 지원하지 않습니다. 사파리 브라우저를 이용해 주세요.');
-      }
-    }
-  </script>
 
   <!-- 전체 가사 오버레이 -->
   <div id="fullLyricsOverlay" onclick="toggleFullLyrics(false)">
@@ -2341,6 +2326,7 @@
 
     function updateLyricsDisplay(currentTime) {
       if (!showLyrics || lyricsData.length === 0) return;
+      // console.log('[Lyrics] Updating at:', currentTime);
       let newIdx = 0;
       for (let i = 0; i < lyricsData.length; i++) { if (currentTime >= lyricsData[i].time) newIdx = i; }
 

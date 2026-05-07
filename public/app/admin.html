@@ -218,25 +218,37 @@
             <section id="tab-segments" class="tab-content">
                 <div class="page-header"><h2 class="page-title">유저 세그먼트 분석</h2></div>
                 <div class="card-grid" id="segmentCardContainer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
-                    <div class="card" style="border-top: 4px solid var(--primary); cursor:pointer;" onclick="showSegmentDetail('A')">
-                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type A</h4>
-                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">키링만 사고 추가 결제 안 함</p>
-                        <div style="font-size: 2rem; font-weight: 900; color: var(--primary);">0명</div>
+                    <!-- Type A -->
+                    <div class="card" style="position: relative; overflow: hidden; border: 1px solid var(--primary); cursor:pointer; transition: all 0.3s;" onclick="showSegmentDetail('A')" onmouseover="this.style.boxShadow='0 0 20px rgba(255,145,77,0.2)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+                        <div style="position: absolute; top: -10px; right: -10px; font-size: 5rem; color: var(--primary); opacity: 0.05; transform: rotate(15deg);"><i class="fa-solid fa-key"></i></div>
+                        <h4 style="color: var(--primary); margin-bottom: 10px;">Type A: 키링 활성형</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem;">키링 구매 후 기본 기능 이용 중</p>
+                        <div style="font-size: 2.5rem; font-weight: 900; color: #fff;">0명</div>
+                        <div style="margin-top: 15px; font-size: 0.75rem; color: var(--primary); font-weight: bold;">상세 보기 <i class="fa-solid fa-chevron-right" style="font-size: 0.6rem;"></i></div>
                     </div>
-                    <div class="card" style="border-top: 4px solid var(--success); cursor:pointer;" onclick="showSegmentDetail('B')">
-                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type B</h4>
-                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">추가 곡/라디오 적극 구매</p>
-                        <div style="font-size: 2rem; font-weight: 900; color: var(--success); text-shadow: 0 0 10px rgba(76,175,80,0.3);">0명</div>
+                    <!-- Type B -->
+                    <div class="card" style="position: relative; overflow: hidden; border: 1px solid var(--success); cursor:pointer; transition: all 0.3s;" onclick="showSegmentDetail('B')" onmouseover="this.style.boxShadow='0 0 20px rgba(76,175,80,0.2)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+                        <div style="position: absolute; top: -10px; right: -10px; font-size: 5rem; color: var(--success); opacity: 0.05; transform: rotate(15deg);"><i class="fa-solid fa-bolt"></i></div>
+                        <h4 style="color: var(--success); margin-bottom: 10px;">Type B: 적극 구매형</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem;">추가 곡 및 콘텐츠 구매 고객</p>
+                        <div style="font-size: 2.5rem; font-weight: 900; color: #fff;">0명</div>
+                        <div style="margin-top: 15px; font-size: 0.75rem; color: var(--success); font-weight: bold;">상세 보기 <i class="fa-solid fa-chevron-right" style="font-size: 0.6rem;"></i></div>
                     </div>
-                    <div class="card" style="border-top: 4px solid #4285f4; cursor:pointer;" onclick="showSegmentDetail('C')">
-                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type C</h4>
-                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">웹앱만 이용 (콘텐츠 부분 유료)</p>
-                        <div style="font-size: 2rem; font-weight: 900; color: #4285f4;">0명</div>
+                    <!-- Type C -->
+                    <div class="card" style="position: relative; overflow: hidden; border: 1px solid #4285f4; cursor:pointer; transition: all 0.3s;" onclick="showSegmentDetail('C')" onmouseover="this.style.boxShadow='0 0 20px rgba(66,133,244,0.2)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+                        <div style="position: absolute; top: -10px; right: -10px; font-size: 5rem; color: #4285f4; opacity: 0.05; transform: rotate(15deg);"><i class="fa-solid fa-globe"></i></div>
+                        <h4 style="color: #4285f4; margin-bottom: 10px;">Type C: 웹 체험형</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem;">앱 중심 이용 및 부분 유료 유저</p>
+                        <div style="font-size: 2.5rem; font-weight: 900; color: #fff;">0명</div>
+                        <div style="margin-top: 15px; font-size: 0.75rem; color: #4285f4; font-weight: bold;">상세 보기 <i class="fa-solid fa-chevron-right" style="font-size: 0.6rem;"></i></div>
                     </div>
-                    <div class="card" style="border-top: 4px solid var(--danger); cursor:pointer;" onclick="showSegmentDetail('D')">
-                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type D</h4>
-                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">키링 구매 완료, 사용자 미등록</p>
-                        <div style="font-size: 2rem; font-weight: 900; color: var(--danger); text-shadow: 0 0 10px rgba(231,76,60,0.3);">0명</div>
+                    <!-- Type D -->
+                    <div class="card" style="position: relative; overflow: hidden; border: 1px solid var(--danger); cursor:pointer; transition: all 0.3s;" onclick="showSegmentDetail('D')" onmouseover="this.style.boxShadow='0 0 20px rgba(231,76,60,0.2)'; this.style.transform='translateY(-5px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+                        <div style="position: absolute; top: -10px; right: -10px; font-size: 5rem; color: var(--danger); opacity: 0.05; transform: rotate(15deg);"><i class="fa-solid fa-user-slash"></i></div>
+                        <h4 style="color: var(--danger); margin-bottom: 10px;">Type D: 미등록 구매형</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem;">키링 구매 후 등록이 필요한 유저</p>
+                        <div style="font-size: 2.5rem; font-weight: 900; color: #fff;">0명</div>
+                        <div style="margin-top: 15px; font-size: 0.75rem; color: var(--danger); font-weight: bold;">상세 보기 <i class="fa-solid fa-chevron-right" style="font-size: 0.6rem;"></i></div>
                     </div>
                 </div>
             </section>

@@ -2095,14 +2095,16 @@
       }
       scroll.innerHTML = '';
 
-      console.log("[Curation] Current playlist state:", playlist);
+      // 로딩 상태 확인
+      const isLoading = playlist.some(t => t.isLoading);
+      console.log("[Curation] IsLoading status:", isLoading);
 
       // 1. 내 노래 카드 (항상 표시)
       const myTracks = playlist.filter(t => !t.isRandom && !t.isFriend && !t.isLoading);
-      console.log("[Curation] MyTracks filtered:", myTracks);
-
-      const myCountText = myTracks.length > 0 ? `${myTracks.length}곡` : '곡 정보 없음';
-      const myCard = createCurationCard('🎵', '내 노래듣기', myCountText, () => {
+      let mySubText = isLoading ? "데이터 불러오는 중..." : (myTracks.length > 0 ? `${myTracks.length}곡` : "곡 정보 없음");
+      
+      const myCard = createCurationCard('🎵', '내 노래듣기', mySubText, () => {
+        if (isLoading) return showToast("데이터를 불러오는 중입니다...");
         if (myTracks.length > 0) openDetailView('내 노래듣기', myTracks);
         else showToast("재생할 음원이 없습니다.");
       });
@@ -2110,6 +2112,7 @@
 
       // 2. AI 라디오 카드 (항상 표시)
       const radioCard = createCurationCard('📻', 'AI 라디오', 'DJ 사연 모드', () => {
+        if (isLoading) return showToast("데이터를 불러오는 중입니다...");
         if (!aiRadioEnabled) toggleAIRadio();
         if (myTracks.length > 0) startPlayback(myTracks[0], playlist.indexOf(myTracks[0]), true);
         else playRandomMusic(true);
@@ -2117,18 +2120,14 @@
       scroll.appendChild(radioCard);
 
       // 3. 랜덤 음원 듣기 카드 (공유 동의 시)
-      console.log("[Curation] ShareConsent check:", localStorage.getItem('shareConsent'));
-      if (localStorage.getItem('shareConsent') === 'true' || true) { // 일단 보이게 설정
-        const randCard = createCurationCard('🔀', '랜덤 음원', '새로운 발견', () => {
-          player.play().catch(() => {});
-          playRandomMusic(true);
-        });
-        scroll.appendChild(randCard);
-      }
+      const randCard = createCurationCard('🔀', '랜덤 음원', '새로운 발견', () => {
+        player.play().catch(() => {});
+        playRandomMusic(true);
+      });
+      scroll.appendChild(randCard);
 
-      // 4. 친구 노래 카드 (데이터 있을 때만)
+      // 4. 친구 노래 카드 (로딩 중이 아닐 때 곡이 있으면 표시)
       const friendTracks = playlist.filter(t => t.isFriend);
-      console.log("[Curation] FriendTracks filtered:", friendTracks);
       if (friendTracks.length > 0) {
         const fCard = createCurationCard('👥', '친구 노래', `${friendTracks.length}곡`, () => {
           openDetailView('친구 노래', friendTracks);
@@ -2136,8 +2135,7 @@
         scroll.appendChild(fCard);
       }
 
-      // 5. 내 플레이리스트 (저장된 트랙 있을 때만)
-      console.log("[Curation] SavedRandomTracks state:", savedRandomTracks);
+      // 5. 내 플레이리스트 (저장된 트랙 있을 때 표시)
       if (savedRandomTracks.length > 0) {
         const sCard = createCurationCard('🔖', '보관함', `${savedRandomTracks.length}곡 저장됨`, () => {
           const sTracks = savedRandomTracks.map(st => playlist.find(t => t.src === st.src)).filter(Boolean);

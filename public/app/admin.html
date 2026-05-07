@@ -119,6 +119,28 @@
         .mini-play-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
         #toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #000; padding: 14px 40px; border-radius: 50px; font-weight: 800; display: none; z-index: 6000; box-shadow: 0 10px 30px rgba(255,145,77,0.4); }
+
+        /* Segment Detail styles */
+        .segment-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+        .segment-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .segment-stat-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 1.2rem; border-radius: 16px; }
+        .segment-user-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .segment-user-table tr { background: var(--bg-card); transition: all 0.2s; }
+        .segment-user-table tr:hover { transform: scale(1.005); background: #1a1a1a; }
+        .segment-user-table td { padding: 16px; font-size: 0.9rem; border: none; }
+        .segment-user-table td:first-child { border-radius: 12px 0 0 12px; }
+        .segment-user-table td:last-child { border-radius: 0 12px 12px 0; text-align: right; }
+        .status-chip { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .status-active { background: rgba(76, 175, 80, 0.1); color: var(--success); }
+        .status-idle { background: rgba(255, 255, 255, 0.05); color: var(--text-dim); }
+
+        /* Platform Hub Editing styles */
+        .platform-card { position: relative; cursor: pointer; display: flex; align-items: center; gap: 1.5rem; transition: all 0.3s; border: 1px solid var(--border); }
+        .platform-card:hover { border-color: var(--primary); background: rgba(255,145,77,0.02); }
+        .edit-id-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.05); color: var(--text-dim); border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: all 0.2s; }
+        .platform-card:hover .edit-id-btn { opacity: 1; }
+        .edit-id-btn:hover { background: var(--primary); color: #000; }
+        .platform-id-input { width: 100%; background: #000; border: 1px solid var(--primary); color: var(--primary); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 4px; outline: none; }
     </style>
 </head>
 <body>
@@ -194,38 +216,68 @@
 
             <!-- User Segments -->
             <section id="tab-segments" class="tab-content">
-                <div class="page-header">
-                    <h2 class="page-title">유저 세그먼트 분석</h2>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2.5rem;">
-                    <div class="card" style="position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--primary); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-key"></i></div>
-                        <h4 style="color: var(--primary); margin-bottom: 10px;">Type A: 키링 활성형</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">키링은 구매했으나 추가 결제는 없는 유저</p>
-                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                <div class="page-header"><h2 class="page-title">유저 세그먼트 분석</h2></div>
+                <div class="card-grid" id="segmentCardContainer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                    <div class="card" style="border-top: 4px solid var(--primary); cursor:pointer;" onclick="showSegmentDetail('A')">
+                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type A</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">키링만 사고 추가 결제 안 함</p>
+                        <div style="font-size: 2rem; font-weight: 900; color: var(--primary);">0명</div>
                     </div>
-                    <div class="card" style="position: relative; overflow: hidden; border: 1px solid var(--primary);">
-                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--primary); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-bolt"></i></div>
-                        <h4 style="color: var(--primary); margin-bottom: 10px;">Type B: 적극 구매형</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">추가 곡/가사/라디오를 적극적으로 구매함</p>
-                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                    <div class="card" style="border-top: 4px solid var(--success); cursor:pointer;" onclick="showSegmentDetail('B')">
+                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type B</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">추가 곡/라디오 적극 구매</p>
+                        <div style="font-size: 2rem; font-weight: 900; color: var(--success); text-shadow: 0 0 10px rgba(76,175,80,0.3);">0명</div>
                     </div>
-                    <div class="card" style="position: relative; overflow: hidden;">
-                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--primary); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-globe"></i></div>
-                        <h4 style="color: var(--primary); margin-bottom: 10px;">Type C: 웹앱 체험형</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">웹앱만 이용하며 일부 콘텐츠 결제함</p>
-                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                    <div class="card" style="border-top: 4px solid #4285f4; cursor:pointer;" onclick="showSegmentDetail('C')">
+                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type C</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">웹앱만 이용 (콘텐츠 부분 유료)</p>
+                        <div style="font-size: 2rem; font-weight: 900; color: #4285f4;">0명</div>
                     </div>
-                    <div class="card" style="position: relative; overflow: hidden; opacity: 0.6;">
-                        <div style="position: absolute; top: 0; right: 0; padding: 1rem; color: var(--text-dim); opacity: 0.2; font-size: 3rem;"><i class="fa-solid fa-user-slash"></i></div>
-                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type D: 미등록 구매자</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">키링은 구매했으나 아직 사용자 등록 안 함</p>
-                        <div style="font-size: 2rem; font-weight: 900;">0명</div>
+                    <div class="card" style="border-top: 4px solid var(--danger); cursor:pointer;" onclick="showSegmentDetail('D')">
+                        <h4 style="color: var(--text-dim); margin-bottom: 10px;">Type D</h4>
+                        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">키링 구매 완료, 사용자 미등록</p>
+                        <div style="font-size: 2rem; font-weight: 900; color: var(--danger); text-shadow: 0 0 10px rgba(231,76,60,0.3);">0명</div>
                     </div>
                 </div>
-                <div class="card">
-                    <h4 style="margin-bottom: 1rem;">세그먼트별 집중 관리 타겟</h4>
-                    <p style="color: var(--text-dim); font-size: 0.9rem;">데이터 연동 후 타입별 상세 리스트가 이곳에 표기됩니다.</p>
+            </section>
+
+            <!-- Segment Detail View -->
+            <section id="tab-segment-detail" class="tab-content">
+                <div class="segment-detail-header">
+                    <div class="page-title">
+                        <button class="btn btn-outline btn-sm" onclick="showTab('segments')"><i class="fa-solid fa-chevron-left"></i> 목록으로</button>
+                        <span id="segmentDetailTitle">Segment Detail</span>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="toast('CSV 내보내기 준비 중')"><i class="fa-solid fa-file-export"></i> CSV 내보내기</button>
+                </div>
+                
+                <div class="segment-stats-grid">
+                    <div class="segment-stat-card">
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">평균 보유 곡 수</p>
+                        <h3 id="stat-avg-songs" style="color: var(--primary); margin-top: 5px;">0.0곡</h3>
+                    </div>
+                    <div class="segment-stat-card">
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">활성화 유저 비율</p>
+                        <h3 id="stat-active-rate" style="color: var(--success); margin-top: 5px;">0%</h3>
+                    </div>
+                    <div class="segment-stat-card">
+                        <p style="color: var(--text-dim); font-size: 0.8rem;">주요 선호 장르</p>
+                        <h3 id="stat-top-genre" style="color: #4285f4; margin-top: 5px;">-</h3>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 0;">
+                    <table class="segment-user-table">
+                        <thead>
+                            <tr style="background: transparent;">
+                                <th style="padding: 15px; text-align: left; color: #555; font-size: 0.8rem;">사용자 / NFC ID</th>
+                                <th style="padding: 15px; text-align: left; color: #555; font-size: 0.8rem;">보유 곡 수</th>
+                                <th style="padding: 15px; text-align: left; color: #555; font-size: 0.8rem;">최근 활동</th>
+                                <th style="padding: 15px; text-align: right; color: #555; font-size: 0.8rem;">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="segmentUserBody"></tbody>
+                    </table>
                 </div>
             </section>
 
@@ -236,75 +288,107 @@
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
                     <!-- Supabase -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://supabase.com')" data-id="MASTER ACCOUNT" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://supabase.com')" data-id="MASTER ACCOUNT">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #3ecf8e22; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #3ecf8e; font-size: 1.5rem;"><i class="fa-solid fa-database"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">Supabase</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">데이터베이스 및 사용자 관리</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: MASTER ACCOUNT</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: MASTER ACCOUNT</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                     <!-- Cloudflare -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://cloudflare.com')" data-id="MASTER ACCOUNT" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://cloudflare.com')" data-id="MASTER ACCOUNT">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #f3802022; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #f38020; font-size: 1.5rem;"><i class="fa-solid fa-cloud"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">Cloudflare R2</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">음원 및 이미지 스토리지</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: MASTER ACCOUNT</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: MASTER ACCOUNT</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                     <!-- Google AI Studio -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://aistudio.google.com')" data-id="MASTER ACCOUNT" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://aistudio.google.com')" data-id="MASTER ACCOUNT">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #4285f422; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #4285f4; font-size: 1.5rem;"><i class="fa-solid fa-brain"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">Google AI Studio</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">Gemini API (라디오 생성)</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: MASTER ACCOUNT</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: MASTER ACCOUNT</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                     <!-- Kakao AdFit -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://adfit.kakao.com')" data-id="ychh1118_@naver.com" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://adfit.kakao.com')" data-id="ychh1118_@naver.com">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #fee50022; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fee500; font-size: 1.5rem;"><i class="fa-solid fa-comment-dollar"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">카카오 애드핏</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">광고 수익 관리</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: ychh1118_@naver.com</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: ychh1118_@naver.com</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                     <!-- Google Ads -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://ads.google.com')" data-id="ychh1118_@naver.com" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://ads.google.com')" data-id="ychh1118_@naver.com">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #34a85322; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #34a853; font-size: 1.5rem;"><i class="fa-brands fa-google"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">구글 애드</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">검색/디스플레이 광고</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: ychh1118_@naver.com</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: ychh1118_@naver.com</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                     <!-- Rapid API -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://rapidapi.com')" data-id="youchang124@naver.com" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://rapidapi.com')" data-id="youchang124@naver.com">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #0052ff22; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #0052ff; font-size: 1.5rem;"><i class="fa-solid fa-bolt"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">래피드 API</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">외부 API 허브</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: youchang124@naver.com</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: youchang124@naver.com</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                     <!-- JerryKeyring App -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://jerrykeyring.com')" data-id="NFC ONLY (No Login)" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://jerrykeyring.com')" data-id="NFC ONLY">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #ff914d22; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem;"><i class="fa-solid fa-mobile-screen-button"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">제리키링 앱</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">서비스 메인 웹앱</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: NFC ONLY</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: NFC ONLY</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                     <!-- JerryKeyring Homepage -->
-                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://jerrykeyring.framer.website/')" data-id="No Login Required" style="cursor:pointer; display: flex; align-items: center; gap: 1.5rem; transition: transform 0.2s;">
+                    <div class="card platform-card" onclick="handlePlatformClick(this, 'https://jerrykeyring.framer.website/')" data-id="No Login Required">
+                        <button class="edit-id-btn" onclick="toggleEditId(event, this)"><i class="fa-solid fa-pen"></i></button>
                         <div style="width: 60px; height: 60px; background: #fff2; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.5rem;"><i class="fa-solid fa-house-user"></i></div>
                         <div>
                             <h4 style="color: #fff; margin-bottom: 4px;">제리키링 홈페이지</h4>
                             <p style="font-size: 0.75rem; color: var(--text-dim);">브랜드 소개 페이지 (Framer)</p>
-                            <p class="platform-id" style="display:none; color: var(--primary); font-size: 0.75rem; margin-top: 4px; font-weight: bold;">ID: No Login Required</p>
+                            <div class="platform-id-wrapper" style="display:none; align-items: center; gap: 5px; margin-top: 4px;">
+                                <p class="platform-id-text" style="color: var(--primary); font-size: 0.75rem; font-weight: bold;">ID: No Login Required</p>
+                            </div>
+                            <input type="text" class="platform-id-input" style="display: none;" onclick="event.stopPropagation()">
                         </div>
                     </div>
                 </div>
@@ -445,40 +529,150 @@
     <script>
         let allTracks = []; let currentEditingId = null; let currentTargetId = null; let uploadQueue = []; let timelineData = []; const audio = new Audio();
 
-        window.onload = () => { if (localStorage.getItem('adminAuth') === 'true') { document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('adminContainer').style.display = 'flex'; loadData(); } };
         function handleLogin() { if (document.getElementById('adminId').value === 'jerry' && document.getElementById('adminPw').value === 'tom') { localStorage.setItem('adminAuth', 'true'); location.reload(); } }
         function handleLogout() { localStorage.removeItem('adminAuth'); location.reload(); }
+
+        window.onload = () => { 
+            if (localStorage.getItem('adminAuth') === 'true') { 
+                document.getElementById('loginOverlay').style.display = 'none'; 
+                document.getElementById('adminContainer').style.display = 'flex'; 
+                loadData(); 
+                loadPlatformIds();
+            } 
+        };
+
+        function loadPlatformIds() {
+            const savedIds = JSON.parse(localStorage.getItem('platform_ids') || '{}');
+            document.querySelectorAll('.platform-card').forEach(card => {
+                const platformName = card.querySelector('h4').innerText;
+                if (savedIds[platformName]) {
+                    card.setAttribute('data-id', savedIds[platformName]);
+                    card.querySelector('.platform-id-text').innerText = 'ID: ' + savedIds[platformName];
+                }
+            });
+        }
+
+        function toggleEditId(e, btn) {
+            e.stopPropagation();
+            const card = btn.closest('.platform-card');
+            const wrapper = card.querySelector('.platform-id-wrapper');
+            const input = card.querySelector('.platform-id-input');
+            const isEditing = input.style.display !== 'none';
+
+            if (!isEditing) {
+                wrapper.style.display = 'none';
+                input.style.display = 'block';
+                input.value = card.getAttribute('data-id');
+                input.focus();
+                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else {
+                const newId = input.value;
+                card.setAttribute('data-id', newId);
+                card.querySelector('.platform-id-text').innerText = 'ID: ' + newId;
+                wrapper.style.display = 'flex';
+                input.style.display = 'none';
+                btn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+                
+                const savedIds = JSON.parse(localStorage.getItem('platform_ids') || '{}');
+                savedIds[card.querySelector('h4').innerText] = newId;
+                localStorage.setItem('platform_ids', JSON.stringify(savedIds));
+                toast('아이디가 저장되었습니다.');
+            }
+        }
+
+        function handlePlatformClick(card, url) {
+            const wrapper = card.querySelector('.platform-id-wrapper');
+            const input = card.querySelector('.platform-id-input');
+            if (input.style.display !== 'none') return; // 편집 중엔 클릭 무시
+
+            const isRevealed = wrapper.style.display !== 'none';
+            if (!isRevealed) {
+                wrapper.style.display = 'flex';
+                card.style.borderColor = 'var(--primary)';
+                card.style.background = 'rgba(255,145,77,0.05)';
+            } else {
+                window.open(url, '_blank');
+            }
+        }
 
         async function loadData() {
             allTracks = await window.api.getAllTracks();
             document.getElementById('totalUserCountSidebar').innerText = allTracks.length;
-            
-            // 세그먼트 계산 로직 (MVP 기준)
             calculateSegments();
-            
             renderTable(); renderLyricTargets(); renderRadioTable();
         }
 
         function calculateSegments() {
-            // Type A: 키링 구매, 추가 결제 없음 (오디오 파일 1개 이하)
             const typeA = allTracks.filter(t => t.nfc_id && (!t.audio_files || t.audio_files.length <= 1));
-            // Type B: 추가 곡/콘텐츠 적극 구매 (오디오 파일 2개 이상)
             const typeB = allTracks.filter(t => t.nfc_id && t.audio_files && t.audio_files.length > 1);
-            // Type C: 웹앱 전용 (NFC ID가 없거나 특정 패턴)
             const typeC = allTracks.filter(t => !t.nfc_id || t.nfc_id.startsWith('WEB'));
-            // Type D: 키링 구매, 미등록 (NFC ID는 있는데 유저 이름이 '신규 사용자'거나 비어있음)
             const typeD = allTracks.filter(t => t.nfc_id && (!t.user_name || t.user_name.includes('신규')));
 
-            const segContainer = document.getElementById('tab-segments');
-            if (segContainer) {
-                const countEls = segContainer.querySelectorAll('div[style*="font-size: 2rem"]');
-                if (countEls.length >= 4) {
-                    countEls[0].innerText = `${typeA.length}명`;
-                    countEls[1].innerText = `${typeB.length}명`;
-                    countEls[2].innerText = `${typeC.length}명`;
-                    countEls[3].innerText = `${typeD.length}명`;
-                }
+            const segCards = document.querySelectorAll('#tab-segments .card div[style*="font-size: 2rem"]');
+            if (segCards.length >= 4) {
+                segCards[0].innerText = `${typeA.length}명`;
+                segCards[1].innerText = `${typeB.length}명`;
+                segCards[2].innerText = `${typeC.length}명`;
+                segCards[3].innerText = `${typeD.length}명`;
             }
+        }
+
+        function showSegmentDetail(type) {
+            let users = [];
+            let title = '';
+            let color = '';
+
+            if (type === 'A') {
+                users = allTracks.filter(t => t.nfc_id && (!t.audio_files || t.audio_files.length <= 1));
+                title = 'Type A: 키링 구매 고객 (추가 결제 없음)';
+                color = 'var(--primary)';
+            } else if (type === 'B') {
+                users = allTracks.filter(t => t.nfc_id && t.audio_files && t.audio_files.length > 1);
+                title = 'Type B: 적극 구매 고객 (추가 곡/라디오)';
+                color = 'var(--success)';
+            } else if (type === 'C') {
+                users = allTracks.filter(t => !t.nfc_id || t.nfc_id.startsWith('WEB'));
+                title = 'Type C: 웹앱 체험 유저 (키링 미보유)';
+                color = '#4285f4';
+            } else if (type === 'D') {
+                users = allTracks.filter(t => t.nfc_id && (!t.user_name || t.user_name.includes('신규')));
+                title = 'Type D: 미등록 구매 고객 (이탈 방지 필요)';
+                color = 'var(--danger)';
+            }
+
+            document.getElementById('segmentDetailTitle').innerText = `${title} (${users.length}명)`;
+            document.getElementById('segmentDetailTitle').style.color = color;
+            
+            // Stats 계산
+            const avgSongs = users.length ? (users.reduce((acc, curr) => acc + (curr.audio_files?.length || 0), 0) / users.length).toFixed(1) : '0.0';
+            document.getElementById('stat-avg-songs').innerText = `${avgSongs}곡`;
+            
+            const activeRate = users.length ? Math.floor((users.filter(u => u.audio_files?.some(f => f.audio_url_status)).length / users.length) * 100) : 0;
+            document.getElementById('stat-active-rate').innerText = `${activeRate}%`;
+
+            renderSegmentTable(users);
+            showTab('segment-detail');
+        }
+
+        function renderSegmentTable(users) {
+            const tbody = document.getElementById('segmentUserBody');
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                const tr = document.createElement('tr');
+                const songCount = u.audio_files?.length || 0;
+                const isActive = u.audio_files?.some(f => f.audio_url_status);
+                
+                tr.innerHTML = `
+                    <td>
+                        <div style="font-weight:bold; color:#fff;">${u.user_name || '신규 사용자'}</div>
+                        <div style="font-size:0.75rem; color:var(--text-dim);">${u.nfc_id}</div>
+                    </td>
+                    <td>${songCount}곡</td>
+                    <td><span class="status-chip ${isActive ? 'status-active' : 'status-idle'}">${isActive ? 'Active' : 'Idle'}</span></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="showDetail('${u.id}')">상세 보기</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         function showTab(tab, el) {
@@ -487,28 +681,15 @@
                 el.classList.add('active');
             }
             document.querySelectorAll('.tab-content, #dashboardList, #dashboardDetail').forEach(t => t.classList.remove('active'));
-            if (tab === 'dashboard') {
+            
+            const target = document.getElementById('tab-' + tab);
+            if (target) {
+                target.classList.add('active');
+            } else if (tab === 'dashboard') {
                 document.getElementById('dashboardList').classList.add('active');
-            } else {
-                const target = document.getElementById('tab-' + tab);
-                if (target) target.classList.add('active');
             }
         }
 
-        function handlePlatformClick(card, url) {
-            const idEl = card.querySelector('.platform-id');
-            const isRevealed = idEl.style.display !== 'none';
-            
-            if (!isRevealed) {
-                // First click: Reveal ID
-                idEl.style.display = 'block';
-                card.style.borderColor = 'var(--primary)';
-                card.style.background = 'rgba(255,145,77,0.05)';
-            } else {
-                // Second click: Open URL
-                window.open(url, '_blank');
-            }
-        }
 
 
 

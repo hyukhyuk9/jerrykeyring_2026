@@ -1804,7 +1804,7 @@
         btn.className = 'track-button';
         btn.innerHTML = `<span> ${track.name} </span>`;
         if (track.isLoading) { btn.style.pointerEvents = 'none'; }
-        else { btn.onclick = (e) => { e.stopPropagation(); initPlayer(index, true); }; }
+        else { btn.onclick = (e) => { e.stopPropagation(); startPlayback(track, index, true); }; }
         buttonList.appendChild(btn);
       });
 
@@ -1819,7 +1819,7 @@
         btn.className = 'track-button';
         btn.style.borderColor = '#ff914d'; btn.style.color = '#ff914d';
         btn.innerHTML = `<span><i class="fa-solid fa-bookmark" style="margin-right:5px;"></i>${st.name}</span>`;
-        btn.onclick = (e) => { e.stopPropagation(); initPlayer(realIdx, true); };
+        btn.onclick = (e) => { e.stopPropagation(); startPlayback(playlist[realIdx], realIdx, true); };
         buttonList.appendChild(btn);
       });
 
@@ -2139,24 +2139,7 @@
         }
 
         playingRandomTrack = trackToPlay;
-
-        const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
-        if (forceUI || !isMainVisible) {
-          switchToPlayerUI();
-        } else {
-          document.getElementById('miniPlayerBar').classList.add('show');
-        }
-
-        if (vizMode === 'realtime') {
-          setupAudioEngine();
-        }
-        canvas.style.opacity = '0.4';
-        if (!animationId) drawVisualizer(0);
-
-        player.src = playingRandomTrack.src;
-        updatePlayerUI(playingRandomTrack);
-        player.play().catch(() => { });
-        resetIdleTimer();
+        startPlayback(playingRandomTrack, -1, forceUI);
 
         setTimeout(() => {
           document.getElementById('exitContainer').style.display = 'block';
@@ -2186,24 +2169,7 @@
 
         const prevTrack = randomHistory.pop();
         playingRandomTrack = prevTrack;
-
-        const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
-        if (forceUI || !isMainVisible) {
-          switchToPlayerUI();
-        } else {
-          document.getElementById('miniPlayerBar').classList.add('show');
-        }
-
-        if (vizMode === 'realtime') {
-          setupAudioEngine();
-        }
-        canvas.style.opacity = '0.4';
-        if (!animationId) drawVisualizer(0);
-
-        player.src = playingRandomTrack.src;
-        updatePlayerUI(playingRandomTrack);
-        player.play().catch(() => { });
-        resetIdleTimer();
+        startPlayback(playingRandomTrack, -1, forceUI);
 
         console.log(`[🎲 History] Back to: ${prevTrack.name}`);
       } catch (err) {
@@ -2511,34 +2477,56 @@
         return;
       }
 
-    async function playRadioThenNext(index) {
-      const track = playlist[index];
+    // [통합 재생 시작 함수] 라디오 체크 후 본 음원 재생 여부 결정
+    async function startPlayback(track, index, forceUI = false) {
+      if (!track) return;
+
+      // 1. 라디오 재생 조건 확인 (설정 ON + 사연 음원 존재)
+      const hasRadio = aiRadioEnabled && track.radioAudioUrl && 
+                       track.story && track.story !== '사연 없음' && track.story !== '';
+
+      if (hasRadio) {
+        playRadioThenNext(index, track, forceUI);
+      } else {
+        if (index >= 0) initPlayer(index, forceUI);
+        else initRandomPlayer(track, forceUI); // 인덱스 없으면 랜덤 트랙 취급
+      }
+    }
+
+    async function playRadioThenNext(index, track, forceUI = false) {
       if (!track || !track.radioAudioUrl) {
-        initPlayer(index);
+        if (index >= 0) initPlayer(index, forceUI);
+        else initRandomPlayer(track, forceUI);
         return;
       }
 
       const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
       const lyricsInner = document.getElementById('lyricsInner');
       
-      // 라디오 로딩/대본 표시 (메인 화면이 아닐 때만 가사창 활성화)
+      // 화면 전환 로직 (사용자가 메인에 있다면 머무름)
+      if (forceUI || !isMainVisible) {
+        switchToPlayerUI();
+      } else {
+        document.getElementById('miniPlayerBar').classList.add('show');
+      }
+
+      // 라디오 대본 표시 (메인 화면이 아닐 때만 가사창 활성화)
       const scriptHtml = track.radioScript ? `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${track.radioScript}</div>` : '<div class="lyrics-line active" style="color:#ff914d;">📻 제리 DJ가 사연을 읽어주는 중...</div>';
       lyricsInner.innerHTML = scriptHtml;
       
-      if (!isMainVisible) {
+      if (document.getElementById('mainUI').style.display === 'none') {
         document.getElementById('lyricsBox').classList.add('lyrics-on');
       }
 
       try {
-        // 기존 player의 onended를 일시적으로 변경 (중요: 백그라운드 유지를 위해 단일 객체 사용)
         player.onended = () => {
-          player.onended = originalOnEnded; // 본 음원 재생 전 핸들러 복구
-          initPlayer(index); 
+          player.onended = originalOnEnded;
+          if (index >= 0) initPlayer(index, forceUI);
+          else initRandomPlayer(track, forceUI);
         };
 
         player.src = track.radioAudioUrl;
 
-        // 미디어 세션 업데이트 (라디오 중)
         window.api.updateMediaSession({
           title: `팟캐스트: ${track.userName || '누군가'}님의 사연`,
           artist: '제리 DJ',
@@ -2547,13 +2535,35 @@
 
         await player.play().catch(() => {
           player.onended = originalOnEnded;
-          initPlayer(index);
+          if (index >= 0) initPlayer(index, forceUI);
+          else initRandomPlayer(track, forceUI);
         });
       } catch (err) {
         console.error("Radio playback error:", err);
         player.onended = originalOnEnded;
-        initPlayer(index);
+        if (index >= 0) initPlayer(index, forceUI);
+        else initRandomPlayer(track, forceUI);
       }
+    }
+
+    function initRandomPlayer(track, forceUI = false) {
+      playingRandomTrack = track;
+      const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
+      if (forceUI || !isMainVisible) {
+        switchToPlayerUI();
+      } else {
+        document.getElementById('miniPlayerBar').classList.add('show');
+      }
+
+      if (!isVisualizerSetup) setupAudioEngine();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      canvas.style.opacity = '0.4';
+      if (!animationId) drawVisualizer(0);
+
+      player.src = track.src;
+      updatePlayerUI(track);
+      player.play().catch(() => { });
+      resetIdleTimer();
     }
 
     // playWithRadio는 이제 aiRadioEnabled 체크를 포함
@@ -2997,7 +3007,8 @@
       }
       // 기본 동작
       if (repeatMode === 'all') {
-        initPlayer((currentIdx + 1) % playlist.length);
+        const nextIdx = (currentIdx + 1) % playlist.length;
+        startPlayback(playlist[nextIdx], nextIdx);
       } else {
         player.currentTime = 0;
         player.play();

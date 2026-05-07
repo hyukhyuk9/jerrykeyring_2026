@@ -2511,21 +2511,32 @@
         return;
       }
 
-      // 라디오 로딩 안내 (가사 영역 활용)
-      const lyricsBox = document.getElementById('lyricsBox');
+    async function playRadioThenNext(index) {
+      const track = playlist[index];
+      if (!track || !track.radioAudioUrl) {
+        initPlayer(index);
+        return;
+      }
+
+      const isMainVisible = document.getElementById('mainUI').style.display !== 'none';
       const lyricsInner = document.getElementById('lyricsInner');
-      lyricsInner.innerHTML = '<div class="lyrics-line active" style="color:#ff914d;">📻 제리 DJ가 사연을 읽어주는 중...</div>';
-      lyricsBox.classList.add('lyrics-on');
+      
+      // 라디오 로딩/대본 표시 (메인 화면이 아닐 때만 가사창 활성화)
+      const scriptHtml = track.radioScript ? `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${track.radioScript}</div>` : '<div class="lyrics-line active" style="color:#ff914d;">📻 제리 DJ가 사연을 읽어주는 중...</div>';
+      lyricsInner.innerHTML = scriptHtml;
+      
+      if (!isMainVisible) {
+        document.getElementById('lyricsBox').classList.add('lyrics-on');
+      }
 
       try {
-        const tts = new Audio(track.radioAudioUrl);
-        tts.onended = () => {
-          initPlayer(index); // 라디오 종료 후 본 음원 재생
+        // 기존 player의 onended를 일시적으로 변경 (중요: 백그라운드 유지를 위해 단일 객체 사용)
+        player.onended = () => {
+          player.onended = originalOnEnded; // 본 음원 재생 전 핸들러 복구
+          initPlayer(index); 
         };
 
-        // TTS 시작 시 가사창에 대본 표시
-        const scriptHtml = track.radioScript ? `<div class="lyrics-line active" style="font-size:0.95rem; line-height:1.5; color:#fff;">${track.radioScript}</div>` : '';
-        lyricsInner.innerHTML = scriptHtml;
+        player.src = track.radioAudioUrl;
 
         // 미디어 세션 업데이트 (라디오 중)
         window.api.updateMediaSession({
@@ -2534,9 +2545,13 @@
           state: 'playing'
         });
 
-        await tts.play().catch(() => initPlayer(index));
+        await player.play().catch(() => {
+          player.onended = originalOnEnded;
+          initPlayer(index);
+        });
       } catch (err) {
         console.error("Radio playback error:", err);
+        player.onended = originalOnEnded;
         initPlayer(index);
       }
     }

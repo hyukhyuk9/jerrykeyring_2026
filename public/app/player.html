@@ -1311,16 +1311,36 @@
     }
 
     /* ===== MAIN UI RENEWAL ===== */
-    /* 새 헤더 */
+    /* 새 헤더 - 상단 고정 */
     .main-header-new {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      margin-bottom: 8px;
+      position: fixed; top: 0; left: 0; width: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; z-index: 2100;
+      background: rgba(10,10,10,0.8); backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    .main-header-new .logo-sm { width: 32px; height: 32px; border-radius: 8px; }
-    .main-header-right { display: flex; align-items: center; gap: 10px; }
+    .main-header-new .logo-sm { width: 34px; height: 34px; border-radius: 9px; }
+    .main-header-right { display: flex; align-items: center; gap: 12px; }
+
+    /* 메인 컨테이너 레이아웃 조정 */
+    main.container {
+      padding-top: 80px; /* 고정 헤더 두께만큼 여백 */
+      align-items: flex-start !important; /* 좌측 정렬 */
+      justify-content: flex-start !important;
+      height: auto; min-height: 100vh;
+      overflow-y: auto;
+    }
+
+    /* 플레이어 모드일 때는 중앙 정렬 복구 (기존 로직 호환) */
+    body.player-mode main.container {
+      padding-top: 0;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 100vh;
+      overflow: hidden;
+    }
+
     .pill-btn {
       display: flex; align-items: center; gap: 6px;
       background: rgba(255,145,77,0.15);
@@ -1328,40 +1348,39 @@
       color: #ff914d; padding: 8px 16px;
       border-radius: 50px; font-size: 0.78rem; font-weight: 700;
       cursor: pointer; transition: all 0.3s;
-      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     }
     .pill-btn:hover { background: rgba(255,145,77,0.3); border-color: #ff914d; }
     .gear-btn {
-      width: 36px; height: 36px; border-radius: 50%;
+      width: 38px; height: 38px; border-radius: 50%;
       background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
       color: #aaa; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.3s; font-size: 0.95rem;
+      cursor: pointer; transition: all 0.3s; font-size: 1rem;
     }
     .gear-btn:hover { color: #ff914d; border-color: rgba(255,145,77,0.4); }
 
-    /* 큐레이션 섹션 */
-    .curation-section { margin-bottom: 24px; padding: 0 16px; }
+    /* 큐레이션 섹션 - 좌측 정렬 */
+    .curation-section { margin-bottom: 30px; padding: 0 20px; width: 100%; text-align: left; }
     .curation-title {
-      font-size: 0.95rem; font-weight: 800; color: #fff;
-      margin-bottom: 12px; letter-spacing: -0.3px;
+      font-size: 1.05rem; font-weight: 800; color: #fff;
+      margin-bottom: 16px; letter-spacing: -0.5px;
     }
     .curation-scroll {
-      display: flex; gap: 14px;
+      display: flex; gap: 16px;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
-      padding-bottom: 8px;
+      padding-bottom: 10px;
       scrollbar-width: none; -ms-overflow-style: none;
+      justify-content: flex-start; /* 좌측 정렬 고정 */
     }
     .curation-scroll::-webkit-scrollbar { display: none; }
     .curation-card {
-      flex: 0 0 calc(55vw);
-      max-width: 200px; min-width: 140px;
+      flex: 0 0 160px; /* 고정 너비로 1.5개 유도 조정 */
       aspect-ratio: 1 / 1;
-      border-radius: 20px;
-      background: linear-gradient(145deg, rgba(255,145,77,0.25) 0%, rgba(255,145,77,0.05) 100%);
-      border: 1px solid rgba(255,145,77,0.2);
+      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(255,145,77,0.2) 0%, rgba(255,145,77,0.05) 100%);
+      border: 1px solid rgba(255,145,77,0.15);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       display: flex; flex-direction: column; justify-content: flex-end;
-      padding: 16px; cursor: pointer;
+      padding: 18px; cursor: pointer;
       transition: all 0.3s ease; position: relative; overflow: hidden;
     }
     .curation-card::before {
@@ -1436,14 +1455,48 @@
     .settings-fs-btn:hover { background: rgba(255,145,77,0.2); border-color: #ff914d; }
     .settings-fs-btn.danger { border-color: rgba(239,68,68,0.3); color: #ef4444; background: rgba(239,68,68,0.06); }
     .settings-fs-btn.danger:hover { background: rgba(239,68,68,0.15); }
+
+    /* 곡 리스트 아이템 레이아웃 */
+    .track-list-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05);
+      cursor: pointer; transition: background 0.2s;
+    }
+    .track-list-item:active { background: rgba(255,145,77,0.1); }
+    .track-item-img {
+      width: 44px; height: 44px; border-radius: 8px;
+      object-fit: cover; background: #222;
+    }
+    .track-item-info { flex: 1; min-width: 0; }
+    .track-item-title {
+      font-size: 0.9rem; font-weight: 700; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .track-item-sub { font-size: 0.72rem; color: #888; margin-top: 2px; }
+    .track-item-genre {
+      font-size: 0.72rem; color: #ff914d; background: rgba(255,145,77,0.1);
+      padding: 2px 6px; border-radius: 4px; font-weight: 600;
+    }
+    .track-item-duration {
+      font-size: 0.75rem; color: #666; font-family: 'Courier New', monospace;
+      min-width: 40px; text-align: right;
+    }
   </style>
 </head>
 
 <body class="dark-mode ts-style-small">
   <canvas id="flameCanvas"></canvas>
 
-  <header id="main-header" style="display:none;">
-    <div class="logo-group"><img src="/app/iphone.png" alt="로고" class="logo"></div>
+  <header id="main-header" class="main-header-new">
+    <img src="/app/iphone.png" alt="로고" class="logo-sm">
+    <div class="main-header-right">
+      <div class="pill-btn" onclick="openExternalView('https://jerrykeyring.framer.website/guide')">
+        <i class="fa-solid fa-wave-square"></i> 음원 생성하기
+      </div>
+      <div class="gear-btn" onclick="openSettings()">
+        <i class="fa-solid fa-gear"></i>
+      </div>
+    </div>
   </header>
 
   <div id="obsTimestamp">
@@ -1490,19 +1543,6 @@
         </div>
 
         <div id="mainUI">
-          <!-- 새 헤더 -->
-          <div class="main-header-new">
-            <img src="/app/iphone.png" alt="로고" class="logo-sm">
-            <div class="main-header-right">
-              <div class="pill-btn" onclick="window.open('https://jerrykeyring.netlify.app', '_blank')">
-                <i class="fa-solid fa-wave-square"></i> 음원 생성하기
-              </div>
-              <div class="gear-btn" onclick="openSettings()">
-                <i class="fa-solid fa-gear"></i>
-              </div>
-            </div>
-          </div>
-
           <!-- 큐레이션 카드 영역 -->
           <div id="curationArea">
             <div class="curation-section">
@@ -1511,12 +1551,6 @@
                 <!-- JS에서 동적 생성 -->
               </div>
             </div>
-          </div>
-
-          <!-- 하단 업데이트 예정 목업 -->
-          <div class="coming-soon-box">
-            <i class="fa-solid fa-flask" style="font-size:1.3rem; margin-bottom:8px; display:block; opacity:0.4;"></i>
-            새로운 기능이 업데이트 예정입니다...
           </div>
 
           <div id="serialDisplay"></div>
@@ -1556,7 +1590,7 @@
     </div>
 
     <div class="settings-fs-group">
-      <h4>커뮤니티</h4>
+      <h4>커뮤니티 및 가이드</h4>
       <div class="settings-fs-item">
         <label><input type="checkbox" id="shareOpt2" onchange="toggleShareSetting(this.checked)"> 다른 사람의 음원 공유 허용</label>
       </div>
@@ -1574,6 +1608,13 @@
         📻 라디오 ON — 다음곡 사연을 소개합니다</p>
     </div>
 
+    <div class="settings-fs-group" id="installSettingsGroup" style="display:none;">
+      <h4>앱 설치</h4>
+      <button class="settings-fs-btn" style="color: #ffeb3b; border-color: #ffeb3b;" onclick="triggerInstall()">
+        <i class="fa-solid fa-mobile-screen-button"></i> 홈 화면에 추가하기 (앱으로 쓰기)
+      </button>
+    </div>
+
     <div class="settings-fs-group">
       <h4>계정 및 기기</h4>
       <button class="settings-fs-btn danger" onclick="reAuth()">
@@ -1582,67 +1623,28 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="modalOverlay" onclick="toggleModal(false)">
-    <div class="settings-modal" onclick="event.stopPropagation()">
-      <div class="settings-section">
-        <h6>감상 모드 : 타임스탬프 외형</h6>
-        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('large')"> 크게 중앙 (하얀색
-          가사 작게)</label>
-        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('small')" checked> 작게 하단 (중앙에
-          가사
-          위주)</label>
-        <label class="option-item"><input type="radio" name="tsOpt" onchange="setTsStyle('off')"> 시계 완전히 끄기</label>
-      </div>
-      <div class="settings-section">
-        <h6>비주얼라이저 설정</h6>
-        <label class="option-item">
-          <input type="radio" name="vizMode" id="vizRandom" value="random" onchange="setVizMode('random')"> 랜덤 (백그라운드 권장)
-        </label>
-        <label class="option-item">
-          <input type="radio" name="vizMode" id="vizRealtime" value="realtime" onchange="setVizMode('realtime')"> 실시간 (분석 모드)
-        </label>
-      </div>
-      <div class="settings-section">
-
-      </div>
-      <div class="settings-section" style="display: none;">
-        <h6>가사 텍스트 표시</h6>
-        <label class="option-item"><input type="radio" name="lyr" onchange="toggleLyrics(true)" checked> 가사 켜기</label>
-        <label class="option-item"><input type="radio" name="lyr" onchange="toggleLyrics(false)"> 가사 숨기기</label>
-      </div>
-      <div class="settings-section">
-        <h6>커뮤니티 소셜</h6>
-        <label class="option-item"><input type="checkbox" id="shareOpt" onchange="toggleShareSetting(this.checked)"> 다른
-          사람의 음원 공유 허용</label>
-      </div>
-      <div class="settings-section">
-        <h6>초보자 가이드</h6>
-        <label class="option-item"><input type="checkbox" id="nextSongGuideOpt"
-            onchange="toggleNextSongGuide(this.checked)" checked> 다음곡 안내 말풍선</label>
-      </div>
-      <div class="settings-section">
-        <h6>실험실 (LAB)</h6>
-        <button id="radioToggleBtn" class="track-button"
-          style="width:100%; border-color:#ff914d; color:#ff914d; margin:0;" onclick="toggleAIRadio()">
-          <i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작
-        </button>
-        <p id="radioStatusText" style="font-size:0.7rem; color:#888; margin-top:8px; text-align:center; display:none;">
-          📻 라디오 ON — 다음곡 사연을 소개합니다</p>
-      </div>
-      <div id="installSettingsSection" class="settings-section" style="display: none;">
-        <h6>앱 설치 및 설정</h6>
-        <div class="option-item" style="color: #ffeb3b; font-weight: bold; margin-bottom: 15px;"
-          onclick="triggerInstall()">
-          <i class="fa-solid fa-mobile-screen-button"></i> 홈 화면에 추가하기 (앱으로 쓰기)
-        </div>
-      </div>
-      <div class="settings-section">
-        <h6>계정 및 기기</h6>
-        <div class="option-item" style="color: #ff3b30; font-weight: bold; margin-top: 10px;" onclick="reAuth()">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i> 기기 인증 해제 및 다시 로그인
-        </div>
-      </div>
+  <!-- 곡 목록 서브 뷰 (내 노래 리스트 등) -->
+  <div id="curationDetailView" class="settings-fullscreen" style="background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);">
+    <div class="settings-fs-header">
+      <h2 id="detailViewTitle">목록</h2>
+      <button class="settings-fs-close" onclick="closeDetailView()"><i class="fa-solid fa-chevron-left"></i></button>
     </div>
+    <div id="detailTrackList" style="padding: 10px 0 100px;">
+      <!-- [이미지] [제목] [장르] [길이] 레이아웃으로 동적 생성 -->
+    </div>
+  </div>
+
+  <!-- 외부 웹뷰 (가이드 등) -->
+  <div id="externalIframeView" class="settings-fullscreen" style="padding: 0; background: #000;">
+    <div class="settings-fs-header" style="position: absolute; top: 0; left: 0; width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); z-index: 100;">
+      <h2 id="externalViewTitle" style="font-size: 1rem;">제리키링 가이드</h2>
+      <button class="settings-fs-close" onclick="closeExternalView()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <iframe id="externalIframe" src="" style="width: 100%; height: 100%; border: none; padding-top: 60px;"></iframe>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay" style="display:none;">
+    <!-- 기존 모달은 풀스크린으로 대체되었으므로 숨김 유지 -->
   </div>
 
   <!-- iOS 홈 화면 추가 안내 모달 -->
@@ -1759,9 +1761,6 @@
 
   <div id="exitContainer" class="exit-container">
     <i class="fa-solid fa-xmark exit-btn" onclick="minimizePlayer()" title="닫기"></i>
-  </div>
-  <div class="fullscreen-btn" onclick="toggleFullScreen()" title="전체화면">
-    <i class="fa-solid fa-expand"></i>
   </div>
 
   <!-- 하단 미니 플레이어 바 -->
@@ -2092,25 +2091,25 @@
       if (!scroll) return;
       scroll.innerHTML = '';
 
-      // 내 노래 카드 (첫 번째)
+      // 1. 내 노래 카드 (항상 표시)
       const myTracks = playlist.filter(t => !t.isRandom && !t.isFriend && !t.isLoading);
-      if (myTracks.length > 0) {
-        const card = createCurationCard('🎵', '내 노래듣기', `${myTracks.length}곡`, () => {
-          startPlayback(myTracks[0], playlist.indexOf(myTracks[0]), true);
-        });
-        scroll.appendChild(card);
-      }
+      const myCountText = myTracks.length > 0 ? `${myTracks.length}곡` : '곡 정보 없음';
+      const myCard = createCurationCard('🎵', '내 노래듣기', myCountText, () => {
+        if (myTracks.length > 0) openDetailView('내 노래듣기', myTracks);
+        else showToast("재생할 음원이 없습니다.");
+      });
+      scroll.appendChild(myCard);
 
-      // AI 라디오 카드
-      const radioCard = createCurationCard('📻', 'AI 라디오', '사연과 함께', () => {
+      // 2. AI 라디오 카드 (항상 표시)
+      const radioCard = createCurationCard('📻', 'AI 라디오', 'DJ 사연 모드', () => {
         if (!aiRadioEnabled) toggleAIRadio();
         if (myTracks.length > 0) startPlayback(myTracks[0], playlist.indexOf(myTracks[0]), true);
         else playRandomMusic(true);
       });
       scroll.appendChild(radioCard);
 
-      // 랜덤 음원 듣기 카드
-      if (localStorage.getItem('shareConsent') === 'true') {
+      // 3. 랜덤 음원 듣기 카드 (공유 동의 시)
+      if (localStorage.getItem('shareConsent') === 'true' || true) { // 일단 보이게 설정
         const randCard = createCurationCard('🔀', '랜덤 음원', '새로운 발견', () => {
           player.play().catch(() => {});
           playRandomMusic(true);
@@ -2118,20 +2117,20 @@
         scroll.appendChild(randCard);
       }
 
-      // 친구 노래 카드
+      // 4. 친구 노래 카드 (데이터 있을 때만)
       const friendTracks = playlist.filter(t => t.isFriend);
       if (friendTracks.length > 0) {
         const fCard = createCurationCard('👥', '친구 노래', `${friendTracks.length}곡`, () => {
-          startPlayback(friendTracks[0], playlist.indexOf(friendTracks[0]), true);
+          openDetailView('친구 노래', friendTracks);
         });
         scroll.appendChild(fCard);
       }
 
-      // 저장된 랜덤 트랙 카드
+      // 5. 내 플레이리스트 (저장된 트랙 있을 때만)
       if (savedRandomTracks.length > 0) {
-        const sCard = createCurationCard('🔖', '내 플레이리스트', `${savedRandomTracks.length}곡 저장됨`, () => {
-          const savedTrack = playlist.find(t => t.src === savedRandomTracks[0].src);
-          if (savedTrack) startPlayback(savedTrack, playlist.indexOf(savedTrack), true);
+        const sCard = createCurationCard('🔖', '보관함', `${savedRandomTracks.length}곡 저장됨`, () => {
+          const sTracks = savedRandomTracks.map(st => playlist.find(t => t.src === st.src)).filter(Boolean);
+          openDetailView('보관함', sTracks);
         });
         scroll.appendChild(sCard);
       }
@@ -2149,20 +2148,126 @@
       return card;
     }
 
+    function openDetailView(title, tracks) {
+      document.getElementById('detailViewTitle').innerText = title;
+      renderTrackList(tracks);
+      document.getElementById('curationDetailView').classList.add('show');
+    }
+
+    function closeDetailView() {
+      document.getElementById('curationDetailView').classList.remove('show');
+    }
+
+    function renderTrackList(tracks) {
+      const container = document.getElementById('detailTrackList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      tracks.forEach((track) => {
+        const idx = playlist.indexOf(track);
+        const item = document.createElement('div');
+        item.className = 'track-list-item';
+        
+        // 이미지, 장르 등 기본값 처리
+        const coverImg = track.cover || '/app/iphone.png';
+        const genre = track.genre || 'K-Pop';
+        const duration = track.duration || '03:20';
+
+        item.innerHTML = `
+          <img src="${coverImg}" class="track-item-img">
+          <div class="track-item-info">
+            <div class="track-item-title">${track.name}</div>
+            <div class="track-item-sub">JerryKeyring AI Track</div>
+          </div>
+          <div class="track-item-genre">${genre}</div>
+          <div class="track-item-duration">${duration}</div>
+        `;
+        item.onclick = (e) => {
+          e.stopPropagation();
+          closeDetailView();
+          startPlayback(track, idx, true);
+        };
+        container.appendChild(item);
+      });
+    }
+
     function openSettings() {
       document.getElementById('settingsFullscreen').classList.add('show');
+      
       // 설정값 동기화
       const shareVal = localStorage.getItem('shareConsent') === 'true';
       const s2 = document.getElementById('shareOpt2');
       if (s2) s2.checked = shareVal;
+      
       const nsg2 = document.getElementById('nextSongGuideOpt2');
       if (nsg2) nsg2.checked = showNextSongGuide;
+      
+      // 타임스탬프 스타일 라디오 동기화
+      const tsOpts = document.getElementsByName('tsOpt2');
+      const currentTs = document.body.classList.contains('ts-style-large') ? 'large' : 
+                        document.body.classList.contains('ts-style-off') ? 'off' : 'small';
+      tsOpts.forEach(opt => { if(opt.value === currentTs || (currentTs === 'small' && opt.parentElement.innerText.includes('작게'))) opt.checked = true; });
+
+      // 비주얼라이저 라디오 동기화
       if (vizMode === 'realtime') { const el = document.getElementById('vizRealtime2'); if (el) el.checked = true; }
       else { const el = document.getElementById('vizRandom2'); if (el) el.checked = true; }
+
+      // AI 라디오 상태 동기화
+      updateAIRadioUI();
+
+      // PWA 설치 버튼 그룹 표시 여부
+      const installGroup = document.getElementById('installSettingsGroup');
+      if (installGroup) {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        installGroup.style.display = isStandalone ? 'none' : 'block';
+      }
     }
 
     function closeSettings() {
       document.getElementById('settingsFullscreen').classList.remove('show');
+    }
+
+    function openExternalView(url) {
+      const frame = document.getElementById('externalIframe');
+      if (frame) frame.src = url;
+      document.getElementById('externalIframeView').classList.add('show');
+    }
+
+    function closeExternalView() {
+      document.getElementById('externalIframeView').classList.remove('show');
+      const frame = document.getElementById('externalIframe');
+      if (frame) frame.src = ""; // 메모리 절약 및 소리 중단
+    }
+
+    function updateAIRadioUI() {
+      const btn2 = document.getElementById('radioToggleBtn2');
+      const txt2 = document.getElementById('radioStatusText2');
+      if (btn2 && txt2) {
+        if (aiRadioEnabled) {
+          btn2.classList.add('radio-active');
+          btn2.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 종료하기';
+          txt2.style.display = 'block';
+        } else {
+          btn2.classList.remove('radio-active');
+          btn2.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작';
+          txt2.style.display = 'none';
+        }
+      }
+      
+      // 기존 버튼(있을 경우)도 동기화
+      const btn1 = document.getElementById('radioToggleBtn');
+      const txt1 = document.getElementById('radioStatusText');
+      if (btn1 && txt1) {
+        if (aiRadioEnabled) {
+          btn1.classList.add('radio-active');
+          btn1.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 종료하기';
+          txt1.style.display = 'block';
+        } else {
+          btn1.classList.remove('radio-active');
+          btn1.innerHTML = '<i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작';
+          txt1.style.display = 'none';
+        }
+      }
     }
 
     function renderFriends() {

@@ -2087,12 +2087,20 @@
     }
 
     function renderCuration() {
+      console.log("[Curation] Rendering start...");
       const scroll = document.getElementById('curationScroll');
-      if (!scroll) return;
+      if (!scroll) {
+        console.error("[Curation] Error: 'curationScroll' element not found!");
+        return;
+      }
       scroll.innerHTML = '';
+
+      console.log("[Curation] Current playlist state:", playlist);
 
       // 1. 내 노래 카드 (항상 표시)
       const myTracks = playlist.filter(t => !t.isRandom && !t.isFriend && !t.isLoading);
+      console.log("[Curation] MyTracks filtered:", myTracks);
+
       const myCountText = myTracks.length > 0 ? `${myTracks.length}곡` : '곡 정보 없음';
       const myCard = createCurationCard('🎵', '내 노래듣기', myCountText, () => {
         if (myTracks.length > 0) openDetailView('내 노래듣기', myTracks);
@@ -2109,6 +2117,7 @@
       scroll.appendChild(radioCard);
 
       // 3. 랜덤 음원 듣기 카드 (공유 동의 시)
+      console.log("[Curation] ShareConsent check:", localStorage.getItem('shareConsent'));
       if (localStorage.getItem('shareConsent') === 'true' || true) { // 일단 보이게 설정
         const randCard = createCurationCard('🔀', '랜덤 음원', '새로운 발견', () => {
           player.play().catch(() => {});
@@ -2119,6 +2128,7 @@
 
       // 4. 친구 노래 카드 (데이터 있을 때만)
       const friendTracks = playlist.filter(t => t.isFriend);
+      console.log("[Curation] FriendTracks filtered:", friendTracks);
       if (friendTracks.length > 0) {
         const fCard = createCurationCard('👥', '친구 노래', `${friendTracks.length}곡`, () => {
           openDetailView('친구 노래', friendTracks);
@@ -2127,6 +2137,7 @@
       }
 
       // 5. 내 플레이리스트 (저장된 트랙 있을 때만)
+      console.log("[Curation] SavedRandomTracks state:", savedRandomTracks);
       if (savedRandomTracks.length > 0) {
         const sCard = createCurationCard('🔖', '보관함', `${savedRandomTracks.length}곡 저장됨`, () => {
           const sTracks = savedRandomTracks.map(st => playlist.find(t => t.src === st.src)).filter(Boolean);
@@ -2134,6 +2145,7 @@
         });
         scroll.appendChild(sCard);
       }
+      console.log("[Curation] Rendering finished.");
     }
 
     function createCurationCard(icon, label, sub, onClick) {

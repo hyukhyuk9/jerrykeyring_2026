@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             style={{ width: '100%', padding: '0.8rem', marginBottom: '1rem', background: '#1a1a1a', border: '1px solid #333', color: '#fff', borderRadius: '8px' }}
           />
           {error && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '1rem' }}>{error}</p>}
-          <button 
+          <button
             onClick={handleLogin}
             style={{ width: '100%', padding: '0.8rem', background: '#ff914d', color: '#000', border: 'none', borderRadius: '50px', fontWeight: 'bold', cursor: 'pointer' }}
           >
@@ -86,13 +86,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <img src="/images/iphone.png" alt="Logo" style={{ height: '40px', objectFit: 'contain', marginBottom: '0.5rem' }} />
           <div style={{ fontSize: '0.8rem', color: '#888', fontWeight: 'bold' }}>ADMIN SYSTEM</div>
         </div>
-        
+
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
           {navItems.map(item => {
             const isActive = pathname === item.path;
             return (
-              <Link 
-                key={item.path} 
+              <Link
+                key={item.path}
                 href={item.path}
                 style={{
                   padding: '0.8rem 1rem',
@@ -110,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <button 
+        <button
           onClick={handleLogout}
           style={{ padding: '0.8rem', background: 'transparent', border: '1px solid #444', color: '#888', borderRadius: '8px', cursor: 'pointer', marginTop: '2rem' }}
         >

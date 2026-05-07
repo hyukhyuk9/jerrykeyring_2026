@@ -74,6 +74,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { name: '대시보드 (CRUD)', path: '/admin' },
     { name: '가사 타임라인 에디터', path: '/admin/lyrics' },
+    { name: '콘텐츠 큐레이팅', path: '/admin/curation' },
     { name: '외부 API 연동', path: '/admin/api' }
   ];
 

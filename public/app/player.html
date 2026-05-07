@@ -1309,13 +1309,140 @@
       border-radius: 10px;
       color: #ff914d;
     }
+
+    /* ===== MAIN UI RENEWAL ===== */
+    /* 새 헤더 */
+    .main-header-new {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+    }
+    .main-header-new .logo-sm { width: 32px; height: 32px; border-radius: 8px; }
+    .main-header-right { display: flex; align-items: center; gap: 10px; }
+    .pill-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,145,77,0.15);
+      border: 1px solid rgba(255,145,77,0.4);
+      color: #ff914d; padding: 8px 16px;
+      border-radius: 50px; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; transition: all 0.3s;
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .pill-btn:hover { background: rgba(255,145,77,0.3); border-color: #ff914d; }
+    .gear-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: #aaa; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.3s; font-size: 0.95rem;
+    }
+    .gear-btn:hover { color: #ff914d; border-color: rgba(255,145,77,0.4); }
+
+    /* 큐레이션 섹션 */
+    .curation-section { margin-bottom: 24px; padding: 0 16px; }
+    .curation-title {
+      font-size: 0.95rem; font-weight: 800; color: #fff;
+      margin-bottom: 12px; letter-spacing: -0.3px;
+    }
+    .curation-scroll {
+      display: flex; gap: 14px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .curation-scroll::-webkit-scrollbar { display: none; }
+    .curation-card {
+      flex: 0 0 calc(55vw);
+      max-width: 200px; min-width: 140px;
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(255,145,77,0.25) 0%, rgba(255,145,77,0.05) 100%);
+      border: 1px solid rgba(255,145,77,0.2);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 16px; cursor: pointer;
+      transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .curation-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%);
+      border-radius: 20px; pointer-events: none;
+    }
+    .curation-card:hover { transform: scale(1.03); border-color: rgba(255,145,77,0.5); }
+    .curation-card:active { transform: scale(0.97); }
+    .card-icon { font-size: 2.2rem; margin-bottom: 8px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3)); }
+    .card-label {
+      font-size: 0.82rem; font-weight: 700; color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .card-sub { font-size: 0.65rem; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+    /* 예정 목업 */
+    .coming-soon-box {
+      margin: 8px 16px 40px; padding: 28px 20px;
+      border-radius: 20px; text-align: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      color: rgba(255,255,255,0.35); font-size: 0.85rem;
+    }
+
+    /* 풀스크린 설정 */
+    .settings-fullscreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #0a0a0a; z-index: 2500;
+      display: none; flex-direction: column;
+      overflow-y: auto; padding: 0 16px env(safe-area-inset-bottom);
+    }
+    .settings-fullscreen.show { display: flex; }
+    .settings-fs-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 0; margin-bottom: 8px; position: sticky; top: 0;
+      background: #0a0a0a; z-index: 10;
+    }
+    .settings-fs-header h2 { font-size: 1.2rem; font-weight: 800; color: #fff; margin: 0; }
+    .settings-fs-close {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: none;
+      color: #aaa; font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+    }
+    .settings-fs-close:hover { color: #ff914d; }
+    .settings-fs-group {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    }
+    .settings-fs-group h4 {
+      font-size: 0.8rem; font-weight: 700; color: #ff914d;
+      margin: 0 0 14px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .settings-fs-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.85rem; color: #ccc; cursor: pointer; transition: color 0.2s;
+    }
+    .settings-fs-item:last-child { border-bottom: none; }
+    .settings-fs-item:hover { color: #ff914d; }
+    .settings-fs-item label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .settings-fs-btn {
+      width: 100%; padding: 14px; border-radius: 12px;
+      border: 1px solid rgba(255,145,77,0.3); background: rgba(255,145,77,0.08);
+      color: #ff914d; font-weight: 700; font-size: 0.85rem;
+      cursor: pointer; transition: all 0.3s; margin-bottom: 10px; text-align: center;
+    }
+    .settings-fs-btn:hover { background: rgba(255,145,77,0.2); border-color: #ff914d; }
+    .settings-fs-btn.danger { border-color: rgba(239,68,68,0.3); color: #ef4444; background: rgba(239,68,68,0.06); }
+    .settings-fs-btn.danger:hover { background: rgba(239,68,68,0.15); }
   </style>
 </head>
 
 <body class="dark-mode ts-style-small">
   <canvas id="flameCanvas"></canvas>
 
-  <header id="main-header">
+  <header id="main-header" style="display:none;">
     <div class="logo-group"><img src="/app/iphone.png" alt="로고" class="logo"></div>
   </header>
 
@@ -1363,16 +1490,97 @@
         </div>
 
         <div id="mainUI">
-          <div id="buttonList"></div>
+          <!-- 새 헤더 -->
+          <div class="main-header-new">
+            <img src="/app/iphone.png" alt="로고" class="logo-sm">
+            <div class="main-header-right">
+              <div class="pill-btn" onclick="window.open('https://jerrykeyring.netlify.app', '_blank')">
+                <i class="fa-solid fa-wave-square"></i> 음원 생성하기
+              </div>
+              <div class="gear-btn" onclick="openSettings()">
+                <i class="fa-solid fa-gear"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- 큐레이션 카드 영역 -->
+          <div id="curationArea">
+            <div class="curation-section">
+              <div class="curation-title">내 콘텐츠</div>
+              <div class="curation-scroll" id="curationScroll">
+                <!-- JS에서 동적 생성 -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 하단 업데이트 예정 목업 -->
+          <div class="coming-soon-box">
+            <i class="fa-solid fa-flask" style="font-size:1.3rem; margin-bottom:8px; display:block; opacity:0.4;"></i>
+            새로운 기능이 업데이트 예정입니다...
+          </div>
+
           <div id="serialDisplay"></div>
         </div>
-
-        <button class="settings-trigger" onclick="toggleModal(true)">
-          <i class="fa-solid fa-gear"></i> 환경 설정
-        </button>
       </div>
     </div>
   </main>
+
+  <!-- 풀스크린 환경설정 -->
+  <div id="settingsFullscreen" class="settings-fullscreen">
+    <div class="settings-fs-header">
+      <h2>환경설정</h2>
+      <button class="settings-fs-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="settings-fs-group">
+      <h4>감상 모드</h4>
+      <div class="settings-fs-item">
+        <label><input type="radio" name="tsOpt2" onchange="setTsStyle('large')"> 크게 중앙 (하얀색 가사 작게)</label>
+      </div>
+      <div class="settings-fs-item">
+        <label><input type="radio" name="tsOpt2" onchange="setTsStyle('small')" checked> 작게 하단 (중앙에 가사 위주)</label>
+      </div>
+      <div class="settings-fs-item">
+        <label><input type="radio" name="tsOpt2" onchange="setTsStyle('off')"> 시계 완전히 끄기</label>
+      </div>
+    </div>
+
+    <div class="settings-fs-group">
+      <h4>비주얼라이저</h4>
+      <div class="settings-fs-item">
+        <label><input type="radio" name="vizMode2" id="vizRandom2" value="random" onchange="setVizMode('random')"> 랜덤 (백그라운드 권장)</label>
+      </div>
+      <div class="settings-fs-item">
+        <label><input type="radio" name="vizMode2" id="vizRealtime2" value="realtime" onchange="setVizMode('realtime')"> 실시간 (분석 모드)</label>
+      </div>
+    </div>
+
+    <div class="settings-fs-group">
+      <h4>커뮤니티</h4>
+      <div class="settings-fs-item">
+        <label><input type="checkbox" id="shareOpt2" onchange="toggleShareSetting(this.checked)"> 다른 사람의 음원 공유 허용</label>
+      </div>
+      <div class="settings-fs-item">
+        <label><input type="checkbox" id="nextSongGuideOpt2" onchange="toggleNextSongGuide(this.checked)" checked> 다음곡 안내 말풍선</label>
+      </div>
+    </div>
+
+    <div class="settings-fs-group">
+      <h4>실험실 (LAB)</h4>
+      <button id="radioToggleBtn2" class="settings-fs-btn" onclick="toggleAIRadio()">
+        <i class="fa-solid fa-radio"></i> 제리 AI 라디오 시작
+      </button>
+      <p id="radioStatusText2" style="font-size:0.7rem; color:#888; margin-top:4px; text-align:center; display:none;">
+        📻 라디오 ON — 다음곡 사연을 소개합니다</p>
+    </div>
+
+    <div class="settings-fs-group">
+      <h4>계정 및 기기</h4>
+      <button class="settings-fs-btn danger" onclick="reAuth()">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> 기기 인증 해제 및 다시 로그인
+      </button>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="modalOverlay" onclick="toggleModal(false)">
     <div class="settings-modal" onclick="event.stopPropagation()">
@@ -1798,6 +2006,7 @@
 
     function renderPlaylist() {
       buttonList.innerHTML = '';
+      buttonList.style.display = 'none'; // 기존 버튼 리스트는 숨김 (데이터만 유지)
       playlist.forEach((track, index) => {
         if (track.isRandom) return;
         const btn = document.createElement('button');
@@ -1873,6 +2082,87 @@
         buttonList.appendChild(commZone);
         renderFriends();
       }
+
+      // 큐레이션 카드 렌더
+      renderCuration();
+    }
+
+    function renderCuration() {
+      const scroll = document.getElementById('curationScroll');
+      if (!scroll) return;
+      scroll.innerHTML = '';
+
+      // 내 노래 카드 (첫 번째)
+      const myTracks = playlist.filter(t => !t.isRandom && !t.isFriend && !t.isLoading);
+      if (myTracks.length > 0) {
+        const card = createCurationCard('🎵', '내 노래듣기', `${myTracks.length}곡`, () => {
+          startPlayback(myTracks[0], playlist.indexOf(myTracks[0]), true);
+        });
+        scroll.appendChild(card);
+      }
+
+      // AI 라디오 카드
+      const radioCard = createCurationCard('📻', 'AI 라디오', '사연과 함께', () => {
+        if (!aiRadioEnabled) toggleAIRadio();
+        if (myTracks.length > 0) startPlayback(myTracks[0], playlist.indexOf(myTracks[0]), true);
+        else playRandomMusic(true);
+      });
+      scroll.appendChild(radioCard);
+
+      // 랜덤 음원 듣기 카드
+      if (localStorage.getItem('shareConsent') === 'true') {
+        const randCard = createCurationCard('🔀', '랜덤 음원', '새로운 발견', () => {
+          player.play().catch(() => {});
+          playRandomMusic(true);
+        });
+        scroll.appendChild(randCard);
+      }
+
+      // 친구 노래 카드
+      const friendTracks = playlist.filter(t => t.isFriend);
+      if (friendTracks.length > 0) {
+        const fCard = createCurationCard('👥', '친구 노래', `${friendTracks.length}곡`, () => {
+          startPlayback(friendTracks[0], playlist.indexOf(friendTracks[0]), true);
+        });
+        scroll.appendChild(fCard);
+      }
+
+      // 저장된 랜덤 트랙 카드
+      if (savedRandomTracks.length > 0) {
+        const sCard = createCurationCard('🔖', '내 플레이리스트', `${savedRandomTracks.length}곡 저장됨`, () => {
+          const savedTrack = playlist.find(t => t.src === savedRandomTracks[0].src);
+          if (savedTrack) startPlayback(savedTrack, playlist.indexOf(savedTrack), true);
+        });
+        scroll.appendChild(sCard);
+      }
+    }
+
+    function createCurationCard(icon, label, sub, onClick) {
+      const card = document.createElement('div');
+      card.className = 'curation-card';
+      card.innerHTML = `
+        <div class="card-icon">${icon}</div>
+        <div class="card-label">${label}</div>
+        <div class="card-sub">${sub}</div>
+      `;
+      card.onclick = (e) => { e.stopPropagation(); onClick(); };
+      return card;
+    }
+
+    function openSettings() {
+      document.getElementById('settingsFullscreen').classList.add('show');
+      // 설정값 동기화
+      const shareVal = localStorage.getItem('shareConsent') === 'true';
+      const s2 = document.getElementById('shareOpt2');
+      if (s2) s2.checked = shareVal;
+      const nsg2 = document.getElementById('nextSongGuideOpt2');
+      if (nsg2) nsg2.checked = showNextSongGuide;
+      if (vizMode === 'realtime') { const el = document.getElementById('vizRealtime2'); if (el) el.checked = true; }
+      else { const el = document.getElementById('vizRandom2'); if (el) el.checked = true; }
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsFullscreen').classList.remove('show');
     }
 
     function renderFriends() {

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>제리키링 | 내 음원 듣기</title>
-  <link rel="icon" type="image/png" href="/app/iphone.png">
+  <link rel="icon" type="image/png" href="./iphone.png">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -47,20 +47,6 @@
       image-rendering: pixelated;
     }
 
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      padding: 30px 0;
-      border-bottom: 1px solid rgba(255, 145, 77, 0.2);
-      transition: opacity 0.8s ease;
-      z-index: 10;
-      background: transparent;
-    }
-
     .logo {
       width: 45px;
       cursor: pointer;
@@ -70,16 +56,6 @@
       display: flex;
       align-items: center;
       gap: 10px;
-    }
-
-    main.container {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      transition: opacity 0.8s ease;
-      position: relative;
     }
 
     .player-container {
@@ -1488,7 +1464,7 @@
   <canvas id="flameCanvas"></canvas>
 
   <header id="main-header" class="main-header-new">
-    <img src="/app/iphone.png" alt="로고" class="logo-sm">
+    <img src="./iphone.png" alt="로고" class="logo-sm">
     <div class="main-header-right">
       <div class="pill-btn" onclick="openExternalView('https://jerrykeyring.framer.website/guide')">
         <i class="fa-solid fa-wave-square"></i> 음원 생성하기
@@ -1548,7 +1524,17 @@
             <div class="curation-section">
               <div class="curation-title">내 콘텐츠</div>
               <div class="curation-scroll" id="curationScroll">
-                <!-- JS에서 동적 생성 -->
+                <!-- 초기 로딩 시 보일 정적 카드 (JS에서 덮어씌움) -->
+                <div class="curation-card" style="opacity: 0.5;">
+                  <div class="card-icon">🎵</div>
+                  <div class="card-label">내 노래듣기</div>
+                  <div class="card-sub">로딩 중...</div>
+                </div>
+                <div class="curation-card" style="opacity: 0.5;">
+                  <div class="card-icon">📻</div>
+                  <div class="card-label">AI 라디오</div>
+                  <div class="card-sub">로딩 중...</div>
+                </div>
               </div>
             </div>
           </div>
@@ -1650,7 +1636,7 @@
   <!-- iOS 홈 화면 추가 안내 모달 -->
   <div id="iosInstallGuide" onclick="this.style.display='none'">
     <div class="install-card" onclick="event.stopPropagation()">
-      <img src="/app/iphone.png" alt="App Icon"
+      <img src="./iphone.png" alt="App Icon"
         style="width: 60px; height: 60px; border-radius: 12px; margin-bottom: 15px;">
       <h2>제리키링AI 앱 설치</h2>
       <p style="margin-bottom:20px; font-size: 0.85rem;">전체화면 감상과 백그라운드 재생을 위해<br>홈 화면에 앱으로 추가해 보세요!</p>
@@ -1770,7 +1756,7 @@
     </div>
     <div class="mini-left">
       <div class="mini-album-cover">
-        <img src="/app/iphone.png" alt="cover">
+        <img src="./iphone.png" alt="cover">
       </div>
       <div id="miniTitle" class="mini-title">곡 제목</div>
     </div>
@@ -1826,7 +1812,7 @@
     </div>
   </div>
 
-  <script src="/app/js/api.js"></script>
+  <script src="./js/api.js"></script>
   <script>
     // 안전 장치: window.api가 정의되지 않았을 경우를 대비
     window.api = window.api || {};
@@ -2179,7 +2165,7 @@
         item.className = 'track-list-item';
         
         // 이미지, 장르 등 기본값 처리
-        const coverImg = track.cover || '/app/iphone.png';
+        const coverImg = track.cover || './iphone.png';
         const genre = track.genre || 'K-Pop';
         const duration = track.duration || '03:20';
 

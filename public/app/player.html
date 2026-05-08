@@ -2080,20 +2080,15 @@
       const isLoading = playlist.some(t => t.isLoading);
       console.log("[Curation] IsLoading status:", isLoading);
 
-      // 1. 내 노래 카드 (항상 표시)
+      // 1. 내 노래 카드 (항상 표시 - 즉시 클릭 가능)
       const myTracks = playlist.filter(t => !t.isRandom && !t.isFriend && !t.isLoading);
-      let mySubText = isLoading ? "데이터 불러오는 중..." : (myTracks.length > 0 ? `${myTracks.length}곡` : "곡 정보 없음");
-      
-      const myCard = createCurationCard('🎵', '내 노래듣기', mySubText, () => {
-        if (isLoading) return showToast("데이터를 불러오는 중입니다...");
-        if (myTracks.length > 0) openDetailView('내 노래듣기', myTracks);
-        else showToast("재생할 음원이 없습니다.");
+      const myCard = createCurationCard('🎵', '내 노래듣기', "내 음원 목록", () => {
+        openDetailView('내 노래듣기', myTracks);
       });
       scroll.appendChild(myCard);
 
-      // 2. AI 라디오 카드 (항상 표시)
+      // 2. AI 라디오 카드 (항상 표시 - 즉시 클릭 가능)
       const radioCard = createCurationCard('📻', 'AI 라디오', 'DJ 사연 모드', () => {
-        if (isLoading) return showToast("데이터를 불러오는 중입니다...");
         if (!aiRadioEnabled) toggleAIRadio();
         if (myTracks.length > 0) startPlayback(myTracks[0], playlist.indexOf(myTracks[0]), true);
         else playRandomMusic(true);
@@ -2153,6 +2148,17 @@
       const container = document.getElementById('detailTrackList');
       if (!container) return;
       container.innerHTML = '';
+
+      // 로딩 중이거나 데이터가 없는 경우 처리
+      if (tracks.length === 0) {
+        const isDataLoading = playlist.some(t => t.isLoading);
+        container.innerHTML = `
+          <div style="text-align:center; padding:60px 20px; color:#888;">
+            ${isDataLoading ? '<i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem; margin-bottom:12px; display:block;"></i> 노래 목록을 불러오는 중입니다...' : '표시할 곡이 없습니다.'}
+          </div>
+        `;
+        return;
+      }
 
       tracks.forEach((track) => {
         const idx = playlist.indexOf(track);

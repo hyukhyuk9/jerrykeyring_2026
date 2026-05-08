@@ -71,11 +71,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  const navItems = [
-    { name: '대시보드 (CRUD)', path: '/admin' },
-    { name: '가사 타임라인 에디터', path: '/admin/lyrics' },
-    { name: '콘텐츠 큐레이팅', path: '/admin/curation' },
-    { name: '외부 API 연동', path: '/admin/api' }
+  const navGroups = [
+    {
+      title: 'MAIN',
+      items: [
+        { name: '대시보드 (CRUD)', path: '/admin', icon: '📊' },
+        { name: '외부 API 연동', path: '/admin/api', icon: '🔌' }
+      ]
+    },
+    {
+      title: 'CONTENT',
+      items: [
+        { name: '가사 타임라인 에디터', path: '/admin/lyrics', icon: '📝' },
+        { name: '콘텐츠 큐레이팅', path: '/admin/curation', icon: '🎯' }
+      ]
+    }
   ];
 
   return (
@@ -87,27 +97,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div style={{ fontSize: '0.8rem', color: '#888', fontWeight: 'bold' }}>ADMIN SYSTEM</div>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-          {navItems.map(item => {
-            const isActive = pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                style={{
-                  padding: '0.8rem 1rem',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  color: isActive ? '#000' : '#ccc',
-                  background: isActive ? '#ff914d' : 'transparent',
-                  fontWeight: isActive ? 'bold' : 'normal',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {item.name}
-              </Link>
-            );
-          })}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+          {navGroups.map(group => (
+            <div key={group.title}>
+              <div style={{ fontSize: '0.7rem', color: '#444', fontWeight: 'bold', marginBottom: '0.8rem', paddingLeft: '0.5rem' }}>{group.title}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {group.items.map(item => {
+                  const isActive = pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '0.8rem 1rem',
+                        textDecoration: 'none',
+                        color: isActive ? '#ff914d' : '#888',
+                        background: isActive ? 'rgba(255, 145, 77, 0.1)' : 'transparent',
+                        borderRadius: '8px',
+                        fontSize: '0.9rem',
+                        fontWeight: isActive ? 'bold' : 'normal',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <button

@@ -1520,16 +1520,18 @@
             <div class="curation-section">
               <div class="curation-title">내 콘텐츠</div>
               <div class="curation-scroll" id="curationScroll">
-                <!-- 초기 로딩 시 보일 정적 카드 (JS에서 덮어씌움) -->
-                <div class="curation-card" style="opacity: 0.5;">
-                  <div class="card-icon">🎵</div>
+                <!-- 초기 정적 카드 (JS renderCuration()에서 덮어씌움) -->
+                <div class="curation-card">
                   <div class="card-label">내 노래듣기</div>
-                  <div class="card-sub">로딩 중...</div>
+                  <div class="card-sub">내 음원 목록</div>
                 </div>
-                <div class="curation-card" style="opacity: 0.5;">
-                  <div class="card-icon">📻</div>
+                <div class="curation-card">
                   <div class="card-label">AI 라디오</div>
-                  <div class="card-sub">로딩 중...</div>
+                  <div class="card-sub">DJ 사연 모드</div>
+                </div>
+                <div class="curation-card">
+                  <div class="card-label">랜덤 음원</div>
+                  <div class="card-sub">새로운 발견</div>
                 </div>
               </div>
             </div>
@@ -1542,7 +1544,7 @@
   </main>
 
   <!-- 풀스크린 환경설정 -->
-  <div id="settingsFullscreen" class="settings-fullscreen" style="display: none !important;">
+  <div id="settingsFullscreen" class="settings-fullscreen">
     <div class="settings-fs-header">
       <h2>환경설정</h2>
       <button class="settings-fs-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
@@ -1606,7 +1608,7 @@
   </div>
 
   <!-- 곡 목록 서브 뷰 (내 노래 리스트 등) -->
-  <div id="curationDetailView" class="settings-fullscreen" style="display: none !important; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);">
+  <div id="curationDetailView" class="settings-fullscreen" style="background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);">
     <div class="settings-fs-header">
       <h2 id="detailViewTitle">목록</h2>
       <button class="settings-fs-close" onclick="closeDetailView()"><i class="fa-solid fa-chevron-left"></i></button>
@@ -1617,7 +1619,7 @@
   </div>
 
   <!-- 외부 웹뷰 (가이드 등) -->
-  <div id="externalIframeView" class="settings-fullscreen" style="display: none !important; padding: 0; background: #000;">
+  <div id="externalIframeView" class="settings-fullscreen" style="padding: 0; background: #000;">
     <div class="settings-fs-header" style="position: absolute; top: 0; left: 0; width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); z-index: 100;">
       <h2 id="externalViewTitle" style="font-size: 1rem;">제리키링 가이드</h2>
       <button class="settings-fs-close" onclick="closeExternalView()"><i class="fa-solid fa-xmark"></i></button>
@@ -1625,7 +1627,7 @@
     <iframe id="externalIframe" src="" style="width: 100%; height: 100%; border: none; padding-top: 60px;"></iframe>
   </div>
 
-  <div class="modal-overlay" id="modalOverlay" style="display:none !important;">
+  <div class="modal-overlay" id="modalOverlay" style="display:none;">
     <!-- 기존 모달은 풀스크린으로 대체되었으므로 숨김 유지 -->
   </div>
 
@@ -1987,7 +1989,6 @@
 
     function renderPlaylist() {
       buttonList.innerHTML = '';
-      buttonList.style.display = 'none'; // 기존 버튼 리스트는 숨김 (데이터만 유지)
       playlist.forEach((track, index) => {
         if (track.isRandom) return;
         const btn = document.createElement('button');
@@ -2154,17 +2155,13 @@
 
     function openDetailView(title, tracks) {
       console.log(`[View] Opening Detail: ${title}`);
-      const view = document.getElementById('curationDetailView');
       document.getElementById('detailViewTitle').innerText = title;
       renderTrackList(tracks);
-      view.style.setProperty('display', 'flex', 'important');
-      view.classList.add('show');
+      document.getElementById('curationDetailView').classList.add('show');
     }
 
     function closeDetailView() {
-      const view = document.getElementById('curationDetailView');
-      view.style.setProperty('display', 'none', 'important');
-      view.classList.remove('show');
+      document.getElementById('curationDetailView').classList.remove('show');
     }
 
     function renderTrackList(tracks) {
@@ -2220,46 +2217,45 @@
       const settingsDiv = document.getElementById('settingsFullscreen');
       if (!settingsDiv) return;
       
-      settingsDiv.style.setProperty('display', 'flex', 'important');
       settingsDiv.classList.add('show');
       
       // 1. 커뮤니티 공유 동의 동기화
-      const shareVal = localStorage.getItem('shareConsent') === 'true';
-      const s2 = document.getElementById('shareOpt2');
-      if (s2) s2.checked = shareVal;
-      
-      const nsg2 = document.getElementById('nextSongGuideOpt2');
-      if (nsg2) nsg2.checked = showNextSongGuide;
-      
-      // 2. 타임스탬프 스타일 라디오 동기화
-      const tsOpts = document.getElementsByName('tsOpt2');
-      const currentTs = document.body.classList.contains('ts-style-large') ? 'large' : 
-                        document.body.classList.contains('ts-style-off') ? 'off' : 'small';
-      tsOpts.forEach(opt => { 
-        if(opt.value === currentTs || (currentTs === 'small' && opt.parentElement.innerText.includes('작게'))) opt.checked = true; 
-      });
+      try {
+        const shareVal = localStorage.getItem('shareConsent') === 'true';
+        const s2 = document.getElementById('shareOpt2');
+        if (s2) s2.checked = shareVal;
+        
+        const nsg2 = document.getElementById('nextSongGuideOpt2');
+        if (nsg2) nsg2.checked = showNextSongGuide;
+        
+        // 2. 타임스탬프 스타일 라디오 동기화
+        const tsOpts = document.getElementsByName('tsOpt2');
+        const currentTs = document.body.classList.contains('ts-style-large') ? 'large' : 
+                          document.body.classList.contains('ts-style-off') ? 'off' : 'small';
+        tsOpts.forEach(opt => { 
+          if(opt.value === currentTs || (currentTs === 'small' && opt.parentElement.innerText.includes('작게'))) opt.checked = true; 
+        });
 
-      // 3. 비주얼라이저 라디오 동기화
-      if (vizMode === 'realtime') { const el = document.getElementById('vizRealtime2'); if (el) el.checked = true; }
-      else { const el = document.getElementById('vizRandom2'); if (el) el.checked = true; }
+        // 3. 비주얼라이저 라디오 동기화
+        if (typeof vizMode !== 'undefined' && vizMode === 'realtime') { const el = document.getElementById('vizRealtime2'); if (el) el.checked = true; }
+        else { const el = document.getElementById('vizRandom2'); if (el) el.checked = true; }
 
-      // 4. AI 라디오 상태 동기화
-      updateAIRadioUI();
+        // 4. AI 라디오 상태 동기화
+        if (typeof updateAIRadioUI === 'function') updateAIRadioUI();
 
-      // 5. PWA 설치 버튼 그룹 표시 여부
-      const installGroup = document.getElementById('installSettingsGroup');
-      if (installGroup) {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        installGroup.style.display = isStandalone ? 'none' : 'block';
+        // 5. PWA 설치 버튼 그룹 표시 여부
+        const installGroup = document.getElementById('installSettingsGroup');
+        if (installGroup) {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+          installGroup.style.display = isStandalone ? 'none' : 'block';
+        }
+      } catch (err) {
+        console.error("[Settings] Sync error:", err);
       }
     }
 
     function closeSettings() {
-      const settingsDiv = document.getElementById('settingsFullscreen');
-      if (settingsDiv) {
-        settingsDiv.style.setProperty('display', 'none', 'important');
-        settingsDiv.classList.remove('show');
-      }
+      document.getElementById('settingsFullscreen').classList.remove('show');
     }
 
     function openExternalView(url) {

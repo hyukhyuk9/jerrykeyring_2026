@@ -1346,6 +1346,7 @@
       padding-bottom: 10px;
       scrollbar-width: none; -ms-overflow-style: none;
       justify-content: flex-start; /* 좌측 정렬 고정 */
+      pointer-events: auto !important; /* 클릭 가능 보장 */
     }
     .curation-scroll::-webkit-scrollbar { display: none; }
     .curation-card {
@@ -1541,7 +1542,7 @@
   </main>
 
   <!-- 풀스크린 환경설정 -->
-  <div id="settingsFullscreen" class="settings-fullscreen">
+  <div id="settingsFullscreen" class="settings-fullscreen" style="display: none !important;">
     <div class="settings-fs-header">
       <h2>환경설정</h2>
       <button class="settings-fs-close" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
@@ -1605,7 +1606,7 @@
   </div>
 
   <!-- 곡 목록 서브 뷰 (내 노래 리스트 등) -->
-  <div id="curationDetailView" class="settings-fullscreen" style="background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);">
+  <div id="curationDetailView" class="settings-fullscreen" style="display: none !important; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px);">
     <div class="settings-fs-header">
       <h2 id="detailViewTitle">목록</h2>
       <button class="settings-fs-close" onclick="closeDetailView()"><i class="fa-solid fa-chevron-left"></i></button>
@@ -1616,7 +1617,7 @@
   </div>
 
   <!-- 외부 웹뷰 (가이드 등) -->
-  <div id="externalIframeView" class="settings-fullscreen" style="padding: 0; background: #000;">
+  <div id="externalIframeView" class="settings-fullscreen" style="display: none !important; padding: 0; background: #000;">
     <div class="settings-fs-header" style="position: absolute; top: 0; left: 0; width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); z-index: 100;">
       <h2 id="externalViewTitle" style="font-size: 1rem;">제리키링 가이드</h2>
       <button class="settings-fs-close" onclick="closeExternalView()"><i class="fa-solid fa-xmark"></i></button>
@@ -1624,7 +1625,7 @@
     <iframe id="externalIframe" src="" style="width: 100%; height: 100%; border: none; padding-top: 60px;"></iframe>
   </div>
 
-  <div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal-overlay" id="modalOverlay" style="display:none !important;">
     <!-- 기존 모달은 풀스크린으로 대체되었으므로 숨김 유지 -->
   </div>
 
@@ -2083,37 +2084,44 @@
       // 1. 내 노래 카드 (항상 표시 - 즉시 클릭 가능)
       const myTracks = playlist.filter(t => !t.isRandom && !t.isFriend && !t.isLoading);
       const myCard = createCurationCard('🎵', '내 노래듣기', "내 음원 목록", () => {
+        console.log("[Curation] 'My Music' clicked. Tracks:", myTracks.length);
         openDetailView('내 노래듣기', myTracks);
       });
       scroll.appendChild(myCard);
 
       // 2. AI 라디오 카드 (항상 표시 - 즉시 클릭 가능)
       const radioCard = createCurationCard('📻', 'AI 라디오', 'DJ 사연 모드', () => {
-        if (!aiRadioEnabled) toggleAIRadio();
+        console.log("[Curation] 'AI Radio' clicked. Current Enabled:", aiRadioEnabled);
+        if (typeof toggleAIRadio === 'function') toggleAIRadio();
+        else console.error("[Curation] toggleAIRadio function is missing!");
+        
         if (myTracks.length > 0) startPlayback(myTracks[0], playlist.indexOf(myTracks[0]), true);
         else playRandomMusic(true);
       });
       scroll.appendChild(radioCard);
 
-      // 3. 랜덤 음원 듣기 카드 (공유 동의 시)
+      // 3. 랜덤 음원 듣기 카드
       const randCard = createCurationCard('🔀', '랜덤 음원', '새로운 발견', () => {
-        player.play().catch(() => {});
+        console.log("[Curation] 'Random Music' clicked.");
+        player.play().catch(e => console.warn("[Curation] Play failed:", e));
         playRandomMusic(true);
       });
       scroll.appendChild(randCard);
 
-      // 4. 친구 노래 카드 (로딩 중이 아닐 때 곡이 있으면 표시)
+      // 4. 친구 노래 카드
       const friendTracks = playlist.filter(t => t.isFriend);
       if (friendTracks.length > 0) {
         const fCard = createCurationCard('👥', '친구 노래', `${friendTracks.length}곡`, () => {
+          console.log("[Curation] 'Friend Music' clicked. Count:", friendTracks.length);
           openDetailView('친구 노래', friendTracks);
         });
         scroll.appendChild(fCard);
       }
 
-      // 5. 내 플레이리스트 (저장된 트랙 있을 때 표시)
-      if (savedRandomTracks.length > 0) {
+      // 5. 내 플레이리스트
+      if (typeof savedRandomTracks !== 'undefined' && savedRandomTracks.length > 0) {
         const sCard = createCurationCard('🔖', '보관함', `${savedRandomTracks.length}곡 저장됨`, () => {
+          console.log("[Curation] 'Library' clicked.");
           const sTracks = savedRandomTracks.map(st => playlist.find(t => t.src === st.src)).filter(Boolean);
           openDetailView('보관함', sTracks);
         });
@@ -2125,23 +2133,38 @@
     function createCurationCard(icon, label, sub, onClick) {
       const card = document.createElement('div');
       card.className = 'curation-card';
+      card.style.pointerEvents = 'auto'; // 명시적으로 클릭 허용
+      card.style.zIndex = '100'; // 최상단 레이어 보장
       card.innerHTML = `
         <div class="card-icon">${icon}</div>
         <div class="card-label">${label}</div>
         <div class="card-sub">${sub}</div>
       `;
-      card.onclick = (e) => { e.stopPropagation(); onClick(); };
+      card.onclick = (e) => {
+        console.log(`[Curation] Card clicked: ${label}`);
+        e.stopPropagation();
+        try {
+          onClick();
+        } catch (err) {
+          console.error(`[Curation] Error in ${label} click handler:`, err);
+        }
+      };
       return card;
     }
 
     function openDetailView(title, tracks) {
+      console.log(`[View] Opening Detail: ${title}`);
+      const view = document.getElementById('curationDetailView');
       document.getElementById('detailViewTitle').innerText = title;
       renderTrackList(tracks);
-      document.getElementById('curationDetailView').classList.add('show');
+      view.style.setProperty('display', 'flex', 'important');
+      view.classList.add('show');
     }
 
     function closeDetailView() {
-      document.getElementById('curationDetailView').classList.remove('show');
+      const view = document.getElementById('curationDetailView');
+      view.style.setProperty('display', 'none', 'important');
+      view.classList.remove('show');
     }
 
     function renderTrackList(tracks) {
@@ -2193,9 +2216,14 @@
     }
 
     function openSettings() {
-      document.getElementById('settingsFullscreen').classList.add('show');
+      console.log("[Settings] Opening fullscreen settings...");
+      const settingsDiv = document.getElementById('settingsFullscreen');
+      if (!settingsDiv) return;
       
-      // 설정값 동기화
+      settingsDiv.style.setProperty('display', 'flex', 'important');
+      settingsDiv.classList.add('show');
+      
+      // 1. 커뮤니티 공유 동의 동기화
       const shareVal = localStorage.getItem('shareConsent') === 'true';
       const s2 = document.getElementById('shareOpt2');
       if (s2) s2.checked = shareVal;
@@ -2203,20 +2231,22 @@
       const nsg2 = document.getElementById('nextSongGuideOpt2');
       if (nsg2) nsg2.checked = showNextSongGuide;
       
-      // 타임스탬프 스타일 라디오 동기화
+      // 2. 타임스탬프 스타일 라디오 동기화
       const tsOpts = document.getElementsByName('tsOpt2');
       const currentTs = document.body.classList.contains('ts-style-large') ? 'large' : 
                         document.body.classList.contains('ts-style-off') ? 'off' : 'small';
-      tsOpts.forEach(opt => { if(opt.value === currentTs || (currentTs === 'small' && opt.parentElement.innerText.includes('작게'))) opt.checked = true; });
+      tsOpts.forEach(opt => { 
+        if(opt.value === currentTs || (currentTs === 'small' && opt.parentElement.innerText.includes('작게'))) opt.checked = true; 
+      });
 
-      // 비주얼라이저 라디오 동기화
+      // 3. 비주얼라이저 라디오 동기화
       if (vizMode === 'realtime') { const el = document.getElementById('vizRealtime2'); if (el) el.checked = true; }
       else { const el = document.getElementById('vizRandom2'); if (el) el.checked = true; }
 
-      // AI 라디오 상태 동기화
+      // 4. AI 라디오 상태 동기화
       updateAIRadioUI();
 
-      // PWA 설치 버튼 그룹 표시 여부
+      // 5. PWA 설치 버튼 그룹 표시 여부
       const installGroup = document.getElementById('installSettingsGroup');
       if (installGroup) {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
@@ -2225,7 +2255,11 @@
     }
 
     function closeSettings() {
-      document.getElementById('settingsFullscreen').classList.remove('show');
+      const settingsDiv = document.getElementById('settingsFullscreen');
+      if (settingsDiv) {
+        settingsDiv.style.setProperty('display', 'none', 'important');
+        settingsDiv.classList.remove('show');
+      }
     }
 
     function openExternalView(url) {

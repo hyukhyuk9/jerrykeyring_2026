@@ -2658,19 +2658,23 @@
 
     window.onload = async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      let rawId = urlParams.get('id') || '1';
-      // .html 확장자가 붙어있는 경우 제거 (리다이렉트 대응)
+      let rawId = urlParams.get('id');
+      
+      if (!rawId) {
+        window.location.href = './index.html';
+        return;
+      }
+
       let targetId = rawId.replace('.html', '');
+      console.log("[Init] Page loaded. Target NFC ID:", targetId);
 
       const authedNfc = localStorage.getItem('auth_nfc_number');
       let linkedFriends = JSON.parse(localStorage.getItem('linked_friends') || '[]');
       let isAllowedFriend = linkedFriends.some(f => String(f.nfc) === String(targetId));
-
-      // 샘플 계정(000000)과 주소창 ID(sample)의 매칭 허용
       const isSampleMatch = (authedNfc === '000000' && targetId === 'sample');
 
       if (authedNfc !== targetId && !isAllowedFriend && !isSampleMatch) {
-        window.location.href = `index.html?target=${targetId}`;
+        window.location.href = `./index.html?target=${targetId}`;
         return;
       }
 

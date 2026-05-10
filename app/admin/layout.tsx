@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             style={{ width: '100%', padding: '0.8rem', marginBottom: '1rem', background: '#1a1a1a', border: '1px solid #333', color: '#fff', borderRadius: '8px' }}
           />
           {error && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '1rem' }}>{error}</p>}
-          <button
+          <button 
             onClick={handleLogin}
             style={{ width: '100%', padding: '0.8rem', background: '#ff914d', color: '#000', border: 'none', borderRadius: '50px', fontWeight: 'bold', cursor: 'pointer' }}
           >
@@ -71,21 +71,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  const navGroups = [
-    {
-      title: 'MAIN',
-      items: [
-        { name: '대시보드 (CRUD)', path: '/admin', icon: '📊' },
-        { name: '외부 API 연동', path: '/admin/api', icon: '🔌' }
-      ]
-    },
-    {
-      title: 'CONTENT',
-      items: [
-        { name: '가사 타임라인 에디터', path: '/admin/lyrics', icon: '📝' },
-        { name: '콘텐츠 큐레이팅', path: '/admin/curation', icon: '🎯' }
-      ]
-    }
+  const navItems = [
+    { name: '대시보드 (CRUD)', path: '/admin' },
+    { name: '가사 타임라인 에디터', path: '/admin/lyrics' },
+    { name: '외부 API 연동', path: '/admin/api' }
   ];
 
   return (
@@ -96,43 +85,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <img src="/images/iphone.png" alt="Logo" style={{ height: '40px', objectFit: 'contain', marginBottom: '0.5rem' }} />
           <div style={{ fontSize: '0.8rem', color: '#888', fontWeight: 'bold' }}>ADMIN SYSTEM</div>
         </div>
-
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
-          {navGroups.map(group => (
-            <div key={group.title}>
-              <div style={{ fontSize: '0.7rem', color: '#444', fontWeight: 'bold', marginBottom: '0.8rem', paddingLeft: '0.5rem' }}>{group.title}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                {group.items.map(item => {
-                  const isActive = pathname === item.path;
-                  return (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '0.8rem 1rem',
-                        textDecoration: 'none',
-                        color: isActive ? '#ff914d' : '#888',
-                        background: isActive ? 'rgba(255, 145, 77, 0.1)' : 'transparent',
-                        borderRadius: '8px',
-                        fontSize: '0.9rem',
-                        fontWeight: isActive ? 'bold' : 'normal',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+          {navItems.map(item => {
+            const isActive = pathname === item.path;
+            return (
+              <Link 
+                key={item.path} 
+                href={item.path}
+                style={{
+                  padding: '0.8rem 1rem',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  color: isActive ? '#000' : '#ccc',
+                  background: isActive ? '#ff914d' : 'transparent',
+                  fontWeight: isActive ? 'bold' : 'normal',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
 
-        <button
+        <button 
           onClick={handleLogout}
           style={{ padding: '0.8rem', background: 'transparent', border: '1px solid #444', color: '#888', borderRadius: '8px', cursor: 'pointer', marginTop: '2rem' }}
         >

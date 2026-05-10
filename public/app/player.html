@@ -2621,16 +2621,20 @@
       }
 
       if (!isVisualizerSetup) {
+        // 백그라운드 재생 최우선: Web Audio API 라우팅 (createMediaElementSource) 차단
+        /*
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContext(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 128;
         const source = audioCtx.createMediaElementSource(player);
         source.connect(analyser); analyser.connect(audioCtx.destination);
         dataArray = new Uint8Array(analyser.frequencyBinCount);
-        smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
-        targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
+        */
+        const dummyCount = 128;
+        smoothedHeights = new Array(dummyCount).fill(0);
+        targetHeights = new Array(dummyCount).fill(0.1);
         isVisualizerSetup = true;
       }
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      // if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       canvas.style.opacity = '0.4';
       if (!animationId) drawVisualizer(0);
       loadTrack(index);
@@ -3105,6 +3109,8 @@
     function setupAudioEngine() {
       if (isVisualizerSetup) return;
       try {
+        // 백그라운드 재생 최우선: Web Audio API 라우팅 (createMediaElementSource) 차단
+        /*
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContext();
         analyser = audioCtx.createAnalyser();
@@ -3115,11 +3121,13 @@
         analyser.connect(audioCtx.destination);
 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
-        smoothedHeights = new Array(analyser.frequencyBinCount).fill(0);
-        targetHeights = new Array(analyser.frequencyBinCount).fill(0.1);
+        */
+        const dummyCount = 128;
+        smoothedHeights = new Array(dummyCount).fill(0);
+        targetHeights = new Array(dummyCount).fill(0.1);
         isVisualizerSetup = true;
-        console.log('[🎵 Audio] Engine setup complete (Real-time Mode)');
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        console.log('[🎵 Audio] Engine setup complete (Background Mode)');
+        // if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       } catch (e) {
         console.warn('[⚠️ Audio] Engine failed:', e);
       }
